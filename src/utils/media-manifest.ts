@@ -45,6 +45,10 @@ const MediaManifestSchema = v.record(
 	MediaEntrySchema,
 );
 
+export type VideoEntry = v.InferOutput<typeof VideoEntrySchema>;
+
+export type MediaEntry = v.InferOutput<typeof MediaEntrySchema>;
+
 export type MediaManifest = v.InferOutput<typeof MediaManifestSchema>;
 
 /** manifest を検証する。形が違えば、どの項目が違うかを添えて投げる */
