@@ -31,7 +31,7 @@ const CARD_ITEMS: readonly {
 				))}
 			</dl>
 		</section>
-		<div>
+		<div class="prose">
 			<Content />
 		</div>
 	</div>
@@ -41,6 +41,10 @@ const CARD_ITEMS: readonly {
 .about {
 	display: grid;
 	row-gap: 1.5rem;
+}
+
+.about h1 {
+	margin: 0;
 }
 
 .card {
