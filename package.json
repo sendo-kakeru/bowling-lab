@@ -11,6 +11,7 @@
 		"preview": "astro preview",
 		"astro": "astro",
 		"lint": "biome check .",
+		"media:push": "node scripts/media/push.ts",
 		"format": "biome check --write .",
 		"test": "TZ=UTC vitest run",
 		"typecheck": "astro sync && tsc --noEmit --runExternalCode"
