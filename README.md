@@ -31,6 +31,22 @@ pnpm typecheck  # 型チェック
 - 開発の進め方: [AI 開発体制](docs/ai-development.md)
 - 旧サイト（EmDash 製）: [sendo-kakeru/bowling-lab_old](https://github.com/sendo-kakeru/bowling-lab_old)
 
+## デプロイ
+
+Cloudflare Workers に静的サイトとして配信する。`astro build` の出力（`dist/`）を Workers Static Assets で返し、Worker のコードは持たない。設定は `wrangler.jsonc`。
+
+| いつ | ワークフロー | 結果 |
+| --- | --- | --- |
+| `main` に push（`develop` からのマージ） | `deploy-prod.yml` | `wrangler deploy` で本番（`bowling.sendo.page`）を更新する |
+| PR を作る・push する | `deploy-preview.yml` | `wrangler versions upload` で本番に出さないバージョンを上げ、プレビュー URL（`pr-<番号>-bowling-lab.<サブドメイン>.workers.dev`）を PR にコメントする |
+
+- リポジトリのシークレットに `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` を登録しておく。トークンは「Edit Cloudflare Workers」のテンプレートで作り、ゾーンに `sendo.page` を含める（独自ドメインの紐付けに要る）
+- 本番の Worker 名は `bowling-lab`。`bowling.sendo.page` が別の Worker（旧サイト）に紐付いたままだと、最初の本番デプロイで独自ドメインの紐付けが失敗する。先にダッシュボードで旧 Worker から外しておく
+- プレビュー URL は誰でも開ける。下書き（`_` で始まるファイル）はビルドに含まれないので、プレビューにも出ない
+- 手元で本番と同じ配信（末尾スラッシュの扱いなど）を確かめるときは `pnpm build && pnpm wrangler dev`
+- 存在しない URL には `dist/404.html` を返す設定にしてある。`src/pages/404.astro` を作るまでは Workers の既定の 404 になる
+- プレビューのエイリアスは Worker ごとに上限があり、超えると古いものから消える
+
 ## ブランチ名規約
 
 - `main`: 本番環境用ブランチ（直接プッシュ禁止）
