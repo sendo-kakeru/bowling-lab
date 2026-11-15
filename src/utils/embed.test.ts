@@ -11,7 +11,7 @@ describe("parseEmbed", () => {
 		["https://youtu.be/dQw4w9WgXcQ?si=abc", "video"],
 		["https://www.youtube.com/shorts/dQw4w9WgXcQ", "shorts"],
 	])("YouTube の %s から id を取り出す", (href, format) => {
-		expect(parseEmbed(href)).toEqual({
+		expect(parseEmbed({ href })).toEqual({
 			format,
 			id: "dQw4w9WgXcQ",
 			provider: "youtube",
@@ -24,16 +24,16 @@ describe("parseEmbed", () => {
 		["https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=1m30s", 90],
 		["https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=1h2m3s", 3723],
 	])("YouTube の開始位置 %s を秒にする", (href, start) => {
-		expect(parseEmbed(href)).toMatchObject({ start });
+		expect(parseEmbed({ href })).toMatchObject({ start });
 	});
 
 	test("読めない開始位置は捨てる", () => {
-		expect(parseEmbed("https://youtu.be/dQw4w9WgXcQ?t=abc")).not.toHaveProperty(
-			"start",
-		);
-		expect(parseEmbed("https://youtu.be/dQw4w9WgXcQ?t=0")).not.toHaveProperty(
-			"start",
-		);
+		expect(
+			parseEmbed({ href: "https://youtu.be/dQw4w9WgXcQ?t=abc" }),
+		).not.toHaveProperty("start");
+		expect(
+			parseEmbed({ href: "https://youtu.be/dQw4w9WgXcQ?t=0" }),
+		).not.toHaveProperty("start");
 	});
 
 	test.each([
@@ -43,7 +43,7 @@ describe("parseEmbed", () => {
 		["https://www.instagram.com/someone/reel/C1a2B3c4D5e/", "reel"],
 		["https://www.instagram.com/someone/p/C1a2B3c4D5e/", "p"],
 	])("Instagram の %s から id を取り出す", (href, format) => {
-		expect(parseEmbed(href)).toEqual({
+		expect(parseEmbed({ href })).toEqual({
 			format,
 			id: "C1a2B3c4D5e",
 			provider: "instagram",
@@ -61,10 +61,12 @@ describe("parseEmbed", () => {
 		"https://www.instagram.com/someone/tagged/",
 		"https://example.com/watch?v=dQw4w9WgXcQ",
 		"https://x.com/someone/status/1",
+		"https://constructor/",
+		"https://__proto__/x",
 		"ftp://youtu.be/dQw4w9WgXcQ",
 		"not a url",
 	])("対象外の %s は undefined", (href) => {
-		expect(parseEmbed(href)).toBeUndefined();
+		expect(parseEmbed({ href })).toBeUndefined();
 	});
 });
 
@@ -81,6 +83,14 @@ describe("embedPlugin", () => {
 		expect(html).toContain('title="YouTube の動画"');
 		expect(html).toContain('loading="lazy"');
 		expect(html).not.toContain("<p>");
+	});
+
+	test("日本語を含む URL も置き換える", () => {
+		expect(
+			render(
+				"https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=ボウリング",
+			),
+		).toContain('class="embed embed-landscape"');
 	});
 
 	test("ショートは縦長の枠にする", () => {

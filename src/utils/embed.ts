@@ -6,7 +6,7 @@ import { defineHastPlugin } from "satteri";
   記事もメモも Markdown の変換は astro.config.mjs の設定を通るので、ここに置けば両方に効く
 */
 
-export type Embed =
+type Embed =
 	| {
 			provider: "youtube";
 			id: string;
@@ -21,7 +21,11 @@ const INSTAGRAM_ID = /^[\w-]+$/;
 // t=90、t=90s、t=1m30s、t=1h2m3s
 const YOUTUBE_START = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/;
 
-function parseYouTubeStart(value: string | null): number | undefined {
+function parseYouTubeStart({
+	value,
+}: {
+	value: string | null;
+}): number | undefined {
 	const match = value ? YOUTUBE_START.exec(value) : null;
 	if (!match) return undefined;
 	const [, hours = "0", minutes = "0", seconds = "0"] = match;
@@ -29,7 +33,7 @@ function parseYouTubeStart(value: string | null): number | undefined {
 	return start > 0 ? start : undefined;
 }
 
-function parseYouTube(url: URL): Embed | undefined {
+function parseYouTube({ url }: { url: URL }): Embed | undefined {
 	const segments = url.pathname.split("/").filter(Boolean);
 	let id: string | undefined;
 	let format: "video" | "shorts" = "video";
@@ -42,7 +46,7 @@ function parseYouTube(url: URL): Embed | undefined {
 		format = "shorts";
 	}
 	if (!id || !YOUTUBE_ID.test(id)) return undefined;
-	const start = parseYouTubeStart(url.searchParams.get("t"));
+	const start = parseYouTubeStart({ value: url.searchParams.get("t") });
 	return {
 		format,
 		id,
@@ -51,7 +55,7 @@ function parseYouTube(url: URL): Embed | undefined {
 	};
 }
 
-function parseInstagram(url: URL): Embed | undefined {
+function parseInstagram({ url }: { url: URL }): Embed | undefined {
 	const segments = url.pathname.split("/").filter(Boolean);
 	// ブラウザのアドレス欄では、前にユーザー名が付く（/instagram/reel/<id>/）
 	const [format, id, ...rest] =
@@ -61,24 +65,25 @@ function parseInstagram(url: URL): Embed | undefined {
 	return { format, id, provider: "instagram" };
 }
 
-const PARSERS: Record<string, (url: URL) => Embed | undefined> = {
-	"instagram.com": parseInstagram,
-	"m.youtube.com": parseYouTube,
-	"www.instagram.com": parseInstagram,
-	"www.youtube.com": parseYouTube,
-	"youtu.be": parseYouTube,
-	"youtube.com": parseYouTube,
-};
+const PARSERS = new Map<string, (input: { url: URL }) => Embed | undefined>([
+	["instagram.com", parseInstagram],
+	["m.youtube.com", parseYouTube],
+	["www.instagram.com", parseInstagram],
+	["www.youtube.com", parseYouTube],
+	["youtu.be", parseYouTube],
+	["youtube.com", parseYouTube],
+]);
 
 /** 埋め込みにできる URL なら、その中身を返す。対象外なら undefined */
-export function parseEmbed(href: string): Embed | undefined {
-	if (!URL.canParse(href)) return undefined;
-	const url = new URL(href);
-	if (url.protocol !== "https:" && url.protocol !== "http:") return undefined;
-	return PARSERS[url.hostname]?.(url);
+export function parseEmbed({ href }: { href: string }): Embed | undefined {
+	const url = URL.parse(href);
+	if (!url || (url.protocol !== "https:" && url.protocol !== "http:")) {
+		return undefined;
+	}
+	return PARSERS.get(url.hostname)?.({ url });
 }
 
-function toIframe(embed: Embed): Element {
+function toIframe({ embed }: { embed: Embed }): Element {
 	if (embed.provider === "youtube") {
 		const query = embed.start === undefined ? "" : `?start=${embed.start}`;
 		return {
@@ -111,7 +116,7 @@ function toIframe(embed: Embed): Element {
 }
 
 /** 比率を保つ枠で iframe を囲む */
-export function toEmbedElement(embed: Embed): Element {
+function toEmbedElement({ embed }: { embed: Embed }): Element {
 	const frame =
 		embed.provider === "instagram"
 			? "embed-instagram"
@@ -119,7 +124,7 @@ export function toEmbedElement(embed: Embed): Element {
 				? "embed-portrait"
 				: "embed-landscape";
 	return {
-		children: [toIframe(embed)],
+		children: [toIframe({ embed })],
 		properties: { className: ["embed", frame] },
 		tagName: "div",
 		type: "element",
@@ -127,7 +132,11 @@ export function toEmbedElement(embed: Embed): Element {
 }
 
 /** 段落の中身が URL のリンク 1 つだけ（URL をそのまま書いた行）なら、その URL を返す */
-function readBareUrl(children: readonly ElementContent[]): string | undefined {
+function readBareUrl({
+	children,
+}: {
+	children: readonly ElementContent[];
+}): string | undefined {
 	if (children.length !== 1) return undefined;
 	const [link] = children;
 	if (link?.type !== "element" || link.tagName !== "a") return undefined;
@@ -135,7 +144,9 @@ function readBareUrl(children: readonly ElementContent[]): string | undefined {
 	if (typeof href !== "string") return undefined;
 	const [text] = link.children;
 	if (link.children.length !== 1 || text?.type !== "text") return undefined;
-	return text.value === href ? href : undefined;
+	// href は日本語などがパーセントエンコードされるので、文字列のままでは比べられない
+	const textUrl = URL.parse(text.value);
+	return textUrl && textUrl.href === URL.parse(href)?.href ? href : undefined;
 }
 
 export const embedPlugin = defineHastPlugin({
@@ -144,9 +155,9 @@ export const embedPlugin = defineHastPlugin({
 		visit(node, ctx) {
 			// 引用やリストの中の URL はリンクのまま残す
 			if (ctx.parent(node)?.type !== "root") return;
-			const href = readBareUrl(node.children);
-			const embed = href === undefined ? undefined : parseEmbed(href);
-			if (embed) ctx.replaceNode(node, toEmbedElement(embed));
+			const href = readBareUrl({ children: node.children });
+			const embed = href === undefined ? undefined : parseEmbed({ href });
+			if (embed) ctx.replaceNode(node, toEmbedElement({ embed }));
 		},
 	},
 	name: "embed",
