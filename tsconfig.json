@@ -1,8 +1,16 @@
 {
-  "extends": "astro/tsconfigs/strict",
-  "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"],
-  "compilerOptions": {
-    "strictNullChecks": true
-  }
+	"compilerOptions": {
+		"erasableSyntaxOnly": true,
+		"noUncheckedIndexedAccess": true,
+		"strictNullChecks": true
+	},
+	"contentMappers": [
+		{
+			"extensions": [".astro"],
+			"package": "@astrojs/ts-content-mapper"
+		}
+	],
+	"exclude": ["dist"],
+	"extends": "astro/tsconfigs/strict",
+	"include": [".astro/types.d.ts", "**/*"]
 }

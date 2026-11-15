@@ -22,6 +22,9 @@
 | 一覧 | `/posts`、`/posts/page/2` | `/memos`、`/memos/page/2` |
 | 1 ページの件数 | 20 | 20 |
 
+- URL は末尾スラッシュなしで統一する（`/posts`、`/posts/page/2`）
+  - Astro: `trailingSlash: "never"`。canonical、サイトマップ、`Astro.url.pathname` がスラッシュなしになる
+  - Cloudflare: `wrangler.jsonc` の `assets` に `"html_handling": "drop-trailing-slash"` を書く。ビルドの出力は `posts/index.html` で、既定の設定のままだと `/posts` が毎回 `/posts/` に転送される。サイトは表示されるので気づきにくい
 - ページ番号はパスに入れる。静的生成ではクエリパラメータで中身を変えられない
 - 1 ページ目は `/posts` と `/memos` だけで、`/page/1` は作らない
 - `/posts/2` ではなく `/posts/page/2` にするのは、詳細ページの URL と紛れないようにするため。メモに詳細ページ（`/memos/<id>`）を足すときも被らない
@@ -231,7 +234,7 @@ PR ごとに issue を分けている。仮データは最後にまとめず、�
 
 | issue | 作業 | 先に必要なもの |
 |---|---|---|
-| #16 | 土台: テンプレートの整理、MDX を外す、Valibot、テスト、型チェック、`src/consts.ts`、ページ送りの共通部品、manifest の土台 | なし |
+| #16 | 土台: テンプレートの整理、MDX を外す、Valibot、テスト、型チェック、`src/consts.ts`、ページ送りの共通部品、manifest の土台、`posts` と `pages` のコレクションの定義 | なし |
 | #17 | 記事: コレクション、`getPosts()`、一覧とページ送り、詳細、下書きの扱い、RSS | #16 |
 | #18 | メモ: `parseMemo`、ローダー、`getMemos()`、一覧とページ送り、ホームの最新 2 件 | #16 |
 | #19 | 固定ページ: About、プライバシーポリシー | #16 |

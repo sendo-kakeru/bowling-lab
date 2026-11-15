@@ -1,0 +1,75 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { getPageHref } from "../utils/pagination";
+
+/*
+  一覧のページ送り（前へ、今のページ / 全ページ数、次へ）。
+  1 ページしかないときは何も出さない
+*/
+
+interface Props extends HTMLAttributes<"nav"> {
+	/** 1 ページ目のパス。例: "/posts" */
+	basePath: string;
+	/** 今のページ（1 始まり） */
+	current: number;
+	pageCount: number;
+}
+
+const { basePath, current, pageCount, class: className, ...rest } = Astro.props;
+
+const prevHref =
+	current > 1 ? getPageHref({ basePath, page: current - 1 }) : undefined;
+const nextHref =
+	current < pageCount
+		? getPageHref({ basePath, page: current + 1 })
+		: undefined;
+---
+
+{pageCount > 1 && (
+	<nav {...rest} aria-label="ページ送り" class:list={["pagination", className]}>
+		{prevHref ? (
+			<a href={prevHref} rel="prev">
+				前へ
+			</a>
+		) : (
+			<span aria-hidden="true" />
+		)}
+		<span>
+			<span class="sr-only">ページ</span>
+			{current} / {pageCount}
+		</span>
+		{nextHref ? (
+			<a href={nextHref} rel="next">
+				次へ
+			</a>
+		) : (
+			<span aria-hidden="true" />
+		)}
+	</nav>
+)}
+
+<style>
+.pagination {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+	align-items: center;
+	column-gap: 1rem;
+}
+
+.pagination > :first-child {
+	justify-self: start;
+}
+
+.pagination > :last-child {
+	justify-self: end;
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+</style>

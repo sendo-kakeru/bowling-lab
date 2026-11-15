@@ -5,7 +5,7 @@
 ## 流れ
 
 1. 人間が依頼する。小さくない依頼は「まず方針だけ出して」と頼み、方針を確かめてから実装させる
-2. AI が実装し、`pnpm build`（用意できたあとは `pnpm test` と `pnpm typecheck` も）を通し、`/code-review high` でセルフレビューしてから PR を作る。PR 本文は `.github/pull_request_template.md` の欄で書く
+2. AI が実装し、`pnpm lint`、`pnpm typecheck`、`pnpm test`、`pnpm build` を通し、`/code-review high` でセルフレビューしてから PR を作る。PR 本文は `.github/pull_request_template.md` の欄で書く
 3. 人間が PR の「確認してほしいこと」に沿って動作を確かめ、マージする
 
 ## ルールの置き場所
@@ -32,7 +32,6 @@ AI のレビューが見落としたものや、妥当でない設計に気づ�
 
 旧リポジトリ（`sendo-kakeru/bowling-lab_old`）にあったものは、そこから移植できる。
 
-- [ ] Biome（旧リポジトリの `biome.json`）。入れたら `.claude/rules/coding.md` の「Biome を入れるまでの間だけ書いておくもの」を消す
 - [ ] CI（lint、型チェック、ユニットテスト、ビルド。旧リポジトリの `.github/workflows/`）
 - [ ] Renovate（旧リポジトリの `renovate.json`）と、Node / pnpm のバージョン固定（`mise.toml`）
 - [ ] デプロイと、PR ごとのプレビュー URL の発行（動作確認だけでマージする前提）

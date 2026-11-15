@@ -1,20 +1,15 @@
-import { defineCollection } from 'astro:content';
-import { glob } from 'astro/loaders';
-import { z } from 'astro/zod';
+import { defineCollection } from "astro:content";
+import { glob } from "astro/loaders";
 
-const blog = defineCollection({
-	// Load Markdown and MDX files in the `src/content/blog/` directory.
-	loader: glob({ base: './src/content/blog', pattern: '**/*.{md,mdx}' }),
-	// Type-check frontmatter using a schema
-	schema: ({ image }) =>
-		z.object({
-			title: z.string(),
-			description: z.string(),
-			// Transform string to Date object
-			pubDate: z.coerce.date(),
-			updatedDate: z.coerce.date().optional(),
-			heroImage: z.optional(image()),
-		}),
+// コレクションには schema を渡さない。検証と型付けは取得関数（Valibot）で行う。
+// 理由は docs/design/content.md の「スキーマと型」
+
+const posts = defineCollection({
+	loader: glob({ base: "./src/content/posts", pattern: "*.md" }),
 });
 
-export const collections = { blog };
+const pages = defineCollection({
+	loader: glob({ base: "./src/content/pages", pattern: "*.md" }),
+});
+
+export const collections = { pages, posts };
