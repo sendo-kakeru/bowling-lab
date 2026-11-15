@@ -23,7 +23,7 @@ pnpm build    # 本番ビルド（dist/）
 pnpm preview  # ビルド結果の確認
 pnpm lint     # lint と整形の確認（Biome）
 pnpm format   # lint の自動修正と整形
-pnpm test     # ユニットテスト（pnpm test:watch で変更を監視）
+pnpm test     # ユニットテスト
 pnpm typecheck  # 型チェック
 ```
 

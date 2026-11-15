@@ -23,6 +23,6 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
-# media: originals waiting to be uploaded or already uploaded (they carry location data)
+# メディアの原本（アップロード前と、アップロード済み）。位置情報が入っているのでコミットしない
 media/inbox/
 media/uploaded/
