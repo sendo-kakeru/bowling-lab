@@ -1,5 +1,4 @@
-// サイトは静的に書き出し（astro build）、dist/ を Workers Static Assets として配信する。
-// Worker のコード（main）は持たない。リクエストごとの処理が要るものは、ここに足す前に設計を見直す
+// astro build の出力（dist/）を静的アセットとして配信する。Worker のコードは持たない
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"assets": {

@@ -34,7 +34,7 @@ AI のレビューが見落としたものや、妥当でない設計に気づ�
 
 - [ ] CI（lint、型チェック、ユニットテスト、ビルド。旧リポジトリの `.github/workflows/`）
 - [ ] Renovate（旧リポジトリの `renovate.json`）と、Node / pnpm のバージョン固定（`mise.toml`）
-- [x] 本番へのデプロイ（[README](../README.md#デプロイ)）
+- [x] 本番へのデプロイ（`main` への push で `.github/workflows/deploy-prod.yml`）
 - [ ] PR ごとのプレビュー URL の発行（動作確認だけでマージする前提）
 - [ ] AI レビューの GitHub Actions ワークフロー。API キーをリポジトリのシークレットに登録してから作る
 - [ ] 表示の差分比較（ページのスクリーンショット）と、全ページのスモークテスト
