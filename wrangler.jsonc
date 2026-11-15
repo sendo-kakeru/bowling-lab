@@ -13,8 +13,7 @@
 	"compatibility_date": "2026-11-01",
 	"name": "bowling-lab",
 	"observability": { "enabled": true },
-	"preview_urls": true,
 	"routes": [{ "custom_domain": true, "pattern": "bowling.sendo.page" }],
-	// 本番は独自ドメインだけで配信する。workers.dev の URL は PR のプレビューにだけ使う
+	// 本番は独自ドメインだけで配信し、workers.dev の URL は出さない
 	"workers_dev": false
 }
