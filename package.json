@@ -14,6 +14,7 @@
 		"media:push": "node scripts/media/push.ts",
 		"memo": "node scripts/content/memo.ts new",
 		"memo:add": "node scripts/content/memo.ts add",
+		"post": "node scripts/content/post.ts",
 		"format": "biome check --write .",
 		"test": "TZ=UTC vitest run",
 		"typecheck": "astro sync && tsc --noEmit --runExternalCode"
