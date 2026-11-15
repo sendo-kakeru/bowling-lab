@@ -1,4 +1,6 @@
 ---
+import { Image } from "astro:assets";
+import avatar from "../assets/avatar.png";
 import Base from "../layouts/Base.astro";
 import { getPage } from "../utils/pages";
 
@@ -7,6 +9,8 @@ const { data, Content } = await getPage({ id: "about" });
 
 <Base title={data.title}>
 	<h1>{data.title}</h1>
+	{/* 直後の本文が「sendo-kakeru です。」で始まるので、画像は飾りとして読み上げない */}
+	<Image alt="" densities={[1, 2]} loading="eager" src={avatar} width={96} />
 	<div class="prose">
 		<Content />
 	</div>
