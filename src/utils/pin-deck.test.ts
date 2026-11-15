@@ -391,22 +391,11 @@ describe("toView", () => {
 		expect(view.button).toEqual({ hint: "（もう一度投げる）", text: "AGAIN" });
 	});
 
-	it("残りがあると欄に倒した本数、残ったピンの番号と文", () => {
+	it("残りがあると欄に倒した本数だけを出し、残ったピンは示さない", () => {
 		const view = toView({ state: { phase: "result", shot: LEAVE } });
-		expect(view.result).toEqual({
-			box: "count",
-			count: 7,
-			text: "残り 4・7・10",
-		});
-		expect(view.speech).toBe("7 本倒れました。残りは 4 番、7 番、10 番ピン");
+		expect(view.result).toEqual({ box: "count", count: 7, text: undefined });
+		expect(view.speech).toBe("7 本倒れました");
 		expect(view.falls.map(({ pin }) => pin)).toEqual([1, 2, 3, 5, 6, 8, 9]);
-	});
-
-	it("1 本残りの文", () => {
-		const shot = createShot({ random: () => 0.5, standing: [10] });
-		const view = toView({ state: { phase: "result", shot } });
-		expect(view.result?.text).toBe("残り 10");
-		expect(view.speech).toBe("9 本倒れました。残りは 10 番ピン");
 	});
 
 	it("ガターは欄に G、GUTTER、1 本も倒れなかった文", () => {

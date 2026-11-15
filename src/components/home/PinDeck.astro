@@ -109,7 +109,7 @@ function pinStyle({
 						? "G"
 						: ""}
 			</span>
-			<span data-pin-deck-result>{view.result?.text}</span>
+			<span class="result-text" data-pin-deck-result>{view.result?.text}</span>
 		</p>
 		<!-- 名前は見える文字に説明を続けたもの。sr-only の span で足すと、Chrome は間に空白を入れる -->
 		<Button
@@ -230,7 +230,7 @@ function setupPinDeck({ root }: { root: HTMLElement }): void {
 					: view.result.box === "gutter"
 						? "G"
 						: "";
-			resultText.textContent = view.result.text;
+			resultText.textContent = view.result.text ?? "";
 		}
 		buttonText.textContent = view.button.text;
 		button.setAttribute("aria-label", `${view.button.text}${view.button.hint}`);
@@ -499,6 +499,15 @@ for (const root of document.querySelectorAll<HTMLElement>("[data-pin-deck]"))
 	background: var(--pin-highlight);
 	font-size: var(--font-size-16);
 	letter-spacing: 0;
+}
+
+/* 本数だけのときは文字が無いので、札を欄だけの大きさにする */
+.result-text:empty {
+	display: none;
+}
+
+.result:has(.result-text:empty) {
+	padding-right: 0.25rem;
 }
 
 .pin-deck[data-phase="idle"] .result {

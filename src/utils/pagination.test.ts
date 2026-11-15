@@ -89,7 +89,7 @@ describe("getRestPageStaticPaths", () => {
 describe("getFrameItems", () => {
 	test.each([
 		{ current: 1, expected: [1], pageCount: 1 },
-		{ current: 3, expected: [1, 2, 3, 4, 5], pageCount: 5 },
+		{ current: 4, expected: [1, 2, 3, 4, 5, 6, 7], pageCount: 7 },
 	])(
 		"$pageCount ページまでは全部並べる",
 		({ current, pageCount, expected }) => {
@@ -98,15 +98,27 @@ describe("getFrameItems", () => {
 	);
 
 	test.each([
-		{ current: 1, expected: [1, 2, 3, GAP, 9] },
-		{ current: 3, expected: [1, 2, 3, GAP, 9] },
-		{ current: 4, expected: [1, GAP, 4, GAP, 9] },
-		{ current: 6, expected: [1, GAP, 6, GAP, 9] },
-		{ current: 7, expected: [1, GAP, 7, 8, 9] },
-		{ current: 9, expected: [1, GAP, 7, 8, 9] },
-	])("9 ページの $current ページ目", ({ current, expected }) => {
-		const items = getFrameItems({ current, pageCount: 9 });
+		{ current: 1, expected: [1, 2, 3, 4, 5, GAP, 12] },
+		{ current: 4, expected: [1, 2, 3, 4, 5, GAP, 12] },
+		{ current: 5, expected: [1, GAP, 4, 5, 6, GAP, 12] },
+		{ current: 6, expected: [1, GAP, 5, 6, 7, GAP, 12] },
+		{ current: 8, expected: [1, GAP, 7, 8, 9, GAP, 12] },
+		{ current: 9, expected: [1, GAP, 8, 9, 10, 11, 12] },
+		{ current: 12, expected: [1, GAP, 8, 9, 10, 11, 12] },
+	])("12 ページの $current ページ目", ({ current, expected }) => {
+		const items = getFrameItems({ current, pageCount: 12 });
 		expect(items).toEqual(expected);
 		expect(items).toContain(current);
+	});
+
+	test("どのページでも並べる数は同じで、最初と最後のページを含む", () => {
+		for (const pageCount of [8, 9, 12, 30]) {
+			for (let current = 1; current <= pageCount; current++) {
+				const items = getFrameItems({ current, pageCount });
+				expect(items).toHaveLength(7);
+				expect(items.at(0)).toBe(1);
+				expect(items.at(-1)).toBe(pageCount);
+			}
+		}
 	});
 });

@@ -323,8 +323,8 @@ export interface ResultView {
 	box: "strike" | "count" | "gutter";
 	/** 倒した本数 */
 	count: number;
-	/** 欄の横の文字 */
-	text: string;
+	/** 欄の横の文字。本数だけのときは欄の数字で足りるので無い */
+	text: "STRIKE" | "GUTTER" | undefined;
 }
 
 export interface DeckView {
@@ -349,14 +349,13 @@ function toResultView({ shot }: { shot: Shot }): ResultView {
 	if (shot.standing.length === 0)
 		return { box: "strike", count, text: "STRIKE" };
 	if (count === 0) return { box: "gutter", count, text: "GUTTER" };
-	return { box: "count", count, text: `残り ${shot.standing.join("・")}` };
+	return { box: "count", count, text: undefined };
 }
 
 function toSpeech({ shot }: { shot: Shot }): string {
 	if (shot.standing.length === 0) return "ストライク。10 本すべて倒れました";
 	if (shot.falls.length === 0) return "ガター。1 本も倒れませんでした";
-	const rest = shot.standing.map((pin) => `${pin} 番`).join("、");
-	return `${shot.falls.length} 本倒れました。残りは ${rest}ピン`;
+	return `${shot.falls.length} 本倒れました`;
 }
 
 /** サーバーと script が同じ値で描くための、状態ごとの表示の値 */

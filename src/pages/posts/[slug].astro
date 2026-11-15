@@ -27,7 +27,6 @@ const headerImage =
 		: undefined;
 // 見出しの下のリードは、フロントマターに書いた description だけ。本文からの抜粋だと冒頭の段落と同じ文が並ぶ
 const lead: unknown = post.entry.data.description;
-const hasToc = post.toc.length > 0;
 ---
 
 <Base description={post.description} title={post.title}>
@@ -58,7 +57,7 @@ const hasToc = post.toc.length > 0;
 				</div>
 			)}
 
-			<div class="post-body" data-has-toc={hasToc}>
+			<div class="post-body">
 				<TableOfContents
 					class="post-toc-collapsible"
 					items={post.toc}
@@ -258,8 +257,8 @@ const hasToc = post.toc.length > 0;
 
 	.post-body {
 		padding: 2.25rem var(--post-padding-inline) 3rem;
+		/* 中央に置くと、左に寄せた見出しと本文の左端がずれるので左に寄せる */
 		grid-template-columns: minmax(0, var(--layout-content-width));
-		justify-content: center;
 	}
 
 	.post-nav {
@@ -309,8 +308,11 @@ const hasToc = post.toc.length > 0;
 		padding-top: 2.5rem;
 	}
 
-	/* 目次がない記事は 768px と同じく本文だけを中央に置く */
-	.post-body[data-has-toc="true"] {
+	/*
+	  目次がない記事（見出しが 3 つ未満）も同じ 2 列にして右を空ける。
+	  本文だけを中央に置くと、左に寄せた見出しと本文の左端がずれ、記事ごとに本文の位置が変わる
+	*/
+	.post-body {
 		grid-template-columns: minmax(0, var(--layout-content-width)) var(
 				--post-toc-width
 			);
@@ -323,8 +325,7 @@ const hasToc = post.toc.length > 0;
 	  見出し・画像・本文を「本文 + 間 + 目次」の幅にそろえて中央に置く。余りを左右に等しく分け、タイトルの左だけが空かないようにする。
 	  % はカードの中の幅
 	*/
-	.post:has(.post-body[data-has-toc="true"])
-		:is(.post-header, .post-image, .post-body) {
+	:is(.post-header, .post-image, .post-body) {
 		padding-inline: max(
 			var(--post-toc-padding-inline),
 			calc(
@@ -359,7 +360,7 @@ const hasToc = post.toc.length > 0;
 		padding: 0.5rem;
 	}
 
-	.post-body[data-has-toc="true"] .post-content {
+	.post-content {
 		grid-column: 1;
 		grid-row: 1;
 	}

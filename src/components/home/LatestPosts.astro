@@ -2,10 +2,10 @@
 import type { HTMLAttributes } from "astro/types";
 import type { Post } from "../../utils/get-posts";
 import PostCard from "../PostCard.astro";
+import SectionHead from "./SectionHead.astro";
 
 /*
-  ホームの新しい記事（LATEST POSTS）。
-  「すべて見る」はスマホでは区画の下、768px 以上は見出しの右に置く。リンクは 1 つのまま、グリッドの領域で動かす。
+  ホームの新しい記事（POSTS）
 */
 
 interface Props extends HTMLAttributes<"section"> {
@@ -21,21 +21,21 @@ const { posts, class: className, ...rest } = Astro.props;
 	aria-labelledby="latest-posts-title"
 	class:list={["latest-posts", className]}
 >
-	<h2 class="title text-section-title" id="latest-posts-title">LATEST POSTS</h2>
+	<SectionHead
+		moreHref={posts.length > 0 ? "/posts" : undefined}
+		moreLabel="記事をすべて見る"
+		title="POSTS"
+		titleId="latest-posts-title"
+	/>
 
 	{posts.length > 0 ? (
-		<>
-			<ol class="list">
-				{posts.map((post) => (
-					<li>
-						<PostCard headingLevel={3} layout="tile" post={post} />
-					</li>
-				))}
-			</ol>
-			<a aria-label="記事をすべて見る" class="more" href="/posts">
-				すべて見る <span aria-hidden="true">→</span>
-			</a>
-		</>
+		<ol class="list">
+			{posts.map((post) => (
+				<li>
+					<PostCard headingLevel={3} layout="tile" post={post} />
+				</li>
+			))}
+		</ol>
 	) : (
 		<p class="empty">まだ記事はありません。</p>
 	)}
@@ -44,21 +44,12 @@ const { posts, class: className, ...rest } = Astro.props;
 <style>
 .latest-posts {
 	display: grid;
-	grid-template-areas:
-		"title"
-		"list"
-		"more";
+	grid-template-columns: minmax(0, 1fr);
 	row-gap: 1rem;
-}
-
-.title {
-	grid-area: title;
-	justify-self: start;
 }
 
 .list {
 	display: grid;
-	grid-area: list;
 	row-gap: 0.75rem;
 	padding: 0;
 	list-style: none;
@@ -69,60 +60,16 @@ const { posts, class: className, ...rest } = Astro.props;
 	display: grid;
 }
 
-.more {
-	grid-area: more;
-	padding-block: 0.75rem;
-	border-radius: var(--radius-full);
-	background: var(--color-card);
-	color: var(--color-ink-900);
-	font-size: var(--font-size-15);
-	font-weight: 600;
-	line-height: 1.6;
-	text-align: center;
-	text-decoration: none;
-}
-
-@media (hover: hover) {
-	.more {
-		transition: background-color 0.15s;
-	}
-
-	.more:hover {
-		background: var(--color-chip);
-	}
-}
-
 .empty {
-	grid-area: list;
 	color: var(--color-ink-900);
 	font-size: var(--font-size-14);
 	line-height: 1.7;
 }
 
 @media (width >= 768px) {
-	.latest-posts {
-		grid-template-columns: minmax(0, 1fr) auto;
-		grid-template-areas:
-			"title more"
-			"list list";
-		align-items: center;
-	}
-
 	.list {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 1.5rem;
-	}
-
-	.more {
-		padding: 0.375rem 1rem;
-		font-size: var(--font-size-14);
-	}
-}
-
-/* 強制カラーモードでは背景が消えるので、枠でボタンの形を残す */
-@media (forced-colors: active) {
-	.more {
-		border: 1px solid;
 	}
 }
 </style>

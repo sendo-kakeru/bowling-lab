@@ -1,0 +1,82 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+/*
+  ホームの区画の見出しと「すべて見る」。どの幅でも見出しの右に置く
+*/
+
+interface Props extends HTMLAttributes<"div"> {
+	/** 見出しの id。区画の aria-labelledby から指す */
+	titleId: string;
+	title: string;
+	/** 省くと「すべて見る」を出さない（中身が無いとき） */
+	moreHref?: string;
+	/** 「すべて見る」の名前。例: "記事をすべて見る" */
+	moreLabel: string;
+}
+
+const {
+	titleId,
+	title,
+	moreHref,
+	moreLabel,
+	class: className,
+	...rest
+} = Astro.props;
+---
+
+<div {...rest} class:list={["section-head", className]}>
+	<h2 class="text-section-title" id={titleId}>{title}</h2>
+	{moreHref !== undefined && (
+		<a aria-label={moreLabel} class="more" href={moreHref}>
+			すべて見る <span aria-hidden="true">→</span>
+		</a>
+	)}
+</div>
+
+<style>
+.section-head {
+	display: grid;
+	grid-template-columns: auto auto;
+	justify-content: space-between;
+	align-items: center;
+	column-gap: 0.75rem;
+}
+
+.more {
+	padding: 0.25rem 0.75rem;
+	border-radius: var(--radius-full);
+	background: var(--color-card);
+	color: var(--color-ink-900);
+	font-size: var(--font-size-13);
+	font-weight: 600;
+	line-height: 1.75;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+/* タッチ端末でホバーが残らないように。動きを減らす設定ではリセット（base.css）が止める */
+@media (hover: hover) {
+	.more {
+		transition: background-color 0.15s;
+	}
+
+	.more:hover {
+		background: var(--color-chip);
+	}
+}
+
+@media (width >= 768px) {
+	.more {
+		padding: 0.375rem 1rem;
+		font-size: var(--font-size-14);
+	}
+}
+
+/* 強制カラーモードでは背景が消えるので、枠でボタンの形を残す */
+@media (forced-colors: active) {
+	.more {
+		border: 1px solid;
+	}
+}
+</style>
