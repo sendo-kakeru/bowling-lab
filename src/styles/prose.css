@@ -17,6 +17,11 @@
 	line-height: 1.4;
 }
 
+/* 見出しで始まる本文でも、上に余白を足さない */
+.prose > :first-child {
+	margin-top: 0;
+}
+
 .prose h2 {
 	font-size: 1.5rem;
 }
@@ -31,6 +36,11 @@
 
 .prose :is(ul, ol) {
 	padding-left: 1.5rem;
+}
+
+/* 一覧の中に置くと、ブラウザの既定では 2 階層目の白丸になる */
+.prose ul {
+	list-style-type: disc;
 }
 
 .prose blockquote {
