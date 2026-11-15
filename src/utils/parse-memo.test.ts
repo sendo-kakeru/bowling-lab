@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { MemoParseError, parseMemo } from "./parse-memo.ts";
+import { MemoParseError, parseMemo, parseMemoSections } from "./parse-memo.ts";
 
 /** 行の配列を 1 つの本文にする。行番号を数えやすくするため */
 function source(...lines: string[]): string {
@@ -256,5 +256,43 @@ describe("parseMemo", () => {
 		test("空のファイルは空の配列", () => {
 			expect(parseMemo({ source: "" })).toEqual([]);
 		});
+	});
+});
+
+describe("parseMemoSections", () => {
+	test("末尾の見出しの下が空なら、その区切りも本文を空にして返す", () => {
+		const sections = parseMemoSections({
+			source: source(
+				"## 2026-11-06 21:14",
+				"本文",
+				"",
+				"## 2026-11-06 21:38",
+				"",
+			),
+		});
+
+		expect(sections).toEqual([
+			{ line: 1, markdown: "本文", postedAt: "2026-11-06 21:14" },
+			{ line: 4, markdown: "", postedAt: "2026-11-06 21:38" },
+		]);
+	});
+
+	test("見出しだけのファイルは、空の区切り 1 つ", () => {
+		expect(parseMemoSections({ source: "## 2026-11-06 21:14\n" })).toEqual([
+			{ line: 1, markdown: "", postedAt: "2026-11-06 21:14" },
+		]);
+	});
+
+	test("途中の見出しの下が空なら、parseMemo と同じくエラー", () => {
+		expect(() =>
+			parseMemoSections({
+				source: source(
+					"## 2026-11-06 21:14",
+					"",
+					"## 2026-11-06 21:38",
+					"続き",
+				),
+			}),
+		).toThrow(MemoParseError);
 	});
 });
