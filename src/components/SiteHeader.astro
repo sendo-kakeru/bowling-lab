@@ -1,13 +1,12 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 import { NAV_ITEMS, SITE_TITLE } from "../consts";
-import { toPublicPath } from "../utils/url";
 
 type Props = HTMLAttributes<"header">;
 
 const { class: className, ...rest } = Astro.props;
 
-const pathname = toPublicPath({ pathname: Astro.url.pathname });
+const { pathname } = Astro.url;
 
 /**
  * リンク先そのものにいるなら "page"、その配下（/posts/page/2 や /posts/<スラッグ>）にいるなら "true"。

@@ -22,6 +22,9 @@
 | 一覧 | `/posts`、`/posts/page/2` | `/memos`、`/memos/page/2` |
 | 1 ページの件数 | 20 | 20 |
 
+- URL は末尾スラッシュなしで統一する（`/posts`、`/posts/page/2`）
+  - Astro: `trailingSlash: "never"`。canonical、サイトマップ、`Astro.url.pathname` がスラッシュなしになる
+  - Cloudflare: `wrangler.jsonc` の `assets` に `"html_handling": "drop-trailing-slash"` を書く。ビルドの出力は `posts/index.html` で、既定の設定のままだと `/posts` が毎回 `/posts/` に転送される。サイトは表示されるので気づきにくい
 - ページ番号はパスに入れる。静的生成ではクエリパラメータで中身を変えられない
 - 1 ページ目は `/posts` と `/memos` だけで、`/page/1` は作らない
 - `/posts/2` ではなく `/posts/page/2` にするのは、詳細ページの URL と紛れないようにするため。メモに詳細ページ（`/memos/<id>`）を足すときも被らない
