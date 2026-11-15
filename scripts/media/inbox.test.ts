@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import { buildKey, scanInbox } from "./inbox.ts";
+import { buildKey, markdownSnippet, scanInbox } from "./inbox.ts";
 
 describe("buildKey", () => {
 	test("論理パスのディレクトリを保ち、ハッシュと出力の拡張子を付ける", () => {
@@ -122,5 +122,22 @@ describe("scanInbox", () => {
 			"京都/がっこう.jpg".normalize("NFC"),
 		]);
 		expect(items[0]?.sourcePath).toBe(path.join(inboxDir, nfd));
+	});
+});
+
+describe("markdownSnippet", () => {
+	test("論理パスを media: で参照する", () => {
+		expect(markdownSnippet({ logicalPath: "2026/kyoto/cat.jpg" })).toBe(
+			"![](media:2026/kyoto/cat.jpg)",
+		);
+	});
+
+	test.each([
+		"2026/スクリーンショット 2026-11-15 10.00.00.png",
+		"2026/IMG_0001 (1).jpg",
+	])("空白や括弧を含む %s は <> で囲む", (logicalPath) => {
+		expect(markdownSnippet({ logicalPath })).toBe(
+			`![](<media:${logicalPath}>)`,
+		);
 	});
 });

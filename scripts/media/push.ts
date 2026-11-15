@@ -1,10 +1,11 @@
-import { mkdir, mkdtemp, rename, rm } from "node:fs/promises";
+import { access, mkdir, mkdtemp, rename, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { processImageItem } from "./image.ts";
 import {
 	type InboxItem,
+	markdownSnippet,
 	type ProcessedItem,
 	scanInbox,
 	type UploadFile,
@@ -26,27 +27,27 @@ const INBOX_DIR = path.join(ROOT, "media/inbox");
 const UPLOADED_DIR = path.join(ROOT, "media/uploaded");
 const MANIFEST_PATH = path.join(ROOT, "src/data/media-manifest.json");
 
-const { values: options } = parseArgs({
-	options: {
-		copy: { default: false, type: "boolean" },
-		"dry-run": { default: false, type: "boolean" },
-		force: { default: false, type: "boolean" },
-	},
-});
-const dryRun = options["dry-run"];
-const { force } = options;
-
 const failures: { logicalPath: string; message: string }[] = [];
 
 try {
 	await main();
 } catch (error) {
 	// ffmpeg がない、.env が足りないなど、続けられないときはメッセージだけを出す
-	console.error(errorMessage(error));
+	console.error(errorMessage({ error }));
 	process.exitCode = 1;
 }
 
 async function main(): Promise<void> {
+	const { values: options } = parseArgs({
+		options: {
+			copy: { default: false, type: "boolean" },
+			"dry-run": { default: false, type: "boolean" },
+			force: { default: false, type: "boolean" },
+		},
+	});
+	const dryRun = options["dry-run"];
+	const { force } = options;
+
 	const { items, unsupported } = await scanInbox({ inboxDir: INBOX_DIR });
 	for (const logicalPath of unsupported) {
 		failures.push({ logicalPath, message: "扱えない種類のファイル" });
@@ -79,7 +80,7 @@ async function main(): Promise<void> {
 			} catch (error) {
 				failures.push({
 					logicalPath: item.logicalPath,
-					message: errorMessage(error),
+					message: errorMessage({ error }),
 				});
 			}
 		}
@@ -94,15 +95,23 @@ async function main(): Promise<void> {
 				filePath: MANIFEST_PATH,
 				manifest: addEntries({
 					entries: succeeded.map(({ result }) => result),
-					force,
 					manifest,
 				}),
 			});
-			for (const { item } of succeeded) await moveToUploaded({ item });
+			for (const { item } of succeeded) {
+				try {
+					await moveToUploaded({ item });
+				} catch (error) {
+					failures.push({
+						logicalPath: item.logicalPath,
+						message: `アップロードと manifest への追記は済んだが、原本を移せなかった: ${errorMessage({ error })}`,
+					});
+				}
+			}
 		}
 
-		const snippets = succeeded.map(
-			({ item }) => `![](media:${item.logicalPath})`,
+		const snippets = succeeded.map(({ item }) =>
+			markdownSnippet({ logicalPath: item.logicalPath }),
 		);
 		if (snippets.length > 0) {
 			console.log(`\n${snippets.join("\n")}`);
@@ -159,19 +168,37 @@ async function uploadAll({
 	for (const [item, error] of errors) {
 		failures.push({
 			logicalPath: item.logicalPath,
-			message: `アップロードに失敗した: ${errorMessage(error)}`,
+			message: `アップロードに失敗した: ${errorMessage({ error })}`,
 		});
 	}
 	return processed.filter(({ item }) => !errors.has(item));
 }
 
+/** 原本を media/uploaded へ移す。同じ名前の原本がすでにあれば、上書きせず別の名前にする */
 async function moveToUploaded({ item }: { item: InboxItem }): Promise<void> {
-	const destination = path.join(
-		UPLOADED_DIR,
-		path.relative(INBOX_DIR, item.sourcePath),
+	const { dir, ext, name } = path.parse(
+		path.join(UPLOADED_DIR, path.relative(INBOX_DIR, item.sourcePath)),
 	);
-	await mkdir(path.dirname(destination), { recursive: true });
-	await rename(item.sourcePath, destination);
+	await mkdir(dir, { recursive: true });
+	for (let n = 1; ; n++) {
+		const destination = path.join(
+			dir,
+			n === 1 ? `${name}${ext}` : `${name} (${n})${ext}`,
+		);
+		if (!(await exists({ filePath: destination }))) {
+			await rename(item.sourcePath, destination);
+			return;
+		}
+	}
+}
+
+async function exists({ filePath }: { filePath: string }): Promise<boolean> {
+	try {
+		await access(filePath);
+		return true;
+	} catch {
+		return false;
+	}
 }
 
 function printDryRun({ result }: { result: ProcessedItem }): void {
@@ -182,6 +209,6 @@ function printDryRun({ result }: { result: ProcessedItem }): void {
 	console.log(`  manifest: ${JSON.stringify(result.entry)}`);
 }
 
-function errorMessage(error: unknown): string {
+function errorMessage({ error }: { error: unknown }): string {
 	return error instanceof Error ? error.message : String(error);
 }

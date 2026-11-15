@@ -45,7 +45,6 @@ describe("addEntries", () => {
 				{ entry: DOG, logicalPath: "2026/kyoto/dog.jpg" },
 				{ entry: DOG, logicalPath: "2025/a.jpg" },
 			],
-			force: false,
 			manifest: MANIFEST,
 		});
 
@@ -58,21 +57,10 @@ describe("addEntries", () => {
 		expect(MANIFEST).toEqual({ "2026/kyoto/cat.jpg": CAT });
 	});
 
-	test("--force でなければ、manifest にある論理パスを上書きしない", () => {
-		expect(() =>
-			addEntries({
-				entries: [{ entry: DOG, logicalPath: "2026/kyoto/cat.jpg" }],
-				force: false,
-				manifest: MANIFEST,
-			}),
-		).toThrow("--force");
-	});
-
-	test("--force なら上書きする", () => {
+	test("同じ論理パスは上書きする", () => {
 		expect(
 			addEntries({
 				entries: [{ entry: DOG, logicalPath: "2026/kyoto/cat.jpg" }],
-				force: true,
 				manifest: MANIFEST,
 			}),
 		).toEqual({ "2026/kyoto/cat.jpg": DOG });

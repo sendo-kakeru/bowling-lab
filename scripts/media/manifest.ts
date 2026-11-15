@@ -43,25 +43,16 @@ export function planItems<T extends { logicalPath: string }>({
 	return { process, skip };
 }
 
-/** 項目を足した新しい manifest を返す。差分が安定するよう、論理パスの順に並べる */
+/** 項目を足した（同じ論理パスは上書きした）新しい manifest を返す。差分が安定するよう、論理パスの順に並べる */
 export function addEntries({
 	entries,
-	force,
 	manifest,
 }: {
 	entries: { entry: MediaManifest[string]; logicalPath: string }[];
-	force: boolean;
 	manifest: MediaManifest;
 }): MediaManifest {
 	const next = { ...manifest };
-	for (const { entry, logicalPath } of entries) {
-		if (!force && Object.hasOwn(next, logicalPath)) {
-			throw new Error(
-				`${logicalPath} は manifest にある。上書きするには --force を付ける`,
-			);
-		}
-		next[logicalPath] = entry;
-	}
+	for (const { entry, logicalPath } of entries) next[logicalPath] = entry;
 	return Object.fromEntries(
 		Object.entries(next).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
 	);

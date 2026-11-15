@@ -1,4 +1,5 @@
-import { readFile } from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import { stat } from "node:fs/promises";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import * as v from "valibot";
 import type { UploadFile } from "./inbox.ts";
@@ -43,9 +44,10 @@ export function createR2Uploader({
 	return async ({ contentType, key, path }) => {
 		await client.send(
 			new PutObjectCommand({
-				Body: await readFile(path),
+				Body: createReadStream(path),
 				Bucket: env.R2_BUCKET,
 				CacheControl: "public, max-age=31536000, immutable",
+				ContentLength: (await stat(path)).size,
 				ContentType: contentType,
 				Key: key,
 			}),

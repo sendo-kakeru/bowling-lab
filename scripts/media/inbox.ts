@@ -6,7 +6,7 @@ import type { MediaManifest } from "../../src/utils/media-manifest.ts";
 export type ImageFormat = "jpeg" | "png";
 
 interface ImageKind {
-	/** sharp のプリビルド版は HEIC を読めないので、先に sips で JPEG にする */
+	/** sharp のプリビルド版は HEIC を読めないので、先に sips で変換する */
 	convertHeic: boolean;
 	format: ImageFormat;
 	kind: "image";
@@ -100,6 +100,18 @@ export function buildKey({
 		.filter((part) => part !== undefined)
 		.join(".");
 	return path.posix.join(prefix, dir, fileName);
+}
+
+/** md に貼る記法。空白や括弧を含むパスは、CommonMark で画像として読まれるよう `<>` で囲む */
+export function markdownSnippet({
+	logicalPath,
+}: {
+	logicalPath: string;
+}): string {
+	const destination = /[\s()<>]/.test(logicalPath)
+		? `<media:${logicalPath}>`
+		: `media:${logicalPath}`;
+	return `![](${destination})`;
 }
 
 /** 加工後の中身から作る短いハッシュ。中身が変われば URL が変わるので、長期間キャッシュできる */

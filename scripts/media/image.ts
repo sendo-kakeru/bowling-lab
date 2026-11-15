@@ -85,10 +85,11 @@ async function convertHeic({
 }): Promise<string> {
 	const outputPath = path.join(
 		await mkdtemp(path.join(workDir, "heic-")),
-		"converted.jpg",
+		"converted.tiff",
 	);
+	// 可逆の TIFF を挟み、非可逆の圧縮を sharp の 1 回だけにする
 	await run({
-		args: ["-s", "format", "jpeg", inputPath, "--out", outputPath],
+		args: ["-s", "format", "tiff", inputPath, "--out", outputPath],
 		command: "sips",
 	});
 	return outputPath;
