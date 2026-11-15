@@ -8,12 +8,13 @@ import {
 	getToc,
 	PostFrontmatterSchema,
 	parsePostSlug,
+	readPublishedAtSource,
 } from "./post.ts";
 
 describe("PostFrontmatterSchema", () => {
 	const parse = (data: Record<string, unknown>) =>
 		v.safeParse(PostFrontmatterSchema, {
-			publishedAt: new Date("2026-11-15T00:00:00Z"),
+			publishedAt: "2026-11-15",
 			title: "10番ピンが残る理由",
 			...data,
 		});
@@ -39,17 +40,16 @@ describe("PostFrontmatterSchema", () => {
 		expect(parse({ thumbnail: "/images/lane.jpg" }).success).toBe(false);
 	});
 
-	test("YAML の日付（UTC 0 時の Date）を、日本時間でも同じ日付として扱う", () => {
-		const result = parse({ publishedAt: new Date("2026-11-15T00:00:00Z") });
+	test("知らない項目は、項目の名前を出して落ちる", () => {
+		const result = parse({ descripton: "綴りの誤り" });
 
-		expect(result.success).toBe(true);
-		if (!result.success) return;
-		expect(formatIsoDate({ date: result.output.publishedAt })).toBe(
-			"2026-11-15",
-		);
+		expect(result.success).toBe(false);
+		if (result.success) return;
+		expect(v.summarize(result.issues)).toContain("descripton");
+		expect(parse({ draft: true }).success).toBe(false);
 	});
 
-	test("引用符つきの日付の文字列も、日本時間で同じ日付になる", () => {
+	test("日付を、日本時間でも同じ日付として扱う", () => {
 		const result = parse({ publishedAt: "2026-01-01" });
 
 		expect(result.success).toBe(true);
@@ -60,20 +60,63 @@ describe("PostFrontmatterSchema", () => {
 	});
 
 	test("時刻つきは落ちる", () => {
-		expect(
-			parse({ publishedAt: new Date("2026-11-15T10:00:00Z") }).success,
-		).toBe(false);
 		expect(parse({ publishedAt: "2026-11-15T10:00:00" }).success).toBe(false);
+		expect(parse({ publishedAt: "2026-11-15T00:00:00Z" }).success).toBe(false);
 	});
 
 	test("存在しない日付は落ちる", () => {
 		expect(parse({ publishedAt: "2026-02-30" }).success).toBe(false);
 		expect(parse({ publishedAt: "2026-13-01" }).success).toBe(false);
-		expect(parse({ publishedAt: new Date(Number.NaN) }).success).toBe(false);
+	});
+
+	test("YAML が変換した Date は受けない（書かれた文字列で検査するため）", () => {
+		expect(
+			parse({ publishedAt: new Date("2026-11-15T00:00:00Z") }).success,
+		).toBe(false);
 	});
 
 	test("publishedAt がないと落ちる", () => {
 		expect(parse({ publishedAt: undefined }).success).toBe(false);
+	});
+});
+
+describe("readPublishedAtSource", () => {
+	const source = (line: string) =>
+		`---\ntitle: 題\n${line}\n---\n\npublishedAt: 本文の行\n`;
+
+	test("引用符なし・引用符つきの日付を、書かれたまま返す", () => {
+		expect(
+			readPublishedAtSource({ source: source("publishedAt: 2026-02-30") }),
+		).toBe("2026-02-30");
+		expect(
+			readPublishedAtSource({ source: source('publishedAt: "2026-11-15"') }),
+		).toBe("2026-11-15");
+		expect(
+			readPublishedAtSource({ source: source("publishedAt: '2026-11-15'") }),
+		).toBe("2026-11-15");
+	});
+
+	test("行末のコメントは含めない", () => {
+		expect(
+			readPublishedAtSource({
+				source: source("publishedAt: 2026-11-15 # 大会の日"),
+			}),
+		).toBe("2026-11-15");
+	});
+
+	test("時刻つきは時刻ごと返し、検査で落とせるようにする", () => {
+		expect(
+			readPublishedAtSource({
+				source: source("publishedAt: 2026-11-15T00:00:00Z"),
+			}),
+		).toBe("2026-11-15T00:00:00Z");
+	});
+
+	test("フロントマターになければ、本文の行は読まない", () => {
+		expect(readPublishedAtSource({ source: source("") })).toBeUndefined();
+		expect(
+			readPublishedAtSource({ source: "publishedAt: 2026-11-15\n" }),
+		).toBeUndefined();
 	});
 });
 
@@ -198,8 +241,48 @@ describe("getExcerpt", () => {
 		);
 	});
 
-	test("範囲外の数値参照はそのまま残す", () => {
-		expect(getExcerpt({ html: "<p>&#x110000;</p>" })).toBe("&#x110000;");
+	test("範囲外の数値参照でも落ちず、ブラウザと同じく置換文字にする", () => {
+		expect(getExcerpt({ html: "<p>&#x110000;</p>" })).toBe("\uFFFD");
+	});
+
+	test("属性値の中の > で文が切れない", () => {
+		expect(
+			getExcerpt({
+				html: '<p>図 <img src="a.jpg" alt="手首 > 親指"> と <a href="/" title="a > b">リンク</a> の文。</p>',
+			}),
+		).toBe("図 と リンク の文。");
+	});
+
+	test("コメント、script、style の中身を含まない", () => {
+		expect(
+			getExcerpt({
+				html: "<!-- a > b のときは消す --><style>p { color: red; }</style><script>alert(1)</script><p>本文。</p>",
+			}),
+		).toBe("本文。");
+	});
+
+	test("名前つきの文字参照を戻す", () => {
+		expect(getExcerpt({ html: "<p>&copy; &hellip;</p>" })).toBe("© …");
+	});
+
+	test("ブロックの境目に空白を入れ、文の途中のタグでは入れない", () => {
+		expect(
+			getExcerpt({
+				html: "<p>前の<strong>段落</strong>。</p><p>後の段落。</p>",
+			}),
+		).toBe("前の段落。 後の段落。");
+	});
+
+	test("脚注の参照番号と脚注の文を含まない", () => {
+		expect(
+			getExcerpt({
+				html: [
+					'<p>本文<sup><a href="#user-content-fn-1" id="user-content-fnref-1" data-footnote-ref aria-describedby="footnote-label">1</a></sup>と続き。</p>',
+					'<section data-footnotes class="footnotes"><h2 class="sr-only" id="footnote-label">Footnotes</h2>',
+					'<ol><li id="user-content-fn-1"><p>脚注の文。 <a href="#user-content-fnref-1" data-footnote-backref="" class="data-footnote-backref">↩</a></p></li></ol></section>',
+				].join("\n"),
+			}),
+		).toBe("本文と続き。");
 	});
 
 	test("文がない本文では空文字", () => {
@@ -283,5 +366,17 @@ describe("getToc", () => {
 			}),
 		).toEqual([]);
 		expect(getToc({ headings: [] })).toEqual([]);
+	});
+
+	test("脚注の区画の見出しは載せず、数にも入れない", () => {
+		expect(
+			getToc({
+				headings: [
+					heading(2, "A"),
+					heading(2, "B"),
+					{ depth: 2, slug: "footnote-label", text: "Footnotes" },
+				],
+			}),
+		).toEqual([]);
 	});
 });

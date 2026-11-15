@@ -1,15 +1,7 @@
+import { type DefaultTreeAdapterMap, parseFragment } from "parse5";
 import * as v from "valibot";
 
 const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
-
-function isUtcMidnight({ date }: { date: Date }): boolean {
-	return (
-		date.getUTCHours() === 0 &&
-		date.getUTCMinutes() === 0 &&
-		date.getUTCSeconds() === 0 &&
-		date.getUTCMilliseconds() === 0
-	);
-}
 
 /** 「2026-11-15」を UTC 0 時の Date にする。形が違う・存在しない日付は Invalid Date */
 function parseDateOnly({ text }: { text: string }): Date {
@@ -22,38 +14,50 @@ function parseDateOnly({ text }: { text: string }): Date {
 		: new Date(Number.NaN);
 }
 
+const FRONTMATTER_REGEX = /^---\r?\n([\s\S]*?)\r?\n---/;
+const PUBLISHED_AT_LINE_REGEX =
+	/^publishedAt:[ \t]*(["']?)([^"'#\s]*)\1[ \t]*(?:#.*)?$/m;
+
+/**
+ * md のフロントマターに書かれた publishedAt の文字列。見つからなければ undefined。
+ * 引用符なしの `2026-02-30` は YAML が黙って 3 月 2 日の Date に変えてしまい、
+ * 変換後の値からは誤りが見えないので、書かれたままの文字列で検査する
+ */
+export function readPublishedAtSource({
+	source,
+}: {
+	source: string;
+}): string | undefined {
+	const frontmatter = FRONTMATTER_REGEX.exec(source)?.[1];
+	return frontmatter
+		? PUBLISHED_AT_LINE_REGEX.exec(frontmatter)?.[2]
+		: undefined;
+}
+
 /*
   publishedAt は日付だけを UTC 0 時の Date で持つ。日本時間では同じ日の 9 時なので、
   formatIsoDate などで日本時間に直しても書いた日付と一致する。
-  引用符なしの `2026-11-15` は YAML が UTC 0 時の Date にして渡してくる。
-  ただし YAML は存在しない日付（2026-02-30）を黙って翌月に繰り上げるので、その誤りはここでは見えない
+  入力は readPublishedAtSource で取った文字列
 */
-const PublishedAtSchema = v.union(
-	[
-		v.pipe(
-			v.date(),
-			v.check(
-				(date) => isUtcMidnight({ date }),
-				"publishedAt は日付だけを書く（時刻は書かない）",
-			),
-		),
-		v.pipe(
-			v.string(),
-			v.transform((text) => parseDateOnly({ text })),
-			v.date(),
-		),
-	],
-	"publishedAt は YYYY-MM-DD の日付で書く",
+const PublishedAtSchema = v.pipe(
+	v.string("publishedAt は YYYY-MM-DD の日付で書く"),
+	v.transform((text) => parseDateOnly({ text })),
+	v.date("publishedAt は YYYY-MM-DD の、存在する日付で書く"),
 );
 
-export const PostFrontmatterSchema = v.object({
-	description: v.optional(
-		v.pipe(v.string(), v.nonEmpty("description は省くか、文を書く")),
-	),
-	publishedAt: PublishedAtSchema,
-	thumbnail: v.optional(v.pipe(v.string(), v.startsWith("media:"))),
-	title: v.pipe(v.string(), v.nonEmpty("title を書く")),
-});
+// 知らない項目は落とす。綴りの誤り（descripton）や、効かない draft: true に気づけるように
+export const PostFrontmatterSchema = v.strictObject(
+	{
+		description: v.optional(
+			v.pipe(v.string(), v.nonEmpty("description は省くか、文を書く")),
+		),
+		publishedAt: PublishedAtSchema,
+		thumbnail: v.optional(v.pipe(v.string(), v.startsWith("media:"))),
+		title: v.pipe(v.string(), v.nonEmpty("title を書く")),
+	},
+	(issue) =>
+		`知らない項目 ${issue.received}。書けるのは title、description、publishedAt、thumbnail`,
+);
 
 /** `_` は下書きの印。残りは英小文字・数字・ハイフンだけ */
 const SLUG_REGEX = /^_?[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -98,55 +102,103 @@ export function comparePosts(
 	return a.slug < b.slug ? -1 : 1;
 }
 
-const NAMED_ENTITIES: Readonly<Record<string, string>> = {
-	amp: "&",
-	apos: "'",
-	gt: ">",
-	lt: "<",
-	nbsp: " ",
-	quot: '"',
-};
+type HtmlNode = DefaultTreeAdapterMap["node"];
 
-function decodeEntities({ text }: { text: string }): string {
-	return text.replace(
-		/&(?:#x([0-9a-f]+)|#(\d+)|([a-z]+));/gi,
-		(entity, hex: string | undefined, dec: string | undefined, name) => {
-			const codePoint = hex
-				? Number.parseInt(hex, 16)
-				: dec
-					? Number.parseInt(dec, 10)
-					: undefined;
-			if (codePoint !== undefined) {
-				// 本文に生の HTML で書かれた範囲外の参照で、ビルドを落とさない
-				return codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : entity;
-			}
-			return Object.hasOwn(NAMED_ENTITIES, name)
-				? (NAMED_ENTITIES[name] ?? entity)
-				: entity;
-		},
+/** 読み手に見えない要素。中の文を数えない */
+const HIDDEN_TAGS: ReadonlySet<string> = new Set([
+	"script",
+	"style",
+	"template",
+]);
+
+/** 抜粋に入れない要素。コード、見出し、表は文として読めない */
+const NON_PROSE_TAGS: ReadonlySet<string> = new Set([
+	"pre",
+	"h1",
+	"h2",
+	"h3",
+	"h4",
+	"h5",
+	"h6",
+	"table",
+]);
+
+/** 前後の文と続けて読まないよう、終わりに空白を入れる要素 */
+const BLOCK_TAGS: ReadonlySet<string> = new Set([
+	"blockquote",
+	"br",
+	"dd",
+	"div",
+	"dt",
+	"figcaption",
+	"li",
+	"p",
+	"td",
+	"th",
+]);
+
+function hasAttribute({
+	node,
+	name,
+}: {
+	node: HtmlNode;
+	name: string;
+}): boolean {
+	return "attrs" in node && node.attrs.some((attr) => attr.name === name);
+}
+
+/** 脚注の参照番号と、脚注の区画（見出しの「Footnotes」と戻るリンクを含む） */
+function isFootnote({ node }: { node: HtmlNode }): boolean {
+	return (
+		hasAttribute({ name: "data-footnote-ref", node }) ||
+		hasAttribute({ name: "data-footnotes", node })
 	);
 }
 
-/** HTML からタグを外した文。文字参照を戻し、空白を 1 つに詰める */
-function htmlToText({ html }: { html: string }): string {
-	return decodeEntities({ text: html.replace(/<[^>]*>/g, "") })
-		.replace(/\s+/g, " ")
-		.trim();
+/**
+ * HTML の文を、空白を 1 つに詰めて返す。タグは正規表現ではなく構文として読む。
+ * 属性値の中の `>` やコメントで切れ目を誤らないため
+ */
+function htmlToText({
+	html,
+	skip,
+}: {
+	html: string;
+	skip: (node: HtmlNode) => boolean;
+}): string {
+	const parts: string[] = [];
+	const visit = ({ node }: { node: HtmlNode }): void => {
+		if (node.nodeName === "#text" && "value" in node) {
+			parts.push(node.value);
+			return;
+		}
+		if (
+			!("childNodes" in node) ||
+			HIDDEN_TAGS.has(node.nodeName) ||
+			skip(node)
+		) {
+			return;
+		}
+		for (const child of node.childNodes) visit({ node: child });
+		if (BLOCK_TAGS.has(node.nodeName)) parts.push(" ");
+	};
+	visit({ node: parseFragment(html) });
+	return parts.join("").replace(/\s+/g, " ").trim();
 }
 
 const EXCERPT_LENGTH = 120;
 
 const graphemeSegmenter = new Intl.Segmenter("ja", { granularity: "grapheme" });
 
-/** description がないときの抜粋。コード、見出し、表は文として読めないので除く */
+/** description がないときの抜粋。コード、見出し、表、脚注は除く */
 export function getExcerpt({ html }: { html: string }): string {
-	const body = html
-		.replace(/<pre[\s>][\s\S]*?<\/pre>/gi, " ")
-		.replace(/<h([1-6])[\s>][\s\S]*?<\/h\1>/gi, " ")
-		.replace(/<table[\s>][\s\S]*?<\/table>/gi, " ");
+	const text = htmlToText({
+		html,
+		skip: (node) => NON_PROSE_TAGS.has(node.nodeName) || isFootnote({ node }),
+	});
 	// 書記素で数える。結合した絵文字の途中で切らないため
 	const chars = Array.from(
-		graphemeSegmenter.segment(htmlToText({ html: body })),
+		graphemeSegmenter.segment(text),
 		({ segment }) => segment,
 	);
 	if (chars.length <= EXCERPT_LENGTH) return chars.join("");
@@ -160,7 +212,7 @@ const CJK_CHARACTER_REGEX = /[^\p{ASCII}\s]/gu;
 
 /** 読了時間（分）。ASCII 以外の文字は文字数、英語などは語数で数える。最低 1 分 */
 export function getReadingMinutes({ html }: { html: string }): number {
-	const text = htmlToText({ html });
+	const text = htmlToText({ html, skip: () => false });
 	const cjkCount = text.match(CJK_CHARACTER_REGEX)?.length ?? 0;
 	const wordCount = text
 		.replace(CJK_CHARACTER_REGEX, " ")
@@ -182,6 +234,9 @@ export interface TocItem {
 /** 見出しがこれより少ない記事は、目次を出さない */
 const TOC_MIN_ITEMS = 3;
 
+/** 脚注の区画の見出し（「Footnotes」）。本文の見出しではない */
+const FOOTNOTE_HEADING_ID = "footnote-label";
+
 /** 本文の h2・h3 から目次を作る。少なすぎるときは空 */
 export function getToc({
 	headings,
@@ -189,7 +244,9 @@ export function getToc({
 	headings: readonly { depth: number; slug: string; text: string }[];
 }): TocItem[] {
 	const items = headings.flatMap(({ depth, slug, text }): TocItem[] =>
-		depth === 2 || depth === 3 ? [{ depth, id: slug, text }] : [],
+		(depth === 2 || depth === 3) && slug !== FOOTNOTE_HEADING_ID
+			? [{ depth, id: slug, text }]
+			: [],
 	);
 	return items.length < TOC_MIN_ITEMS ? [] : items;
 }

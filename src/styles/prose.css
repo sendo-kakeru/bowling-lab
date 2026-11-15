@@ -64,3 +64,13 @@
 	border: 1px solid #ccc;
 	white-space: nowrap;
 }
+
+/* 脚注の区画の見出し（Footnotes）。読み上げにだけ残す */
+.prose .sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}

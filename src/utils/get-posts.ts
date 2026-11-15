@@ -1,4 +1,5 @@
 import { type CollectionEntry, getCollection } from "astro:content";
+import { readFile } from "node:fs/promises";
 import * as v from "valibot";
 import {
 	comparePosts,
@@ -8,6 +9,7 @@ import {
 	PostFrontmatterSchema,
 	type PostSlug,
 	parsePostSlug,
+	readPublishedAtSource,
 	type TocItem,
 } from "./post";
 
@@ -32,11 +34,11 @@ const HeadingsSchema = v.array(
 );
 
 /** 本番では下書きを検証せずに除く。書きかけのフロントマターでビルドを落とさないため */
-function toPost({
+async function toPost({
 	entry,
 }: {
 	entry: CollectionEntry<"posts">;
-}): Post | undefined {
+}): Promise<Post | undefined> {
 	const { filePath } = entry;
 	if (!filePath || !entry.rendered) {
 		throw new Error(`記事のファイルを読めない: ${entry.id}`);
@@ -44,7 +46,11 @@ function toPost({
 	const { slug, isDraft } = parsePostSlug({ filePath });
 	if (isDraft && import.meta.env.PROD) return undefined;
 
-	const result = v.safeParse(PostFrontmatterSchema, entry.data);
+	const source = await readFile(filePath, "utf8");
+	const result = v.safeParse(PostFrontmatterSchema, {
+		...entry.data,
+		publishedAt: readPublishedAtSource({ source }) ?? entry.data.publishedAt,
+	});
 	if (!result.success) {
 		throw new Error(
 			`記事のフロントマターが正しくない: ${filePath}\n${v.summarize(result.issues)}`,
@@ -71,7 +77,6 @@ function toPost({
 /** 記事を新しい順に返す。下書きは開発サーバーでだけ含める */
 export async function getPosts(): Promise<Post[]> {
 	const entries = await getCollection("posts");
-	return entries
-		.flatMap((entry) => toPost({ entry }) ?? [])
-		.toSorted(comparePosts);
+	const posts = await Promise.all(entries.map((entry) => toPost({ entry })));
+	return posts.filter((post) => post !== undefined).toSorted(comparePosts);
 }
