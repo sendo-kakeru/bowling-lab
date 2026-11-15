@@ -171,4 +171,13 @@ describe("decideThumbnail", () => {
 			}),
 		).toThrow("media:2026/nope/x.jpg");
 	});
+
+	test("manifest にない本文の最初の参照も、既定の画像にせず投げる", () => {
+		expect(() =>
+			decideThumbnail({
+				manifest: MANIFEST,
+				markdown: "![](media:2026/nope/x.jpg)",
+			}),
+		).toThrow("media:2026/nope/x.jpg");
+	});
 });

@@ -171,11 +171,12 @@ export function decideThumbnail({
 		return { image: toStillImage({ entry }), source: "frontmatter" };
 	}
 	const path = findFirstMediaPath({ markdown });
-	// 本文の参照の有無は Markdown の変換が確かめるので、ここでは見つかったものだけ使う
-	const entry = path === undefined ? undefined : manifest[path];
-	return entry
-		? { image: toStillImage({ entry }), source: "body" }
-		: { source: "default" };
+	if (path === undefined) return { source: "default" };
+	const entry = manifest[path];
+	if (!entry) {
+		throw new Error(`media:${path} が media-manifest.json にない`);
+	}
+	return { image: toStillImage({ entry }), source: "body" };
 }
 
 /** サムネイルの切り抜き。card は 96px 角の 2 倍 */

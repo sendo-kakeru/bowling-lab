@@ -1,1 +1,14 @@
-{}
+{
+	"2026/ten-pin/lane.jpg": {
+		"key": "images/2026/ten-pin/lane.a1b2c3.jpg",
+		"type": "image", "width": 2400, "height": 1600
+	},
+	"2026/thumb-release/hand.jpg": {
+		"key": "images/2026/thumb-release/hand.b7c8d9.jpg",
+		"type": "image", "width": 1800, "height": 2400
+	},
+	"2026/wrist-support/glove.jpg": {
+		"key": "images/2026/wrist-support/glove.e1f2a3.jpg",
+		"type": "image", "width": 2400, "height": 1600
+	}
+}
