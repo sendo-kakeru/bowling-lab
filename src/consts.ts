@@ -31,6 +31,8 @@ export const FOOTER_NAV_ITEMS: readonly NavItem[] = [
 	{ href: "/privacy", label: "プライバシーポリシー" },
 ];
 
+export const INSTAGRAM_URL = "https://www.instagram.com/sendo_bowling/";
+
 export const SOCIAL_LINKS: readonly NavItem[] = [
-	{ href: "https://www.instagram.com/sendo_bowling/", label: "Instagram" },
+	{ href: INSTAGRAM_URL, label: "Instagram" },
 ];

@@ -8,8 +8,4 @@ const posts = defineCollection({
 	loader: glob({ base: "./src/content/posts", pattern: "*.md" }),
 });
 
-const pages = defineCollection({
-	loader: glob({ base: "./src/content/pages", pattern: "*.md" }),
-});
-
-export const collections = { pages, posts };
+export const collections = { posts };

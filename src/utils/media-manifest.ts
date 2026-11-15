@@ -1,6 +1,5 @@
 import * as v from "valibot";
 import manifestJson from "../data/media-manifest.json" with { type: "json" };
-import { formatIssues } from "./valibot.ts";
 
 /*
   メディアの manifest（src/data/media-manifest.json）。
@@ -60,7 +59,12 @@ export function parseMediaManifest({ data }: { data: unknown }): MediaManifest {
 	const result = v.safeParse(MediaManifestSchema, data);
 	if (result.success) return result.output;
 
-	const details = formatIssues({ issues: result.issues });
+	const details = result.issues
+		.map((issue) => {
+			const path = v.getDotPath(issue);
+			return path ? `${path}: ${issue.message}` : issue.message;
+		})
+		.join("\n");
 	throw new Error(`media-manifest.json の形が正しくない\n${details}`);
 }
 
