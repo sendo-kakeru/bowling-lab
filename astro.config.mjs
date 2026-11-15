@@ -1,11 +1,16 @@
 // @ts-check
 
+import { satteri } from "@astrojs/markdown-satteri";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig } from "astro/config";
+import { embedPlugin } from "./src/utils/embed.ts";
 
 // https://astro.build/config
 export default defineConfig({
 	integrations: [sitemap()],
+	markdown: {
+		processor: satteri({ hastPlugins: [embedPlugin] }),
+	},
 	site: "https://bowling.sendo.page",
 	// URL は末尾スラッシュなしで統一する（/posts、/posts/page/2）。
 	// 既定のままだと canonical とサイトマップだけ /posts/ になり、サイト内リンクと食い違う。
