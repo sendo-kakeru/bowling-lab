@@ -1,0 +1,18 @@
+// astro build の出力（dist/）を静的アセットとして配信する。Worker のコードは持たない
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"assets": {
+		"directory": "./dist",
+		// URL は末尾スラッシュなしで統一している（astro.config.mjs の trailingSlash: "never"）。
+		// 既定の auto-trailing-slash だと /posts が /posts/ にリダイレクトされるので、スラッシュなしで返す
+		"html_handling": "drop-trailing-slash",
+		// dist/404.html があればそれを返す。なければ Workers の既定の 404
+		"not_found_handling": "404-page"
+	},
+	"compatibility_date": "2026-11-01",
+	"name": "bowling-lab",
+	"observability": { "enabled": true },
+	"routes": [{ "custom_domain": true, "pattern": "bowling.sendo.page" }],
+	// 本番は独自ドメインだけで配信し、workers.dev の URL は出さない
+	"workers_dev": false
+}

@@ -24,4 +24,4 @@ jobs:
         uses: $/.github/actions/setup-pnpm
 
       - name: Run CI
-        run: pnpm test:run
+        run: pnpm test
