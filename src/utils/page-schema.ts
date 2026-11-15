@@ -1,4 +1,5 @@
 import * as v from "valibot";
+import { formatIssues } from "./valibot.ts";
 
 /*
   固定ページ（src/content/pages/*.md）のフロントマター。
@@ -7,18 +8,18 @@ import * as v from "valibot";
 
 const TextSchema = v.pipe(v.string(), v.nonEmpty("空にしない"));
 
-const AboutSchema = v.object({
-	bowler: v.object({
+const AboutSchema = v.strictObject({
+	bowler: v.strictObject({
 		ball: TextSchema,
-		hand: v.picklist(["右投げ", "左投げ"]),
+		hand: v.picklist(["右投げ", "左投げ"], "右投げ か 左投げ にする"),
 		homeCenter: TextSchema,
 		name: TextSchema,
-		style: v.picklist(["1ハンド", "2ハンド"]),
+		style: v.picklist(["1ハンド", "2ハンド"], "1ハンド か 2ハンド にする"),
 	}),
 	title: TextSchema,
 });
 
-const PrivacySchema = v.object({
+const PrivacySchema = v.strictObject({
 	title: TextSchema,
 });
 
@@ -44,12 +45,7 @@ export function parsePageData<Id extends PageId>({
 	const result = v.safeParse(PAGE_SCHEMAS[id], data);
 	if (result.success) return result.output;
 
-	const details = result.issues
-		.map((issue) => {
-			const path = v.getDotPath(issue);
-			return path ? `${path}: ${issue.message}` : issue.message;
-		})
-		.join("\n");
+	const details = formatIssues({ issues: result.issues });
 	throw new Error(
 		`src/content/pages/${id}.md のフロントマターが正しくない\n${details}`,
 	);

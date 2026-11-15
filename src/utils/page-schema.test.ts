@@ -32,7 +32,15 @@ describe("parsePageData", () => {
 
 		expect(() =>
 			parsePageData({ data: { ...ABOUT, bowler }, id: "about" }),
-		).toThrow(/bowler\.hand: /);
+		).toThrow("bowler.hand: 右投げ か 左投げ にする");
+	});
+
+	test("知らない項目は書き間違いとして投げる", () => {
+		const bowler = { ...ABOUT.bowler, homeCenterr: "仮のセンター名" };
+
+		expect(() =>
+			parsePageData({ data: { ...ABOUT, bowler }, id: "about" }),
+		).toThrow(/bowler\.homeCenterr: /);
 	});
 
 	test("BOWLER CARD の項目がまるごとないと投げる", () => {
