@@ -21,6 +21,8 @@ pnpm install
 pnpm dev      # 開発サーバー（http://localhost:4321）
 pnpm build    # 本番ビルド（dist/）
 pnpm preview  # ビルド結果の確認
+pnpm test     # ユニットテスト（pnpm test:watch で変更を監視）
+pnpm typecheck  # 型チェック
 ```
 
 - 設計: [コンテンツ管理](docs/design/content.md)、[メディア配信](docs/design/media.md)

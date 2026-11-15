@@ -1,0 +1,56 @@
+---
+import "../styles/base.css";
+import SiteFooter from "../components/SiteFooter.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import { SITE_LANG, SITE_TAGLINE, SITE_TITLE } from "../consts";
+import { toPublicPath } from "../utils/url";
+
+/*
+  全ページ共通の骨組み（<head>、ヘッダー、フッター）。
+  OGP などの meta は別の issue（meta情報設定）で足す
+*/
+
+interface Props {
+	/** ページの題名。省くとサイト名だけにする（ホーム用） */
+	title?: string;
+	description?: string;
+}
+
+const { title, description = SITE_TAGLINE } = Astro.props;
+
+const pageTitle = title ? `${title} | ${SITE_TITLE}` : SITE_TITLE;
+const canonicalUrl = new URL(
+	toPublicPath({ pathname: Astro.url.pathname }),
+	Astro.site,
+);
+---
+
+<!doctype html>
+<html lang={SITE_LANG}>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<link rel="sitemap" href="/sitemap-index.xml" />
+		<link rel="canonical" href={canonicalUrl} />
+		<meta name="generator" content={Astro.generator} />
+		<title>{pageTitle}</title>
+		<meta name="description" content={description} />
+	</head>
+	<body>
+		<SiteHeader />
+		<main class="main">
+			<slot />
+		</main>
+		<SiteFooter />
+	</body>
+</html>
+
+<style>
+	.main {
+		max-width: 47.5rem;
+		margin-inline: auto;
+		padding: 1.5rem 1rem;
+	}
+</style>

@@ -1,0 +1,27 @@
+/*
+  全ページで共有する最小限のスタイル。見た目の作り込みはコンテンツ管理の実装のあとで行う
+*/
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family: system-ui, sans-serif;
+	line-height: 1.8;
+	overflow-wrap: anywhere;
+}
+
+img,
+video {
+	max-width: 100%;
+	height: auto;
+}
+
+/* iframe は幅と高さの属性から比率が決まらないので、height: auto にすると潰れる */
+iframe {
+	max-width: 100%;
+}

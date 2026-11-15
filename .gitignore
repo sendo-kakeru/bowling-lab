@@ -22,3 +22,7 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# media: originals waiting to be uploaded or already uploaded (they carry location data)
+media/inbox/
+media/uploaded/
