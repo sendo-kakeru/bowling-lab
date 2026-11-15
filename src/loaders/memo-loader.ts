@@ -28,7 +28,7 @@ const EMPTY_FRONTMATTER = "---\n---\n";
 
 /** 1 ファイルを読み、store に入れる。書き込みがない（見出しだけの）ファイルは store から外す */
 async function syncMemo({
-	context: { generateDigest, renderMarkdown, store },
+	context: { renderMarkdown, store },
 	path,
 	root,
 }: {
@@ -38,9 +38,6 @@ async function syncMemo({
 }): Promise<void> {
 	const id = basename(path, ".md");
 	const source = await readFile(path, "utf-8");
-	// 未変更でも読み直す。ローダーの処理を変えたときに、保存済みの古い HTML が残らないようにするため
-	const digest = generateDigest(source);
-
 	const filePath = relative(root, path);
 	let notes: ReturnType<typeof resolvePostedAt>;
 	try {
@@ -68,7 +65,8 @@ async function syncMemo({
 			return { html: removeHeadingIds({ html }), postedAt };
 		}),
 	);
-	store.set({ data: { notes: renderedNotes }, digest, filePath, id });
+	// digest は渡さない。同じ digest だと store.set が何もしないので、ローダーの処理を変えても古い HTML が残る
+	store.set({ data: { notes: renderedNotes }, filePath, id });
 }
 
 export function memoLoader(): Loader {
@@ -80,19 +78,20 @@ export function memoLoader(): Loader {
 			const isMemoPath = (path: string): boolean =>
 				dirname(path) === dir && extname(path) === ".md";
 
-			// 最初の読み込みが書式の誤りで落ちても、直したファイルを拾えるよう先に見張る
+			const sync = async (path: string): Promise<void> => {
+				try {
+					await syncMemo({ context, path, root });
+				} catch (error) {
+					if (!watcher) throw error;
+					// 開発サーバーは落とさず、直すまで前の内容のまま出す（起動時なら、そのメモを除いて起動する）
+					logger.error(error instanceof Error ? error.message : String(error));
+				}
+			};
+
 			if (watcher) {
 				watcher.add(dir);
 				const onChange = async (path: string): Promise<void> => {
-					if (!isMemoPath(path)) return;
-					try {
-						await syncMemo({ context, path, root });
-					} catch (error) {
-						// 開発サーバーは落とさず、直すまで前の内容のまま出す
-						logger.error(
-							error instanceof Error ? error.message : String(error),
-						);
-					}
+					if (isMemoPath(path)) await sync(path);
 				};
 				watcher.on("add", onChange);
 				watcher.on("change", onChange);
@@ -107,7 +106,7 @@ export function memoLoader(): Loader {
 			const staleIds = new Set(store.keys());
 			for (const path of files) {
 				staleIds.delete(basename(path, ".md"));
-				await syncMemo({ context, path, root });
+				await sync(path);
 			}
 			for (const id of staleIds) {
 				store.delete(id);

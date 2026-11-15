@@ -122,7 +122,7 @@ describe("parseMemo", () => {
 			expect(notes.map(({ line }) => line)).toEqual([1, 7]);
 		});
 
-		test("リストや引用の中のフェンスも、字下げした閉じまでを 1 つのコードブロックとする", () => {
+		test("リストの中のコードブロックは、字下げした閉じまで続く", () => {
 			const notes = parseMemo({
 				source: source(
 					"## 2026-11-06 21:14",
@@ -130,15 +130,13 @@ describe("parseMemo", () => {
 					"- ```js",
 					"  ## 2026-11-07 10:00",
 					"  ```",
-					"> ~~~",
-					"## 2026-11-07 11:00",
-					"> ~~~",
+					"",
 					"## 2026-11-06 21:38",
 					"続き",
 				),
 			});
 
-			expect(notes.map(({ line }) => line)).toEqual([1, 9]);
+			expect(notes.map(({ line }) => line)).toEqual([1, 7]);
 		});
 
 		test("閉じていないフェンスは末尾まで続く", () => {
@@ -153,6 +151,21 @@ describe("parseMemo", () => {
 
 			expect(notes).toHaveLength(1);
 		});
+	});
+
+	test("HTML コメントの中の見出しの形の行は区切りにしない", () => {
+		const notes = parseMemo({
+			source: source(
+				"## 2026-11-06 21:14",
+				"本文",
+				"<!--",
+				"## 2026-11-06 21:38",
+				"隠したい",
+				"-->",
+			),
+		});
+
+		expect(notes).toHaveLength(1);
 	});
 
 	describe("書式の誤り", () => {

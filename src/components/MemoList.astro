@@ -21,6 +21,7 @@ const { memos, class: className, ...rest } = Astro.props;
 <style>
 .memo-list {
 	display: grid;
+	grid-template-columns: minmax(0, 1fr);
 	row-gap: 1rem;
 	margin: 0;
 	padding: 0;

@@ -43,6 +43,8 @@ const formatPostedAt = ({ date }: { date: Date }): string =>
 <style>
 .slip {
 	display: grid;
+	/* 長いコードの行で列が広がり、ページごと横にあふれるのを防ぐ */
+	grid-template-columns: minmax(0, 1fr);
 	align-content: start;
 	row-gap: 0.5rem;
 	padding: 0.75rem 1rem;
@@ -59,6 +61,7 @@ summary {
 
 .replies {
 	display: grid;
+	grid-template-columns: minmax(0, 1fr);
 	row-gap: 0.75rem;
 	margin: 0;
 	padding: 0.5rem 0 0 0.75rem;
@@ -68,6 +71,7 @@ summary {
 
 .reply {
 	display: grid;
+	grid-template-columns: minmax(0, 1fr);
 	row-gap: 0.25rem;
 }
 </style>

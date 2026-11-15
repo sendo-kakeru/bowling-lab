@@ -1,3 +1,4 @@
+import { fromMarkdown } from "mdast-util-from-markdown";
 import { matchMemoHeading } from "./memo-heading.ts";
 
 /** メモの 1 ファイルを区切った、書き込み 1 件ぶん。日時はまだ文字列のまま */
@@ -22,42 +23,6 @@ export class MemoParseError extends Error {
 	}
 }
 
-// リストや引用の中のフェンスも拾うため、行頭の字下げ・リスト記号・引用記号を読み飛ばす
-const CONTAINER_PREFIX = String.raw`(?:[ \t]*(?:[-*+]|\d{1,9}[.)]|>)(?=[ \t]))*[ \t]*`;
-const FENCE_OPEN_PATTERN = new RegExp(`^${CONTAINER_PREFIX}(\`{3,}|~{3,})`);
-const FENCE_CLOSE_PATTERN = new RegExp(`^${CONTAINER_PREFIX}(\`+|~+)[ \t]*$`);
-
-interface Fence {
-	char: string;
-	length: number;
-}
-
-/** フェンスを開く行なら、その記号と長さを返す */
-function openFence({ line }: { line: string }): Fence | undefined {
-	const marker = FENCE_OPEN_PATTERN.exec(line)?.[1];
-	if (marker === undefined) return undefined;
-	const char = marker.charAt(0);
-	// バッククォートのフェンスは、情報文字列にバッククォートを含められない
-	if (
-		char === "`" &&
-		line.slice(line.indexOf(marker) + marker.length).includes("`")
-	) {
-		return undefined;
-	}
-	return { char, length: marker.length };
-}
-
-/** 開いたフェンスを閉じる行か。同じ記号で、開きと同じ長さ以上で、後ろは空白だけ */
-function closesFence({ fence, line }: { fence: Fence; line: string }): boolean {
-	const match = FENCE_CLOSE_PATTERN.exec(line);
-	const marker = match?.[1];
-	return (
-		marker !== undefined &&
-		marker.charAt(0) === fence.char &&
-		marker.length >= fence.length
-	);
-}
-
 const isBlank = ({ line }: { line: string }): boolean => line.trim() === "";
 
 /** 前後の空行を除いて行をつなぐ。1 行目の字下げは字下げのコードブロックなので残す */
@@ -70,26 +35,20 @@ function joinTrimmedLines({ lines }: { lines: readonly string[] }): string {
 
 /**
  * メモの本文を、`## YYYY-MM-DD HH:mm` の見出しで書き込みに分ける。
- * コードブロックの中の見出しの形の行は区切りにしない。
+ * コードブロックや HTML コメントの中の見出しの形の行は区切りにしない。
  * 末尾の見出しの下が空なら読み飛ばす（コマンドが見出しだけを先に書くため）
  */
 export function parseMemo({ source }: { source: string }): ParsedMemoNote[] {
 	// BOM つきで保存されると、1 行目の見出しが見出しと判定されない
-	const lines = source.replace(/^\uFEFF/, "").split(/\r?\n/);
+	const text = source.replace(/^\uFEFF/, "");
+	const lines = text.split(/\r?\n/);
+	// 区切りはトップレベルの見出しだけ。コードブロックや HTML コメントの中の行を除くため、行ではなく構文木で探す
 	const headings: { postedAt: string; index: number }[] = [];
-
-	let fence: Fence | undefined;
-	for (const [index, line] of lines.entries()) {
-		if (fence) {
-			if (closesFence({ fence, line })) fence = undefined;
-			continue;
-		}
-		const postedAt = matchMemoHeading({ line });
-		if (postedAt !== undefined) {
-			headings.push({ index, postedAt });
-			continue;
-		}
-		fence = openFence({ line });
+	for (const node of fromMarkdown(text).children) {
+		if (node.type !== "heading" || node.position === undefined) continue;
+		const index = node.position.start.line - 1;
+		const postedAt = matchMemoHeading({ line: lines[index] ?? "" });
+		if (postedAt !== undefined) headings.push({ index, postedAt });
 	}
 
 	const firstHeadingIndex = headings[0]?.index ?? lines.length;
