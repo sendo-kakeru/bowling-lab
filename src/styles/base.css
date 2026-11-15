@@ -25,12 +25,3 @@ video {
 iframe {
 	max-width: 100%;
 }
-
-/* Markdown から変換した本文（クラスのない HTML）。外側の余白は囲む部品に任せる */
-.prose > :first-child {
-	margin-top: 0;
-}
-
-.prose > :last-child {
-	margin-bottom: 0;
-}
