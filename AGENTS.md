@@ -1,3 +1,5 @@
+回答は全て日本語にて行うこと
+
 ## Development
 
 When starting the dev server, use background mode:
@@ -27,3 +29,19 @@ Read these before working on content or media:
 
 - [docs/design/content.md](docs/design/content.md): posts, memos, pages, commands, sample data, task breakdown
 - [docs/design/media.md](docs/design/media.md): image and video processing, storage on R2, delivery
+
+The development workflow (who does what, where rules go) is in [docs/ai-development.md](docs/ai-development.md).
+
+## Styling
+
+The visual design is the canvas at https://claude.ai/artifact/TAHbv2CgLCvL1bLiufaZE2 (`StyleGuide` for colours, type, and parts; `Post` / `MobilePost`, `MobileHome`, `Posts`, `About`, `Search`, `NotFound`). When unsure about a value, check `StyleGuide` first.
+
+The content-management issues (#16 to #23) do not reproduce the design faithfully: semantically correct HTML and a minimal layout are enough there. `.claude/rules/css.md` holds the CSS conventions.
+
+## Previous site
+
+The site was first built with EmDash in `sendo-kakeru/bowling-lab_old`. Components and utilities may be ported from there (`src/components/`, `src/utils/`), but drop anything EmDash-specific: server rendering, `emdash/ui`, Portable Text, cache hints, and the seed.
+
+## Pull requests
+
+Write the PR body with the sections of `.github/pull_request_template.md` (in Japanese). The template is not applied automatically when a PR is created through `gh` or the API.

@@ -1,63 +1,80 @@
-# Astro Starter Kit: Blog
+# Sendo Bowling Lab
 
-```sh
-pnpm create astro@latest -- --template blog
+ボウリングの雑記サイト
+
+- サイト名: **Sendo Bowling Lab**
+- Instagram: [@sendo_bowling](https://www.instagram.com/sendo_bowling/)
+- ドメイン: `bowling.sendo.page`
+
+## 機能
+
+- 記事: 通常の記事投稿
+- メモ: 独り言
+  - 記事にするほどでもない思考
+  - 1つのメモに対して、あとから続きを足せる
+- 将来的にスコアなども見せられるボーリング業界でのプロフィールサイトにしても良さそう
+
+## 開発
+
+```bash
+pnpm install
+pnpm dev      # 開発サーバー（http://localhost:4321）
+pnpm build    # 本番ビルド（dist/）
+pnpm preview  # ビルド結果の確認
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+- 設計: [コンテンツ管理](docs/design/content.md)、[メディア配信](docs/design/media.md)
+- 開発の進め方: [AI 開発体制](docs/ai-development.md)
+- 旧サイト（EmDash 製）: [sendo-kakeru/bowling-lab_old](https://github.com/sendo-kakeru/bowling-lab_old)
 
-Features:
+## ブランチ名規約
 
-- ✅ Minimal styling (make it your own!)
-- ✅ 100/100 Lighthouse performance
-- ✅ SEO-friendly with canonical URLs and Open Graph data
-- ✅ Sitemap support
-- ✅ RSS Feed support
-- ✅ Markdown & MDX support
+- `main`: 本番環境用ブランチ（直接プッシュ禁止）
+- `develop`: 開発用の統合ブランチ
+- `feature/*`: 新機能開発用ブランチ
+- `fix/*`: 軽微な修正用ブランチ
+- `bugfix/*`: バグ修正用ブランチ
+- `hotfix/*`: 本番環境の緊急修正用ブランチ
+- `chore/*`: 雑務・依存関係更新用ブランチ
+- `refactor/*`: リファクタリング用ブランチ
+- `docs/*`: ドキュメント更新用ブランチ
+- `revert/*`: コミット取り消し用ブランチ
 
-## 🚀 Project Structure
+## コミットメッセージ規約
 
-Inside of your Astro project, you'll see the following folders and files:
+### フォーマット
 
-```text
-├── public/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── content/
-│   ├── layouts/
-│   └── pages/
-├── astro.config.mjs
-├── README.md
-├── package.json
-└── tsconfig.json
+```
+<type>(<scope>): <title>
+<body>
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+例
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+```
+feat(api): 変更内容の概要
 
-The `src/content/` directory contains "collections" of related Markdown and MDX documents. Use `getCollection()` to retrieve posts from `src/content/blog/`, and type-check your frontmatter using an optional schema. See [Astro's Content Collections docs](https://docs.astro.build/en/guides/content-collections/) to learn more.
+詳細な説明（必要に応じて）
+```
 
-Any static assets, like images, can be placed in the `public/` directory.
+### 構成
 
-## 🧞 Commands
+1. 件名行: `<type>(<scope>): 変更内容の概要`（70 文字以内）
+2. 空行: 件名と本文の間に必須
+3. 本文: Why を重視（必要に応じて）
+   - What よりも Why を記述
+   - 箇条書きは `-` を使用
+   - 破壊的変更: `BREAKING CHANGE:` で始める
+   - 日本語
 
-All commands are run from the root of the project, from a terminal:
+### type 一覧
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Check out [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
-
-## Credit
-
-This theme is based off of the lovely [Bear Blog](https://github.com/HermanMartinus/bearblog/).
+- `feat`: 新機能
+- `fix`: バグ修正
+- `docs`: ドキュメントのみの変更
+- `style`: コードの意味に影響しない変更（空白、フォーマット等）
+- `perf`: パフォーマンス改善
+- `test`: テストの追加や修正
+- `refactor`: バグ修正や機能追加を含まないコード変更
+- `chore`: ビルドプロセスやツールの変更
+- `revert`: revert 用

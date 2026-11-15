@@ -227,18 +227,21 @@ Instagram は高さを中身に合わせて自動調整できないので、固�
 
 ## 実装の分け方
 
-別々のセッションで進められるよう、依存の少ない単位に分ける。
+PR ごとに issue を分けている。仮データは最後にまとめず、それぞれの PR で自分の範囲のぶんを足す。
 
-| # | 作業 | 先に必要なもの |
+| issue | 作業 | 先に必要なもの |
 |---|---|---|
-| 1 | 土台: テンプレートの `blog` を外し、MDX を外す。Valibot とテストの仕組みを入れる。`src/consts.ts` を置く | なし |
-| 2 | 記事: コレクション、`getPosts()`、一覧とページ送り、詳細、下書きの扱い、RSS | 1 |
-| 3 | メモ: `parseMemo`、ローダー、`getMemos()`、一覧とページ送り、ホームの最新 2 件 | 1 |
-| 4 | 固定ページ: About、プライバシーポリシー | 1 |
-| 5 | コマンド: `memo`、`memo:add`、`post` | 3 の `parseMemo` |
-| 6 | 外部の埋め込み: YouTube、Instagram | 1 |
-| 7 | メディアの参照解決: manifest を引いて `<img>` / `<video>` を出す。サムネイルの決定 | 1、[media.md](./media.md) |
-| 8 | メディアの CLI: `media:push` | [media.md](./media.md) |
-| 9 | 仮データ | 2〜7 |
+| #16 | 土台: テンプレートの整理、MDX を外す、Valibot、テスト、型チェック、`src/consts.ts`、ページ送りの共通部品、manifest の土台 | なし |
+| #17 | 記事: コレクション、`getPosts()`、一覧とページ送り、詳細、下書きの扱い、RSS | #16 |
+| #18 | メモ: `parseMemo`、ローダー、`getMemos()`、一覧とページ送り、ホームの最新 2 件 | #16 |
+| #19 | 固定ページ: About、プライバシーポリシー | #16 |
+| #23 | メディアの CLI: `media:push` | #16 |
+| #20 | コマンド: `memo`、`memo:add`、`post` | #17、#18 |
+| #21 | 外部の埋め込み: YouTube、Instagram | #17、#18 |
+| #22 | メディアの参照解決: manifest を引いて `<img>` / `<video>` を出す。サムネイルの決定 | #17、#18 |
+
+- #16 を最初に行う
+- #17、#18、#19、#23 は #16 のあとなら並行して進められる。#17 と #18 はどちらもホーム（`/`）を触るので、あとからマージするほうで取り込む
+- #21 と #22 はどちらも Markdown の設定（`astro.config.mjs`）を触るので、どちらかを先にマージする
 
 移植元になる旧サイトのコンポーネントは `MemoSlip`、`MemoList`、`LatestMemos`、`PostCard`、`PostList`、`PostDetail`、`Pagination` など（`sendo-kakeru/bowling-lab_old` の `src/components/`）。
