@@ -11,6 +11,7 @@
 		"preview": "astro preview",
 		"astro": "astro",
 		"lint": "biome check .",
+		"media:push": "node scripts/media/push.ts",
 		"format": "biome check --write .",
 		"test": "TZ=UTC vitest run",
 		"typecheck": "astro sync && tsc --noEmit --runExternalCode"
@@ -25,6 +26,7 @@
 	},
 	"devDependencies": {
 		"@astrojs/ts-content-mapper": "^0.2.0",
+		"@aws-sdk/client-s3": "^3.1169.0",
 		"@biomejs/biome": "2.6.7",
 		"typescript": "7.1.0-beta",
 		"vitest": "^5.1.0"
