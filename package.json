@@ -12,7 +12,7 @@
     "astro": "astro",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "astro check"
+    "typecheck": "astro sync && tsc --noEmit --runExternalCode"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
@@ -22,8 +22,8 @@
     "valibot": "^1.5.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.12",
-    "typescript": "^6.0.3",
+    "@astrojs/ts-content-mapper": "^0.2.0",
+    "typescript": "7.1.0-beta",
     "vitest": "^5.1.0"
   }
 }
