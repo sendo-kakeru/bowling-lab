@@ -1,7 +1,7 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 import { SITE_TITLE } from "../../consts";
-import { MAIN_NAV, SUB_NAV, withCurrent } from "../../utils/nav";
+import { MAIN_NAV, withCurrent } from "../../utils/nav";
 import HeaderLogo from "./HeaderLogo.astro";
 import HeaderNav from "./HeaderNav.astro";
 import MenuButton from "./MenuButton.astro";
@@ -11,7 +11,6 @@ type Props = HTMLAttributes<"header">;
 const { class: className, ...rest } = Astro.props;
 
 const mainItems = withCurrent({ links: MAIN_NAV, page: Astro.url });
-const subItems = withCurrent({ links: SUB_NAV, page: Astro.url });
 ---
 
 <header {...rest} data-site-header class:list={["site-header", className]}>
@@ -23,7 +22,7 @@ const subItems = withCurrent({ links: SUB_NAV, page: Astro.url });
 		<HeaderLogo class="logo-area" title={SITE_TITLE} />
 		<!-- スマホでは閉じたメニューは Tab で通らず、開いたら最初のリンクへフォーカスを移す -->
 		<div class="menu-panel" id="menu-panel">
-			<HeaderNav mainItems={mainItems} subItems={subItems} />
+			<HeaderNav mainItems={mainItems} />
 		</div>
 		<MenuButton aria-controls="menu-panel" class="menu-button" />
 	</div>

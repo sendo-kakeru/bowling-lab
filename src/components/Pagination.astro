@@ -119,7 +119,8 @@ items.length > 1 && (
 	grid-auto-flow: column;
 	place-content: center;
 	column-gap: 0.5rem;
-	min-width: 2.25rem;
+	/* スマホは矢印だけなので 32px。番号の 36px のマス 7 つと合わせて、375px のレーンの内側（319px）に収める */
+	min-width: 2rem;
 	font-size: var(--font-size-14);
 	letter-spacing: 0.12em;
 }
@@ -130,6 +131,7 @@ items.length > 1 && (
 
 @media (width >= 768px) {
 	.step {
+		min-width: 2.75rem;
 		padding: 0 1rem;
 	}
 
@@ -153,7 +155,7 @@ items.length > 1 && (
 	position: relative;
 	display: grid;
 	place-items: end center;
-	/* スマホは 36px。矢印と 7 マスが、375px の幅でガターとレーンの内余白を引いた 319px に 1 行で収まる */
+	/* スマホは 36px（矢印のマスの説明を参照） */
 	width: 2.25rem;
 	height: 2.25rem;
 	padding-bottom: 0.25rem;

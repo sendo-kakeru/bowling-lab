@@ -1,9 +1,8 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import { INSTAGRAM_URL, SITE_TITLE } from "../consts";
-import { LEGAL_NAV, MAIN_NAV, withCurrent } from "../utils/nav";
-import InstagramIcon from "./icons/InstagramIcon.astro";
-import RssIcon from "./icons/RssIcon.astro";
+import { SITE_TITLE } from "../consts";
+import { LEGAL_NAV, MAIN_NAV, SOCIAL_NAV, withCurrent } from "../utils/nav";
+import SocialIcon from "./icons/SocialIcon.astro";
 
 // フッターはアプローチ。上の線がファウルライン、丸印がアプローチの目印
 
@@ -12,12 +11,6 @@ type Props = HTMLAttributes<"footer">;
 const { class: className, ...rest } = Astro.props;
 
 const year = new Date().getFullYear();
-
-// RSS はアイコンで出すので、ヘッダーと違って SUB_NAV は並べない
-const SOCIAL_LINKS = [
-	{ icon: InstagramIcon, label: "Instagram", url: INSTAGRAM_URL },
-	{ icon: RssIcon, label: "RSS", url: "/rss.xml" },
-] as const;
 
 const mainItems = withCurrent({ links: MAIN_NAV, page: Astro.url });
 const legalItems = withCurrent({ links: LEGAL_NAV, page: Astro.url });
@@ -31,20 +24,9 @@ const DOT_COUNT = 7;
 			{Array.from({ length: DOT_COUNT }, () => <span class="dot" />)}
 		</div>
 
+		<!-- 768px 以上は 2 段とも左右に振り分ける。上は名前とメニュー、下は外へのリンクと規約 -->
 		<div class="top">
 			<p class="site-name">{SITE_TITLE}</p>
-			<ul class="social">
-				{SOCIAL_LINKS.map(({ icon: Icon, label, url }) => (
-					<li>
-						<a aria-label={label} class="social-link" href={url}>
-							<Icon class="social-icon" />
-						</a>
-					</li>
-				))}
-			</ul>
-		</div>
-
-		<div class="bottom">
 			<nav aria-label="フッターメニュー" class="footer-nav text-label">
 				<ul class="nav-list">
 					{mainItems.map((item) => (
@@ -56,6 +38,18 @@ const DOT_COUNT = 7;
 					))}
 				</ul>
 			</nav>
+		</div>
+
+		<div class="bottom">
+			<ul class="social">
+				{SOCIAL_NAV.map(({ icon, label, url }) => (
+					<li>
+						<a aria-label={label} class="social-link" href={url}>
+							<SocialIcon class="social-icon" name={icon} />
+						</a>
+					</li>
+				))}
+			</ul>
 			<div class="legal">
 				<ul class="legal-list">
 					{legalItems.map((item) => (
@@ -105,11 +99,11 @@ const DOT_COUNT = 7;
 	background: var(--color-wood-650);
 }
 
-/* スマホは左右対称の丸印に合わせて中央揃え */
+/* スマホは左右対称の丸印に合わせて中央揃え。メニューのリンクの内余白（0.5rem）で名前との間が 12px になる */
 .top {
 	display: grid;
 	justify-items: center;
-	row-gap: 0.75rem;
+	row-gap: 0.25rem;
 	/* 丸印との間を 24px にする */
 	padding-top: 0.5rem;
 	text-align: center;
@@ -157,9 +151,8 @@ const DOT_COUNT = 7;
 .bottom {
 	display: grid;
 	justify-items: center;
-	row-gap: 0.25rem;
-	/* リンクの上の内余白（0.5rem）と合わせて、線から文字まで 1rem 空ける */
-	padding-top: 0.5rem;
+	row-gap: 0.5rem;
+	padding-top: 1rem;
 	border-top: 1px solid var(--color-wood-250);
 	color: var(--color-ink-700);
 	text-align: center;
@@ -256,8 +249,9 @@ const DOT_COUNT = 7;
 		height: 8px;
 	}
 
-	/* サイト名のすぐ右に SNS */
-	.top {
+	/* 上の段は名前とメニュー、下の段は外へのリンクと規約を、それぞれ左右に置く */
+	.top,
+	.bottom {
 		grid-template-columns: auto minmax(0, 1fr);
 		justify-items: start;
 		align-items: center;
@@ -269,22 +263,13 @@ const DOT_COUNT = 7;
 		font-size: var(--font-size-20);
 	}
 
-	.bottom {
-		grid-template-columns: minmax(0, 1fr) auto;
-		justify-items: start;
-		align-items: center;
-		column-gap: 1rem;
-		text-align: start;
-	}
-
-	/* メニューが空でも規約は右に置く */
+	.footer-nav,
 	.legal {
-		grid-column: 2;
-		justify-content: end;
+		justify-self: end;
 	}
 
-	.nav-list {
-		justify-content: start;
+	.legal {
+		justify-content: end;
 	}
 }
 

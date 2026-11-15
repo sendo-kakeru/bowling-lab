@@ -1,3 +1,5 @@
+import { INSTAGRAM_URL } from "../consts";
+
 export interface NavLink {
 	label: string;
 	url: string;
@@ -14,10 +16,13 @@ export const MAIN_NAV = [
 	{ label: "About", url: "/about" },
 ] as const satisfies NavTarget[];
 
-/** ヘッダーで区切りの右に出すリンク */
-export const SUB_NAV = [
-	{ label: "RSS", url: "/rss.xml" },
-] as const satisfies NavTarget[];
+/** ヘッダーとフッターにアイコンで出す、サイトの外へのリンク */
+export const SOCIAL_NAV = [
+	{ icon: "instagram", label: "Instagram", url: INSTAGRAM_URL },
+	{ icon: "rss", label: "RSS", url: "/rss.xml" },
+] as const satisfies (NavTarget & { icon: string })[];
+
+export type SocialIconName = (typeof SOCIAL_NAV)[number]["icon"];
 
 export const LEGAL_NAV = [
 	{ label: "プライバシーポリシー", url: "/privacy" },

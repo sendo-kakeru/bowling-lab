@@ -1,17 +1,17 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import type { NavLink } from "../../utils/nav";
+import { type NavLink, SOCIAL_NAV } from "../../utils/nav";
+import SocialIcon from "../icons/SocialIcon.astro";
 
 // 開け閉めとスマホの面の位置は SiteHeader が持つ
 
 interface Props extends HTMLAttributes<"nav"> {
 	mainItems: NavLink[];
-	subItems: NavLink[];
 }
 
-const { mainItems, subItems, class: className, ...rest } = Astro.props;
+const { mainItems, class: className, ...rest } = Astro.props;
 // 出てくる順番。外へ出るリンクの段はメインの項目の次に出す
-const subListStyle = `--nav-item-index: ${mainItems.length}`;
+const socialListStyle = `--nav-item-index: ${mainItems.length}`;
 ---
 
 <nav
@@ -28,11 +28,13 @@ const subListStyle = `--nav-item-index: ${mainItems.length}`;
 			</li>
 		))}
 	</ul>
-	<ul class="nav-sub nav-item" style={subListStyle}>
-		{subItems.map((item) => (
+	<!-- 名前は見える文字（768px 以上は見た目だけ隠す）。アイコンは飾り -->
+	<ul class="nav-social nav-item" style={socialListStyle}>
+		{SOCIAL_NAV.map(({ icon, label, url }) => (
 			<li>
-				<a aria-current={item.current} href={item.url}>
-					{item.label}
+				<a href={url}>
+					<SocialIcon class="social-icon" name={icon} />
+					<span class="social-label">{label}</span>
 				</a>
 			</li>
 		))}
@@ -96,15 +98,19 @@ const subListStyle = `--nav-item-index: ${mainItems.length}`;
 	text-underline-offset: 0.3em;
 }
 
-.nav-sub {
+/* スマホのメニューではアイコンと名前の札を横に並べる */
+.nav-social {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
 	gap: 0.75rem;
 }
 
-.nav-sub a {
+.nav-social a {
 	display: grid;
-	place-items: center;
+	grid-auto-flow: column;
+	place-content: center;
+	align-items: center;
+	column-gap: 0.5rem;
 	height: 3rem;
 	border-radius: var(--radius-full);
 	box-shadow: inset 0 0 0 1px var(--color-navy-550);
@@ -113,6 +119,11 @@ const subListStyle = `--nav-item-index: ${mainItems.length}`;
 	font-weight: 600;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
+}
+
+.social-icon {
+	width: 1.125rem;
+	height: 1.125rem;
 }
 
 /* メニューを開くたびに 1 行ずつ出す（display: none から戻るたびに再生される） */
@@ -144,7 +155,7 @@ const subListStyle = `--nav-item-index: ${mainItems.length}`;
 	/* 入りきらないときに折り返すため flex */
 	.header-nav,
 	.nav-main,
-	.nav-sub {
+	.nav-social {
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: end;
@@ -157,22 +168,25 @@ const subListStyle = `--nav-item-index: ${mainItems.length}`;
 		border: 0;
 	}
 
-	.nav-main + .nav-sub::before {
+	.nav-social {
+		column-gap: 0.5rem;
+	}
+
+	/* 区切りの左右の間を、メニューとの間（1.25rem）にそろえる */
+	.nav-main + .nav-social::before {
 		content: "|" / "";
+		margin-right: 0.75rem;
 		color: var(--color-navy-550);
 		font-family: var(--font-display);
 		font-size: var(--font-size-15);
 	}
 
-	.nav-main a,
-	.nav-sub a {
+	.nav-main a {
 		display: block;
 		min-height: 0;
-		height: auto;
 		padding-block: 0.5rem;
 		padding-inline: 0;
 		border-radius: var(--radius-4);
-		box-shadow: none;
 		font-size: var(--font-size-15);
 		font-weight: 600;
 		letter-spacing: 0.1em;
@@ -182,6 +196,32 @@ const subListStyle = `--nav-item-index: ${mainItems.length}`;
 
 	.nav-main a::after {
 		content: none;
+	}
+
+	/* 文字のメニューと見分けるため、外へのリンクは丸いアイコンのボタンにする */
+	.nav-social a {
+		/* .social-label の基準 */
+		position: relative;
+		width: 2.25rem;
+		height: 2.25rem;
+		box-shadow: none;
+		background: var(--color-navy-800);
+	}
+
+	/* 名前は読み上げに残し、見た目だけ隠す（.sr-only と同じ） */
+	.social-label {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+
+	.social-icon {
+		width: 1rem;
+		height: 1rem;
 	}
 
 	.nav-main a[aria-current] .nav-label {
@@ -197,14 +237,12 @@ const subListStyle = `--nav-item-index: ${mainItems.length}`;
 
 @media (width >= 1024px) {
 	.header-nav,
-	.nav-main,
-	.nav-sub {
+	.nav-main {
 		column-gap: 1.5rem;
 	}
 
 	.nav-main a,
-	.nav-sub a,
-	.nav-main + .nav-sub::before {
+	.nav-main + .nav-social::before {
 		font-size: var(--font-size-16);
 		letter-spacing: 0.12em;
 	}
