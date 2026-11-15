@@ -10,6 +10,9 @@ export const SITE_LANG = "ja";
  */
 export const SITE_TIME_ZONE = "Asia/Tokyo";
 
+/** 記事とメモの一覧で、1 ページに出す件数 */
+export const LIST_PER_PAGE = 20;
+
 /** 画像と動画を配信するドメイン（R2）。設計は docs/design/media.md */
 export const MEDIA_ORIGIN = "https://bowling-media.sendo.page";
 

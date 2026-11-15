@@ -16,7 +16,8 @@
 			"**",
 			"!pnpm-lock.yaml",
 			"!.claude/settings.local.json",
-			"!public"
+			"!public",
+			"!src/data/media-manifest.json"
 		]
 	},
 	"formatter": {
@@ -24,7 +25,10 @@
 		"indentStyle": "tab"
 	},
 	"html": {
-		"experimentalFullSupportEnabled": true
+		"experimentalFullSupportEnabled": true,
+		"formatter": {
+			"enabled": true
+		}
 	},
 	"javascript": {
 		"formatter": {

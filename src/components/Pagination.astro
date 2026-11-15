@@ -20,56 +20,56 @@ const { basePath, current, pageCount, class: className, ...rest } = Astro.props;
 const prevHref =
 	current > 1 ? getPageHref({ basePath, page: current - 1 }) : undefined;
 const nextHref =
-	current < pageCount ? getPageHref({ basePath, page: current + 1 }) : undefined;
+	current < pageCount
+		? getPageHref({ basePath, page: current + 1 })
+		: undefined;
 ---
 
-{
-	pageCount > 1 && (
-		<nav {...rest} aria-label="ページ送り" class:list={["pagination", className]}>
-			{prevHref ? (
-				<a href={prevHref} rel="prev">
-					前へ
-				</a>
-			) : (
-				<span aria-hidden="true" />
-			)}
-			<span>
-				<span class="sr-only">ページ</span>
-				{current} / {pageCount}
-			</span>
-			{nextHref ? (
-				<a href={nextHref} rel="next">
-					次へ
-				</a>
-			) : (
-				<span aria-hidden="true" />
-			)}
-		</nav>
-	)
-}
+{pageCount > 1 && (
+	<nav {...rest} aria-label="ページ送り" class:list={["pagination", className]}>
+		{prevHref ? (
+			<a href={prevHref} rel="prev">
+				前へ
+			</a>
+		) : (
+			<span aria-hidden="true" />
+		)}
+		<span>
+			<span class="sr-only">ページ</span>
+			{current} / {pageCount}
+		</span>
+		{nextHref ? (
+			<a href={nextHref} rel="next">
+				次へ
+			</a>
+		) : (
+			<span aria-hidden="true" />
+		)}
+	</nav>
+)}
 
 <style>
-	.pagination {
-		display: grid;
-		grid-template-columns: 1fr auto 1fr;
-		align-items: center;
-		column-gap: 1rem;
-	}
+.pagination {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+	align-items: center;
+	column-gap: 1rem;
+}
 
-	.pagination > :first-child {
-		justify-self: start;
-	}
+.pagination > :first-child {
+	justify-self: start;
+}
 
-	.pagination > :last-child {
-		justify-self: end;
-	}
+.pagination > :last-child {
+	justify-self: end;
+}
 
-	.sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip-path: inset(50%);
-		white-space: nowrap;
-	}
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
 </style>

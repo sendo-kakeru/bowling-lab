@@ -12,7 +12,7 @@
 		"astro": "astro",
 		"lint": "biome check .",
 		"format": "biome check --write .",
-		"test": "vitest run",
+		"test": "TZ=UTC vitest run",
 		"typecheck": "astro sync && tsc --noEmit --runExternalCode"
 	},
 	"dependencies": {
