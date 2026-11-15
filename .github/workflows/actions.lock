@@ -15,6 +15,8 @@ workflows:
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-node@v7.1.0'
         - 'pnpm/action-setup@v6.1.1'
+    '.github/workflows/create-release-pr.yml':
+        - 'actions/checkout@v7.0.1'
     '.github/workflows/deploy-prod.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-node@v7.1.0'
