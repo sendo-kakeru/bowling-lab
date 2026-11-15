@@ -10,7 +10,7 @@
 			"package": "@astrojs/ts-content-mapper"
 		}
 	],
-	"exclude": ["dist"],
+	"exclude": ["dist", "storybook-static"],
 	"extends": "astro/tsconfigs/strict",
 	"include": [".astro/types.d.ts", ".storybook/**/*", "**/*"]
 }

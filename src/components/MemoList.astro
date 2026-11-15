@@ -24,7 +24,7 @@ const { memos, current, pageCount, class: className, ...rest } = Astro.props;
 <div {...rest} class:list={["memo-page", className]}>
 	<Breadcrumb items={[{ href: "/", label: "HOME" }, { label: "MEMO" }]} />
 
-	<h1 class="title">MEMO</h1>
+	<h1 class="text-page-title">MEMO</h1>
 
 	{memos.length > 0 ? (
 		<ol class="list">
@@ -53,17 +53,6 @@ const { memos, current, pageCount, class: className, ...rest } = Astro.props;
 	row-gap: 0.75rem;
 }
 
-.title {
-	padding-top: 0.5rem;
-	color: var(--color-navy-900);
-	font-family: var(--font-display);
-	font-size: var(--font-size-40);
-	/* 細い書体なので、この大きさでは 700 だと線が細く見える */
-	font-weight: 800;
-	letter-spacing: 0.02em;
-	line-height: 1;
-}
-
 .list {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
@@ -89,10 +78,6 @@ const { memos, current, pageCount, class: className, ...rest } = Astro.props;
 @media (width >= 768px) {
 	.memo-page {
 		row-gap: 1rem;
-	}
-
-	.title {
-		font-size: var(--font-size-56);
 	}
 
 	.list {

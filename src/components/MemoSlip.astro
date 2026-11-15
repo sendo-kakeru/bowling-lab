@@ -100,8 +100,11 @@ const [first, ...replies] = memo.notes;
 /* 押して開ける（続きがあり、閉じている）伝票だけ、記事のカードと同じく地の色を変える。
 	   タッチ端末でホバーが残らないように。動きを減らす設定ではリセット（base.css）が止める */
 @media (hover: hover) {
+	/* 下の .slip の box-shadow の transition より詳細度が高いので、ここにも書く */
 	.slip:has(.thread) {
-		transition: background-color 0.15s;
+		transition:
+			background-color 0.15s,
+			box-shadow 0.25s;
 	}
 
 	.slip:has(.thread:not([open])):hover {

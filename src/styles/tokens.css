@@ -46,6 +46,8 @@
 	--color-gutter-edge: color-mix(in srgb, var(--color-gutter), black 40%);
 	--color-gutter-highlight: color-mix(in srgb, var(--color-gutter), white 10%);
 	--color-carpet: #1c1916;
+	/* 影の色。透明度は使う側で color-mix で付ける */
+	--color-shadow: rgb(60 35 10);
 	--color-approach: #e6c99c; /* フッターの地 */
 
 	--color-callout-point: #eef1f7;
@@ -67,10 +69,14 @@
 	--font-size-22: 1.375rem;
 	--font-size-24: 1.5rem;
 	--font-size-26: 1.625rem;
+	--font-size-28: 1.75rem;
 	--font-size-40: 2.5rem;
+	--font-size-44: 2.75rem;
 	--font-size-46: 2.875rem;
 	--font-size-56: 3.5rem;
 	--font-size-76: 4.75rem;
+	--font-size-96: 6rem;
+	--font-size-140: 8.75rem; /* 404 の大きな数字だけ */
 
 	/* 角丸。名前の数字は px。カード = 画像の角丸 + --card-padding で角を同心円にそろえる */
 	--radius-4: 0.25rem;
@@ -80,9 +86,11 @@
 	--card-padding: 0.625rem;
 
 	--shadow-card:
-		0 2px 0 var(--color-wood-400), 0 10px 24px rgb(60 35 10 / 0.18);
+		0 2px 0 var(--color-wood-400),
+		0 10px 24px color-mix(in srgb, var(--color-shadow) 18%, transparent);
 	--shadow-card-raised:
-		0 2px 0 var(--color-wood-400), 0 14px 30px rgb(60 35 10 / 0.25);
+		0 2px 0 var(--color-wood-400),
+		0 14px 30px color-mix(in srgb, var(--color-shadow) 25%, transparent);
 
 	/* 見出しの印（本文の h2 / h3 と目次）。色は使う側の color（currentColor）
 	   ストライク: 対角線で区切った左右の三角を塗る。スペア: 小窓の半分を斜めに塗る */

@@ -11,11 +11,11 @@ import Base from "../layouts/Base.astro";
 		<Breadcrumb items={[{ href: "/", label: "HOME" }, { label: "ABOUT" }]} />
 
 		<!-- 見出しは記事一覧と同じく、ナビの名前としてカードに載せずレーンに直接置く -->
-		<h1 class="title">ABOUT</h1>
+		<h1 class="text-page-title">ABOUT</h1>
 
 		<Card as="article" class="about" raised>
 			<div class="about-body prose text-body">
-				<!-- 見た目ではアバターと名前が見出しの代わりになるので、見出しは読み上げと目次の構造のためだけに残す -->
+				<!-- 見た目ではアバターと名前が見出しの代わりになるので、見出しは読み上げの構造のためだけに残す -->
 				<h2 class="sr-only">自分について</h2>
 				<!-- 名前がすぐ横にあるので、画像は飾りとして読み上げない -->
 				<div class="profile">
@@ -61,18 +61,7 @@ import Base from "../layouts/Base.astro";
 	row-gap: 0.75rem;
 }
 
-/* 記事一覧（PostList）の見出しと同じ */
-.title {
-	padding-top: 0.5rem;
-	color: var(--color-navy-900);
-	font-family: var(--font-display);
-	font-size: var(--font-size-40);
-	/* 細い書体なので、この大きさでは 700 だと線が細く見える */
-	font-weight: 800;
-	letter-spacing: 0.02em;
-	line-height: 1;
-}
-
+/* 記事一覧（PostList）のカードの列と同じく、見出しから少し離す */
 .about {
 	margin-top: 0.5rem;
 }
@@ -110,10 +99,6 @@ import Base from "../layouts/Base.astro";
 		--about-padding-inline: 2.25rem;
 
 		row-gap: 1rem;
-	}
-
-	.title {
-		font-size: var(--font-size-56);
 	}
 
 	.profile {

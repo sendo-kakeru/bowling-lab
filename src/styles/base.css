@@ -91,18 +91,4 @@
 		}
 		/* biome-ignore-end lint/complexity/noImportantStyles: ここまで */
 	}
-
-	/* 検索で一致した語。赤の面は主ボタンと注意だけなので、赤をごく薄くして地に敷く */
-	mark {
-		padding-inline: 0.125rem;
-		border-radius: 2px;
-		background: color-mix(in srgb, var(--color-red) 15%, var(--color-card));
-		color: inherit;
-	}
-
-	@media (forced-colors: active) {
-		mark {
-			outline: 1px solid;
-		}
-	}
 }

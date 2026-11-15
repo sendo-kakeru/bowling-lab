@@ -111,13 +111,25 @@ describe("getFrameItems", () => {
 		expect(items).toContain(current);
 	});
 
-	test("どのページでも並べる数は同じで、最初と最後のページを含む", () => {
+	test("どのページでも 7 マスで、最初と最後と今のページを含み、番号は昇順で GAP は 2 ページ以上を省く", () => {
 		for (const pageCount of [8, 9, 12, 30]) {
 			for (let current = 1; current <= pageCount; current++) {
 				const items = getFrameItems({ current, pageCount });
 				expect(items).toHaveLength(7);
 				expect(items.at(0)).toBe(1);
 				expect(items.at(-1)).toBe(pageCount);
+				expect(items).toContain(current);
+				items.forEach((item, index) => {
+					if (item !== GAP) return;
+					const before = items[index - 1];
+					const after = items[index + 1];
+					if (typeof before !== "number" || typeof after !== "number") {
+						throw new Error(`GAP の両隣が番号でない: ${items.join(",")}`);
+					}
+					expect(after - before).toBeGreaterThan(2);
+				});
+				const numbers = items.filter((item) => item !== GAP);
+				expect(numbers).toEqual([...numbers].sort((a, b) => a - b));
 			}
 		}
 	});

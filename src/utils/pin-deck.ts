@@ -9,7 +9,7 @@ export const DECK_WIDTH = 260;
 export const PIN_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 export type PinNumber = (typeof PIN_NUMBERS)[number];
 
-export interface PinSpot {
+interface PinSpot {
 	pin: PinNumber;
 	x: number;
 	y: number;
@@ -32,7 +32,7 @@ export const PIN_SPOTS: readonly PinSpot[] = [
 ];
 
 /** 倒れたピンが滑る先（ピン座標で、立ち位置からのずれ）と寝た向き */
-export interface PinFall {
+interface PinFall {
 	pin: PinNumber;
 	x: number;
 	y: number;
@@ -221,7 +221,7 @@ export function planBallPath({
 	return { duration, endX, endY, startX, startY };
 }
 
-export type Phase = "idle" | "rolling" | "result" | "clearing";
+type Phase = "idle" | "rolling" | "result" | "clearing";
 
 interface IdleState {
 	phase: "idle";
@@ -241,7 +241,6 @@ interface ResultState {
 /** 前の 1 投のピンを片付けている間。次の 1 投と道のりは押した瞬間に決めて持っておく */
 interface ClearingState {
 	phase: "clearing";
-	last: Shot;
 	next: Shot;
 	path: BallPath;
 }
@@ -280,7 +279,6 @@ export function transition({
 			// abort でも戻さない。止まった絵なので、戻ってきたときに結果が見えているほうがよい
 			return event.type === "roll"
 				? {
-						last: state.shot,
 						next: event.shot,
 						path: event.path,
 						phase: "clearing",
@@ -319,7 +317,7 @@ export function getPhaseDuration({
 }
 
 /** 結果の札。欄の中身はスコア表の 1 投目と同じ（ストライクの印、倒した本数、G） */
-export interface ResultView {
+interface ResultView {
 	box: "strike" | "count" | "gutter";
 	/** 倒した本数 */
 	count: number;
@@ -327,7 +325,7 @@ export interface ResultView {
 	text: "STRIKE" | "GUTTER" | undefined;
 }
 
-export interface DeckView {
+interface DeckView {
 	phase: Phase;
 	/** 倒れた姿で描くピン */
 	falls: readonly PinFall[];

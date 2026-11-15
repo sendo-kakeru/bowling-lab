@@ -22,15 +22,19 @@ const { posts, current, pageCount } = Astro.props;
 	<Breadcrumb items={[{ href: "/", label: "HOME" }, { label: "POSTS" }]} />
 
 	<!-- 記事のカードと見分けがつくよう、見出しはカードに載せずレーンに直接置く -->
-	<h1 class="title">ALL POSTS</h1>
+	<h1 class="text-page-title">ALL POSTS</h1>
 
-	<ol class="list">
-		{posts.map((post, index) => (
-			<li>
-				<PostCard post={post} priority={current === 1 && index === 0} />
-			</li>
-		))}
-	</ol>
+	{posts.length > 0 ? (
+		<ol class="list">
+			{posts.map((post, index) => (
+				<li>
+					<PostCard post={post} priority={current === 1 && index === 0} />
+				</li>
+			))}
+		</ol>
+	) : (
+		<p class="empty">まだ記事はありません。</p>
+	)}
 
 	<Pagination
 		basePath="/posts"
@@ -46,23 +50,20 @@ const { posts, current, pageCount } = Astro.props;
 	row-gap: 0.75rem;
 }
 
-.title {
-	padding-top: 0.5rem;
-	color: var(--color-navy-900);
-	font-family: var(--font-display);
-	font-size: var(--font-size-40);
-	/* 細い書体なので、この大きさでは 700 だと線が細く見える */
-	font-weight: 800;
-	letter-spacing: 0.02em;
-	line-height: 1;
-}
-
 .list {
 	display: grid;
 	row-gap: 0.75rem;
 	margin-top: 0.5rem;
 	padding: 0;
 	list-style: none;
+}
+
+/* MemoList の空の表示と同じ */
+.empty {
+	margin-top: 0.5rem;
+	color: var(--color-ink-900);
+	font-size: var(--font-size-14);
+	line-height: 1.7;
 }
 
 /* デザインではカードの列より少し離すので、行の間隔に足す */
@@ -74,10 +75,6 @@ const { posts, current, pageCount } = Astro.props;
 @media (width >= 768px) {
 	.posts-page {
 		row-gap: 1rem;
-	}
-
-	.title {
-		font-size: var(--font-size-56);
 	}
 
 	/* 大文字だけの見出しは行の箱の下が空くので、見た目の間隔がパンくずとの間より広くならないよう控えめにする */

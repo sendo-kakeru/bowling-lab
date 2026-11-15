@@ -299,7 +299,7 @@ for (const root of document.querySelectorAll<HTMLElement>("[data-pin-deck]"))
 	/* ピン座標 1 の長さ。ピンもボールも、これの何倍かで描く */
 	--deck-unit: 0.95px;
 	/* 影の色。木の影を直に書く */
-	--deck-shadow: rgb(60 35 10 / 0.3);
+	--deck-shadow: color-mix(in srgb, var(--color-shadow) 30%, transparent);
 	--pin-highlight: color-mix(in srgb, var(--color-card), white 60%);
 
 	display: grid;
@@ -608,7 +608,8 @@ for (const root of document.querySelectorAll<HTMLElement>("[data-pin-deck]"))
 			var(--color-navy-900) 58%,
 			var(--color-navy-950)
 		);
-	box-shadow: 2px 3px 3px rgb(60 35 10 / 0.4);
+	box-shadow: 2px 3px 3px
+		color-mix(in srgb, var(--color-shadow) 40%, transparent);
 }
 
 .pin-deck:is([data-phase="rolling"], [data-phase="result"]):not([data-instant])

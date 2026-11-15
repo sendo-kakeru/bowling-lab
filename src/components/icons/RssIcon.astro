@@ -14,7 +14,6 @@ const { class: className, ...rest } = Astro.props;
 <svg
 	{...rest}
 	aria-hidden="true"
-	class={className}
 	fill="none"
 	height="14"
 	stroke="currentColor"
@@ -22,6 +21,7 @@ const { class: className, ...rest } = Astro.props;
 	stroke-width="2.4"
 	viewBox="0 0 24 24"
 	width="14"
+	class:list={[className]}
 >
 	<path d="M5 11a8 8 0 0 1 8 8M5 5a14 14 0 0 1 14 14"></path>
 	<circle cx="6" cy="18" fill="currentColor" r="1.6" stroke="none"></circle>

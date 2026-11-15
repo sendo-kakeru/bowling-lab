@@ -216,7 +216,6 @@ describe("transition", () => {
 	const rolling: DeckState = { path: PATH, phase: "rolling", shot: LEAVE };
 	const result: DeckState = { phase: "result", shot: LEAVE };
 	const clearing: DeckState = {
-		last: LEAVE,
 		next: STRIKE,
 		path: PATH,
 		phase: "clearing",
@@ -274,7 +273,6 @@ describe("transition", () => {
 describe("getPhaseDuration", () => {
 	const rolling: DeckState = { path: PATH, phase: "rolling", shot: LEAVE };
 	const clearing: DeckState = {
-		last: LEAVE,
 		next: STRIKE,
 		path: PATH,
 		phase: "clearing",
@@ -375,7 +373,7 @@ describe("toView", () => {
 
 	it.each([
 		["rolling", { path: PATH, phase: "rolling", shot: STRIKE }],
-		["clearing", { last: STRIKE, next: LEAVE, path: PATH, phase: "clearing" }],
+		["clearing", { next: LEAVE, path: PATH, phase: "clearing" }],
 	] as const)("%s はピンを立てて描き、札も読み上げも出さない", (_, state) => {
 		const view = toView({ state });
 		expect(view.falls).toEqual([]);
