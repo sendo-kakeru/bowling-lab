@@ -53,6 +53,15 @@ describe("getPageHref", () => {
 	test("2 ページ目以降は /page/<番号> を付ける", () => {
 		expect(getPageHref({ basePath: "/memos", page: 3 })).toBe("/memos/page/3");
 	});
+
+	test.each([
+		["/posts/", 1, "/posts"],
+		["/posts/", 2, "/posts/page/2"],
+		["/", 1, "/"],
+		["/", 2, "/page/2"],
+	])("basePath が %s、%i ページ目なら %s（スラッシュを重ねない）", (basePath, page, expected) => {
+		expect(getPageHref({ basePath, page })).toBe(expected);
+	});
 });
 
 describe("getRestPageStaticPaths", () => {

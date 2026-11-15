@@ -1,0 +1,15 @@
+{
+	"hard_tabs": true,
+	"tab_size": 2,
+	"languages": {
+		"JSON": {
+			"hard_tabs": false
+		},
+		"Markdown": {
+			"hard_tabs": false
+		},
+		"YAML": {
+			"hard_tabs": false
+		}
+	}
+}

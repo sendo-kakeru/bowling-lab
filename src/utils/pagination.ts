@@ -45,7 +45,10 @@ export function getPageHref({
 	basePath: string;
 	page: number;
 }): string {
-	return page === 1 ? basePath : `${basePath}/page/${page}`;
+	// 末尾のスラッシュを残すと "/posts//page/2" になり、"/" だと "//page/2"（別のホストへのリンク）になる
+	const base = basePath.replace(/\/+$/, "");
+	if (page === 1) return base === "" ? "/" : base;
+	return `${base}/page/${page}`;
 }
 
 /**
