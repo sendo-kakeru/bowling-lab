@@ -23,6 +23,7 @@ const ProbeSchema = v.object({
 	streams: v.array(
 		v.object({
 			codec_type: v.string(),
+			color_transfer: v.optional(v.string()),
 			height: v.optional(v.number()),
 			tags: TagsSchema,
 			width: v.optional(v.number()),
@@ -40,6 +41,32 @@ export function findLocationTags({ probe }: { probe: Probe }): string[] {
 		.flatMap(({ tags }) => Object.keys(tags))
 		.filter((key) => LOCATION_TAG.test(key));
 }
+
+/** HLG（iPhone の既定）と PQ。HDR の伝達特性 */
+const HDR_TRANSFERS = new Set(["arib-std-b67", "smpte2084"]);
+
+/** 映像が HDR か。8 ビットに落とすだけだと色が薄くなるので、SDR に変換する必要がある */
+export function isHdr({ probe }: { probe: Probe }): boolean {
+	const transfer = probe.streams.find(
+		(stream) => stream.codec_type === "video",
+	)?.color_transfer;
+	return transfer !== undefined && HDR_TRANSFERS.has(transfer);
+}
+
+/**
+ * HDR を SDR（BT.709）に変換する。Homebrew の ffmpeg には zscale も libplacebo もないので、
+ * macOS の VideoToolbox（scale_vt）で変換する。回転はソフトウェアで済ませてから GPU に渡す
+ */
+const HDR_TO_SDR_ARGS = [
+	"-vf",
+	"format=p010le,hwupload,scale_vt=color_matrix=bt709:color_primaries=bt709:color_transfer=bt709,hwdownload,format=p010le",
+	"-color_primaries",
+	"bt709",
+	"-color_trc",
+	"bt709",
+	"-colorspace",
+	"bt709",
+];
 
 /** ffmpeg と ffprobe がなければ、入れ方を示して止める */
 export async function ensureFfmpeg(): Promise<void> {
@@ -70,9 +97,15 @@ export async function processVideoItem({
 }): Promise<ProcessedItem> {
 	const scratch = await mkdtemp(path.join(workDir, "video-"));
 	const mp4Path = path.join(scratch, "video.mp4");
+	const hdr = isHdr({
+		probe: await probeVideo({ inputPath: item.sourcePath }),
+	});
 	await run({
 		args: [
 			"-y",
+			...(hdr
+				? ["-init_hw_device", "videotoolbox=vt", "-filter_hw_device", "vt"]
+				: []),
 			"-i",
 			item.sourcePath,
 			// iPhone の MOV は位置情報をデータのトラックにも持つので、映像と音声だけを選ぶ
@@ -86,6 +119,7 @@ export async function processVideoItem({
 			"23",
 			"-preset",
 			"medium",
+			...(hdr ? HDR_TO_SDR_ARGS : []),
 			"-pix_fmt",
 			"yuv420p",
 			"-c:a",

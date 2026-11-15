@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { findLocationTags } from "./video.ts";
+import { findLocationTags, isHdr } from "./video.ts";
 
 function probeWith({
 	formatTags,
@@ -50,5 +50,35 @@ describe("findLocationTags", () => {
 		});
 
 		expect(findLocationTags({ probe })).toEqual([]);
+	});
+});
+
+describe("isHdr", () => {
+	function probeWithTransfer({
+		colorTransfer,
+	}: {
+		colorTransfer?: string;
+	}): Parameters<typeof isHdr>[0]["probe"] {
+		return {
+			format: { duration: 2, tags: {} },
+			streams: [
+				{ codec_type: "audio", tags: {} },
+				{ codec_type: "video", color_transfer: colorTransfer, tags: {} },
+			],
+		};
+	}
+
+	test.each([
+		["HLG（iPhone の既定）", "arib-std-b67"],
+		["PQ", "smpte2084"],
+	])("%s は HDR", (_, colorTransfer) => {
+		expect(isHdr({ probe: probeWithTransfer({ colorTransfer }) })).toBe(true);
+	});
+
+	test.each([
+		["BT.709", "bt709"],
+		["伝達特性の指定なし", undefined],
+	])("%s は HDR ではない", (_, colorTransfer) => {
+		expect(isHdr({ probe: probeWithTransfer({ colorTransfer }) })).toBe(false);
 	});
 });
