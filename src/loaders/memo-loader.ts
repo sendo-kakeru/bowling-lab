@@ -75,38 +75,51 @@ export function memoLoader(): Loader {
 			const { config, logger, store, watcher } = context;
 			const root = fileURLToPath(config.root);
 			const dir = join(root, MEMO_DIR);
-			const isMemoPath = (path: string): boolean =>
-				dirname(path) === dir && extname(path) === ".md";
+			// 記事の glob("*.md") と同じく、ドットで始まるファイルは読まない
+			const isMemoPath = ({ path }: { path: string }): boolean =>
+				dirname(path) === dir &&
+				extname(path) === ".md" &&
+				!basename(path).startsWith(".");
 
-			const sync = async (path: string): Promise<void> => {
+			const sync = async ({ path }: { path: string }): Promise<void> => {
 				try {
 					await syncMemo({ context, path, root });
 				} catch (error) {
 					if (!watcher) throw error;
-					// 開発サーバーは落とさず、直すまで前の内容のまま出す（起動時なら、そのメモを除いて起動する）
-					logger.error(error instanceof Error ? error.message : String(error));
+					// 開発サーバーは落とさず、誤りを store に入れて getMemos() に投げさせる。
+					// ログだけだと、保存しても反映されないようにしか見えないため
+					const message =
+						error instanceof Error ? error.message : String(error);
+					logger.error(message);
+					store.set({
+						data: { error: message },
+						filePath: relative(root, path),
+						id: basename(path, ".md"),
+					});
 				}
 			};
 
 			if (watcher) {
 				watcher.add(dir);
 				const onChange = async (path: string): Promise<void> => {
-					if (isMemoPath(path)) await sync(path);
+					if (isMemoPath({ path })) await sync({ path });
 				};
 				watcher.on("add", onChange);
 				watcher.on("change", onChange);
 				watcher.on("unlink", (path) => {
-					if (isMemoPath(path)) store.delete(basename(path, ".md"));
+					if (isMemoPath({ path })) store.delete(basename(path, ".md"));
 				});
 			}
 
 			const files = existsSync(dir)
-				? (await readdir(dir)).map((file) => join(dir, file)).filter(isMemoPath)
+				? (await readdir(dir))
+						.map((file) => join(dir, file))
+						.filter((path) => isMemoPath({ path }))
 				: [];
 			const staleIds = new Set(store.keys());
 			for (const path of files) {
 				staleIds.delete(basename(path, ".md"));
-				await sync(path);
+				await sync({ path });
 			}
 			for (const id of staleIds) {
 				store.delete(id);

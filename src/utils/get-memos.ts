@@ -1,19 +1,17 @@
 import { getCollection } from "astro:content";
 import * as v from "valibot";
-import { type Memo, MemoSchema } from "./memo-schema.ts";
+import { compareMemos, type Memo, MemoSchema } from "./memo-schema.ts";
 
-/**
- * メモを先頭の書き込みの日時の新しい順で返す。続きを足しても順番は変わらない。
- * 同じ日時なら id の降順（同じ分に作った `-2` つきのファイルを後の作成として前に出す）
- */
+// 開発中、ローダーは書式の誤りをこの形で store に入れる
+const MemoErrorSchema = v.object({ error: v.string() });
+
+/** メモを先頭の書き込みの日時の新しい順で返す。開発中に書式の誤ったメモがあれば投げる */
 export async function getMemos(): Promise<Memo[]> {
 	const entries = await getCollection("memos");
-	const memos = entries.map(({ data, id }) =>
-		v.parse(MemoSchema, { id, notes: data.notes }),
-	);
-	return memos.sort(
-		(a, b) =>
-			b.notes[0].postedAt.getTime() - a.notes[0].postedAt.getTime() ||
-			b.id.localeCompare(a.id),
-	);
+	const memos = entries.map(({ data, id }) => {
+		const failed = v.safeParse(MemoErrorSchema, data);
+		if (failed.success) throw new Error(failed.output.error);
+		return v.parse(MemoSchema, { id, notes: data.notes });
+	});
+	return memos.toSorted(compareMemos);
 }

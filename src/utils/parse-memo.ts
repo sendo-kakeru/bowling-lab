@@ -23,6 +23,9 @@ export class MemoParseError extends Error {
 	}
 }
 
+// 日付で始まる h2 は区切りの打ち間違いとみなす。黙って前の書き込みの本文に混ざるのを防ぐ
+const MISTYPED_HEADING_PATTERN = /^## +\d{4}-/;
+
 const isBlank = ({ line }: { line: string }): boolean => line.trim() === "";
 
 /** 前後の空行を除いて行をつなぐ。1 行目の字下げは字下げのコードブロックなので残す */
@@ -41,14 +44,23 @@ function joinTrimmedLines({ lines }: { lines: readonly string[] }): string {
 export function parseMemo({ source }: { source: string }): ParsedMemoNote[] {
 	// BOM つきで保存されると、1 行目の見出しが見出しと判定されない
 	const text = source.replace(/^\uFEFF/, "");
-	const lines = text.split(/\r?\n/);
+	// 単独の CR も行の区切りにする。構文木の行番号と数え方をそろえるため
+	const lines = text.split(/\r\n|\r|\n/);
 	// 区切りはトップレベルの見出しだけ。コードブロックや HTML コメントの中の行を除くため、行ではなく構文木で探す
 	const headings: { postedAt: string; index: number }[] = [];
 	for (const node of fromMarkdown(text).children) {
 		if (node.type !== "heading" || node.position === undefined) continue;
 		const index = node.position.start.line - 1;
-		const postedAt = matchMemoHeading({ line: lines[index] ?? "" });
-		if (postedAt !== undefined) headings.push({ index, postedAt });
+		const line = lines[index] ?? "";
+		const postedAt = matchMemoHeading({ line });
+		if (postedAt !== undefined) {
+			headings.push({ index, postedAt });
+		} else if (MISTYPED_HEADING_PATTERN.test(line)) {
+			throw new MemoParseError({
+				line: index + 1,
+				message: `見出しの書式が違う（## YYYY-MM-DD HH:mm）: ${line}`,
+			});
+		}
 	}
 
 	const firstHeadingIndex = headings[0]?.index ?? lines.length;

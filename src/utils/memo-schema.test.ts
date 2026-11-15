@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { resolvePostedAt } from "./memo-schema.ts";
+import { compareMemos, resolvePostedAt } from "./memo-schema.ts";
 import { MemoParseError, parseMemo } from "./parse-memo.ts";
 
 /** 見出しの日時の並びから、メモの本文を作って読む */
@@ -72,5 +72,39 @@ describe("resolvePostedAt", () => {
 
 		expect(error.line).toBe(9);
 		expect(error.message).toContain("前の書き込み");
+	});
+});
+
+describe("compareMemos", () => {
+	const toNote = (postedAt: string) => ({
+		html: "",
+		postedAt: new Date(postedAt),
+	});
+	const memo = (id: string, first: string, ...rest: string[]) => ({
+		id,
+		notes: [toNote(first), ...rest.map(toNote)] satisfies [
+			unknown,
+			...unknown[],
+		],
+	});
+
+	test("先頭の書き込みの新しい順。続きの日時は見ない", () => {
+		const old = memo("old", "2026-11-01T00:00:00Z", "2026-11-30T00:00:00Z");
+		const recent = memo("recent", "2026-11-10T00:00:00Z");
+
+		expect([old, recent].toSorted(compareMemos).map(({ id }) => id)).toEqual([
+			"recent",
+			"old",
+		]);
+	});
+
+	test("同じ分なら、-2 つきのファイルが前に来る", () => {
+		const first = memo("2026-11-06-2114", "2026-11-06T12:14:00Z");
+		const second = memo("2026-11-06-2114-2", "2026-11-06T12:14:00Z");
+
+		expect([first, second].toSorted(compareMemos).map(({ id }) => id)).toEqual([
+			"2026-11-06-2114-2",
+			"2026-11-06-2114",
+		]);
 	});
 });

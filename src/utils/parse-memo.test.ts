@@ -61,6 +61,14 @@ describe("parseMemo", () => {
 		expect(notes.map(({ line }) => line)).toEqual([1]);
 	});
 
+	test("単独の CR も行の区切りとして数える", () => {
+		const notes = parseMemo({
+			source: "## 2026-11-06 21:14\n本文\rもう1行\n## 2026-11-06 21:38\n続き",
+		});
+
+		expect(notes.map(({ line }) => line)).toEqual([1, 4]);
+	});
+
 	test("見出しより前の空行は許す", () => {
 		const notes = parseMemo({
 			source: source("", "  ", "## 2026-11-06 21:14", "本文"),
@@ -182,6 +190,28 @@ describe("parseMemo", () => {
 			const error = catchParseError({ source: source("本文だけ") });
 
 			expect(error.line).toBe(1);
+		});
+
+		test("日付で始まるのに書式の違う見出しは、その行番号でエラー", () => {
+			const error = catchParseError({
+				source: source(
+					"## 2026-11-06 21:14",
+					"本文",
+					"## 2026-11-7 10:00",
+					"続き",
+				),
+			});
+
+			expect(error.line).toBe(3);
+			expect(error.message).toContain("見出しの書式が違う");
+		});
+
+		test("日付で始まらない ## はエラーにしない", () => {
+			const notes = parseMemo({
+				source: source("## 2026-11-06 21:14", "本文", "## 3 ゲーム目", "続き"),
+			});
+
+			expect(notes).toHaveLength(1);
 		});
 
 		test("途中の見出しの下が空だと、その見出しの行番号でエラー", () => {
