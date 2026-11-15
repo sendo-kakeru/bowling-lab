@@ -2,6 +2,7 @@
 	"name": "bowling-lab",
 	"type": "module",
 	"version": "0.0.1",
+	"packageManager": "pnpm@12.18.0",
 	"engines": {
 		"node": ">=22.23.4"
 	},
@@ -30,6 +31,7 @@
 		"@aws-sdk/client-s3": "^3.1169.0",
 		"@biomejs/biome": "2.6.7",
 		"typescript": "7.1.0-beta",
-		"vitest": "^5.1.0"
+		"vitest": "^5.1.0",
+		"wrangler": "^4.162.0"
 	}
 }
