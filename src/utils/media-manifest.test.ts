@@ -39,7 +39,10 @@ describe("parseMediaManifest", () => {
 		["画像のキーが images/ で始まらない", { ...IMAGE, key: "cat.jpg" }],
 		["動画のキーが videos/ で始まらない", { ...VIDEO, key: IMAGE.key }],
 		["動画にポスター画像がない", { ...VIDEO, poster: undefined }],
-		["ポスター画像のキーが images/ で始まらない", { ...VIDEO, poster: VIDEO.key }],
+		[
+			"ポスター画像のキーが images/ で始まらない",
+			{ ...VIDEO, poster: VIDEO.key },
+		],
 		["動画の長さが負", { ...VIDEO, duration: -1 }],
 	])("%s ならエラー", (_, entry) => {
 		expect(() =>

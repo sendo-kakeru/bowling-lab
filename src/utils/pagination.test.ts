@@ -1,9 +1,5 @@
 import { describe, expect, test } from "vitest";
-import {
-	getPageHref,
-	getRestPageStaticPaths,
-	paginate,
-} from "./pagination.ts";
+import { getPageHref, getRestPageStaticPaths, paginate } from "./pagination.ts";
 
 function range({ length }: { length: number }): number[] {
 	return Array.from({ length }, (_, i) => i + 1);
@@ -59,9 +55,12 @@ describe("getPageHref", () => {
 		["/posts/", 2, "/posts/page/2"],
 		["/", 1, "/"],
 		["/", 2, "/page/2"],
-	])("basePath が %s、%i ページ目なら %s（スラッシュを重ねない）", (basePath, page, expected) => {
-		expect(getPageHref({ basePath, page })).toBe(expected);
-	});
+	])(
+		"basePath が %s、%i ページ目なら %s（スラッシュを重ねない）",
+		(basePath, page, expected) => {
+			expect(getPageHref({ basePath, page })).toBe(expected);
+		},
+	);
 });
 
 describe("getRestPageStaticPaths", () => {

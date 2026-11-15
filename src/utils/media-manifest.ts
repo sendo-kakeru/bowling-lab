@@ -48,11 +48,7 @@ const MediaManifestSchema = v.record(
 export type MediaManifest = v.InferOutput<typeof MediaManifestSchema>;
 
 /** manifest を検証する。形が違えば、どの項目が違うかを添えて投げる */
-export function parseMediaManifest({
-	data,
-}: {
-	data: unknown;
-}): MediaManifest {
+export function parseMediaManifest({ data }: { data: unknown }): MediaManifest {
 	// 配列もオブジェクトとして通ってしまうので、先に弾く
 	if (Array.isArray(data)) {
 		throw new Error(

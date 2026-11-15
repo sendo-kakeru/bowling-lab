@@ -29,14 +29,14 @@ const canonicalUrl = new URL(
 <html lang={SITE_LANG}>
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width,initial-scale=1" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<link rel="sitemap" href="/sitemap-index.xml" />
-		<link rel="canonical" href={canonicalUrl} />
-		<meta name="generator" content={Astro.generator} />
+		<meta content="width=device-width,initial-scale=1" name="viewport" />
+		<link href="/favicon.svg" rel="icon" type="image/svg+xml" />
+		<link href="/favicon.ico" rel="icon" />
+		<link href="/sitemap-index.xml" rel="sitemap" />
+		<link href={canonicalUrl} rel="canonical" />
+		<meta content={Astro.generator} name="generator" />
 		<title>{pageTitle}</title>
-		<meta name="description" content={description} />
+		<meta content={description} name="description" />
 	</head>
 	<body>
 		<SiteHeader />

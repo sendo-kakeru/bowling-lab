@@ -1,15 +1,15 @@
 {
-  "extends": "astro/tsconfigs/strict",
-  "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"],
-  "compilerOptions": {
-    "strictNullChecks": true,
-    "noUncheckedIndexedAccess": true
-  },
-  "contentMappers": [
-    {
-      "package": "@astrojs/ts-content-mapper",
-      "extensions": [".astro"]
-    }
-  ]
+	"compilerOptions": {
+		"noUncheckedIndexedAccess": true,
+		"strictNullChecks": true
+	},
+	"contentMappers": [
+		{
+			"extensions": [".astro"],
+			"package": "@astrojs/ts-content-mapper"
+		}
+	],
+	"exclude": ["dist"],
+	"extends": "astro/tsconfigs/strict",
+	"include": [".astro/types.d.ts", "**/*"]
 }
