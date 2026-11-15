@@ -16,17 +16,20 @@
 		"typecheck": "astro sync && tsc --noEmit --runExternalCode"
 	},
 	"dependencies": {
+		"@astrojs/markdown-satteri": "^0.4.10",
 		"@astrojs/rss": "^4.0.19",
 		"@astrojs/sitemap": "^3.7.5",
 		"astro": "^7.4.12",
 		"mdast-util-from-markdown": "^2.0.2",
 		"parse5": "^8.1.1",
+		"satteri": "^0.11.7",
 		"sharp": "^0.35.0",
 		"valibot": "^1.5.0"
 	},
 	"devDependencies": {
 		"@astrojs/ts-content-mapper": "^0.2.0",
 		"@biomejs/biome": "2.6.7",
+		"@types/hast": "^3.0.5",
 		"typescript": "7.1.0-beta",
 		"vitest": "^5.1.0"
 	}

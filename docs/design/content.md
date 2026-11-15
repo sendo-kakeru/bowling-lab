@@ -181,7 +181,10 @@ https://www.instagram.com/reel/xxxxxxxxxxx/
 | YouTube | `youtube-nocookie.com` の `<iframe>` | 通常の動画は 16:9、ショートは 9:16。遅延読み込み |
 | Instagram | 投稿 URL に `/embed` を付けた `<iframe>` | 投稿とリールに対応。公式の埋め込みスクリプトは読み込まない |
 
-Instagram は高さを中身に合わせて自動調整できないので、固定の比率で枠を取る。実際の表示は実装時に確かめる。
+- 置き換えるのは、URL だけの段落が本文の直下にあるときだけ。文中の URL、リンク記法、コード、引用やリストの中の URL はリンクのまま
+- YouTube は `youtube.com/watch?v=`、`youtu.be/`、`youtube.com/shorts/`。開始位置（`t=90`、`t=1m30s`）は引き継ぐ
+- Instagram は `instagram.com/p/`、`instagram.com/reel/` と、前にユーザー名が付いた形（`instagram.com/<ユーザー名>/reel/`）
+- Instagram の埋め込みは高さを中身に合わせられない。上下の見出しと操作欄が幅によらず 208px で、その間に画像が幅いっぱいに入る（2026-11 に投稿とリールで実測）。そこで高さを「幅 × 1.25 + 208px」にして、いまの標準の 4:5 に合わせる。正方形の投稿は下が空く
 
 ## コマンド
 
