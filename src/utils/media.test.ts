@@ -48,6 +48,17 @@ describe("配信 URL", () => {
 			`${ORIGIN}/videos/2026/w.mp4`,
 		);
 	});
+
+	test("キーの空白やカンマはエンコードする", () => {
+		expect(
+			imageUrl({ key: "images/2026/a b,c#1.abc123.png", width: 192 }),
+		).toBe(
+			`${ORIGIN}/cdn-cgi/image/width=192,format=auto/images/2026/a%20b%2Cc%231.abc123.png`,
+		);
+		expect(videoUrl({ key: "videos/2026/a b.abc123.mp4" })).toBe(
+			`${ORIGIN}/videos/2026/a%20b.abc123.mp4`,
+		);
+	});
 });
 
 describe("srcsetWidths", () => {

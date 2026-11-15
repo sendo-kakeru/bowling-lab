@@ -9,6 +9,12 @@ import {
 } from "./media.ts";
 import type { MediaManifest } from "./media-manifest.ts";
 
+function describeFile({ fileURL }: { fileURL: URL | undefined }): string {
+	return fileURL
+		? relative(process.cwd(), fileURLToPath(fileURL))
+		: "(ファイル不明)";
+}
+
 /**
  * Markdown の `![alt](media:...)` を、manifest を引いて `<img>` / `<video>` にする。
  * Astro の画像の収集より先に動くので、`media:` を外部画像として扱わせずに済む。
@@ -20,17 +26,24 @@ export function createMediaPlugin({
 	manifest: MediaManifest;
 }): MdastPluginDefinition {
 	return defineMdastPlugin({
+		// 参照形式（![alt][id] と [id]: media:...）は image として届かず、解決されないまま出てしまうので書かせない
+		definition(node, ctx) {
+			if (parseMediaRef({ url: node.url }) === undefined) return;
+			throw new Error(
+				`${describeFile({ fileURL: ctx.fileURL })}: ${node.url} は参照形式では書けない。![](${node.url}) の形で書く`,
+			);
+		},
 		image(node, ctx) {
 			const path = parseMediaRef({ url: node.url });
 			if (path === undefined) return;
 			const entry = manifest[path];
 			if (!entry) {
-				const file = ctx.fileURL
-					? relative(process.cwd(), fileURLToPath(ctx.fileURL))
-					: "(ファイル不明)";
-				throw new Error(`${file}: ${node.url} が media-manifest.json にない`);
+				throw new Error(
+					`${describeFile({ fileURL: ctx.fileURL })}: ${node.url} が media-manifest.json にない`,
+				);
 			}
 			const alt = node.alt ?? "";
+			const title = node.title ? { title: node.title } : {};
 			ctx.replaceNode(node, {
 				children: [],
 				data:
@@ -39,12 +52,16 @@ export function createMediaPlugin({
 								hName: "img",
 								hProperties: {
 									alt,
+									...title,
 									...toImageAttributes({ image: toStillImage({ entry }) }),
 								},
 							}
 						: {
 								hName: "video",
-								hProperties: toVideoAttributes({ alt, video: entry }),
+								hProperties: {
+									...title,
+									...toVideoAttributes({ alt, video: entry }),
+								},
 							},
 				type: "mediaImage",
 			});

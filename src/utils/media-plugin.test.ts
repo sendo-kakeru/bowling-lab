@@ -64,6 +64,20 @@ describe("createMediaPlugin", () => {
 		).toContain('<img src="https://example.com/a.png" alt="外部">');
 	});
 
+	test("画像のタイトルを残す", async () => {
+		expect(
+			await render({ markdown: '![猫](media:2026/kyoto/cat.jpg "京都の猫")' }),
+		).toContain('<img alt="猫" title="京都の猫"');
+	});
+
+	test("参照形式の media: は、ファイルと参照を添えて投げる", async () => {
+		await expect(
+			render({ markdown: "![猫][cat]\n\n[cat]: media:2026/kyoto/cat.jpg" }),
+		).rejects.toThrow(
+			"src/content/posts/sample.md: media:2026/kyoto/cat.jpg は参照形式では書けない",
+		);
+	});
+
 	test("manifest にない参照は、ファイルと参照を添えて投げる", async () => {
 		await expect(render({ markdown: "![](media:nope/x.jpg)" })).rejects.toThrow(
 			"src/content/posts/sample.md: media:nope/x.jpg が media-manifest.json にない",

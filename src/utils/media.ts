@@ -11,13 +11,21 @@ import type {
   astro.config.mjs からも読むので、astro:* は import しない。設計は docs/design/media.md
 */
 
-const MEDIA_SCHEME = "media:";
+export const MEDIA_SCHEME = "media:";
 
 /** `media:2026/a.jpg` から論理パス `2026/a.jpg` を取り出す。`media:` の参照でなければ undefined */
 export function parseMediaRef({ url }: { url: string }): string | undefined {
 	return url.startsWith(MEDIA_SCHEME)
 		? url.slice(MEDIA_SCHEME.length)
 		: undefined;
+}
+
+/**
+ * キーをパスの区切りごとにエンコードする。media:push は空白などを含む inbox のパスをそのままキーにするので、
+ * そのまま繋ぐと srcset の区切り（空白・カンマ）や URL の # と ? と誤って読まれる
+ */
+function encodeKey({ key }: { key: string }): string {
+	return key.split("/").map(encodeURIComponent).join("/");
 }
 
 /** 変換配信（Image Transformations）の URL。高さを渡すと切り抜く */
@@ -34,11 +42,11 @@ export function imageUrl({
 		height === undefined
 			? `width=${width},format=auto`
 			: `width=${width},height=${height},fit=cover,format=auto`;
-	return `${MEDIA_ORIGIN}/cdn-cgi/image/${options}/${key}`;
+	return `${MEDIA_ORIGIN}/cdn-cgi/image/${options}/${encodeKey({ key })}`;
 }
 
 export function videoUrl({ key }: { key: string }): string {
-	return `${MEDIA_ORIGIN}/${key}`;
+	return `${MEDIA_ORIGIN}/${encodeKey({ key })}`;
 }
 
 /** 本文の表示幅（--layout-content-width）。CSS ピクセル */
@@ -55,7 +63,7 @@ export function srcsetWidths({ width }: { width: number }): number[] {
 }
 
 /** 静止画として出すもの。動画ならポスター画像に動画の寸法を付ける */
-export interface StillImage {
+interface StillImage {
 	key: string;
 	width: number;
 	height: number;
@@ -138,7 +146,7 @@ function findFirstMediaPathIn({
 }
 
 /** 本文で最初の `media:` の画像の論理パス */
-export function findFirstMediaPath({
+function findFirstMediaPath({
 	markdown,
 }: {
 	markdown: string;

@@ -1,7 +1,7 @@
 import { type CollectionEntry, getCollection } from "astro:content";
 import { readFile } from "node:fs/promises";
 import * as v from "valibot";
-import { decideThumbnail, parseMediaRef, type Thumbnail } from "./media";
+import { decideThumbnail, type Thumbnail } from "./media";
 import { getMediaManifest } from "./media-manifest";
 import {
 	comparePosts,
@@ -63,7 +63,7 @@ async function toPost({
 		decided = decideThumbnail({
 			manifest: getMediaManifest(),
 			markdown: entry.body ?? "",
-			thumbnail: thumbnail && parseMediaRef({ url: thumbnail }),
+			thumbnail,
 		});
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);

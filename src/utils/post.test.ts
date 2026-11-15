@@ -32,9 +32,10 @@ describe("PostFrontmatterSchema", () => {
 		expect(parse({ description: "" }).success).toBe(false);
 	});
 
-	test("thumbnail は media: で始まる文字列だけ通る", () => {
-		expect(parse({ thumbnail: "media:2026/ten-pin/lane.jpg" }).success).toBe(
-			true,
+	test("thumbnail は media: で始まる文字列だけ通り、論理パスにする", () => {
+		const result = parse({ thumbnail: "media:2026/ten-pin/lane.jpg" });
+		expect(result.success && result.output.thumbnail).toBe(
+			"2026/ten-pin/lane.jpg",
 		);
 		expect(parse({ thumbnail: "/images/lane.jpg" }).success).toBe(false);
 	});

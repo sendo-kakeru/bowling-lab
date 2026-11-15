@@ -1,5 +1,6 @@
 import { type DefaultTreeAdapterMap, parseFragment } from "parse5";
 import * as v from "valibot";
+import { MEDIA_SCHEME } from "./media";
 
 const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -52,7 +53,14 @@ export const PostFrontmatterSchema = v.strictObject(
 			v.pipe(v.string(), v.nonEmpty("description は省くか、文を書く")),
 		),
 		publishedAt: PublishedAtSchema,
-		thumbnail: v.optional(v.pipe(v.string(), v.startsWith("media:"))),
+		/** `media:` を外した論理パス */
+		thumbnail: v.optional(
+			v.pipe(
+				v.string(),
+				v.startsWith(MEDIA_SCHEME),
+				v.transform((ref) => ref.slice(MEDIA_SCHEME.length)),
+			),
+		),
 		title: v.pipe(v.string(), v.nonEmpty("title を書く")),
 	},
 	(issue) =>
