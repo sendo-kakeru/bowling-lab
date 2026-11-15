@@ -1,0 +1,2 @@
+/* 最初の宣言が順番になるので、サイトは Base.astro が <head> の先頭に埋め込み、Storybook は preview.js が最初に import する */
+@layer base, components, utilities;

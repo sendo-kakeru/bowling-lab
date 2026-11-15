@@ -1,0 +1,102 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+/*
+  フッターの直前に置くスパットの矢印 7 つ。真ん中がいちばん奥（ピン側）の V 字に並べ、真ん中だけ赤くする。
+  飾りなので支援技術からは隠す。本文の区切り（5 つ）は大きさと色が違うので prose.css で作る。
+  size="small" はカードの中に置く小さい版。画面幅では変えない。
+*/
+
+interface Props extends HTMLAttributes<"div"> {
+	size?: "default" | "small";
+}
+
+const { size = "default", class: className, ...rest } = Astro.props;
+
+// 深さと色は下の CSS の :nth-child で付けるので、数を変えるときは CSS も合わせる
+const ARROW_COUNT = 7;
+---
+
+<div
+	{...rest}
+	aria-hidden="true"
+	class:list={["spats", { small: size === "small" }, className]}
+>
+	{Array.from({ length: ARROW_COUNT }, () => <span />)}
+</div>
+
+<style>
+/* 値はデザインのボード（375 / 768 / 1280px）。間隔は 4 の倍数に丸めた */
+.spats {
+	--arrow-width: 12px;
+	--arrow-height: 18px;
+	--arrow-step: 9px;
+	--arrow-color: var(--color-wood-650);
+
+	display: grid;
+	grid-auto-flow: column;
+	justify-content: center;
+	align-items: start;
+	column-gap: 1.5rem;
+}
+
+/* --depth は真ん中から数えた段。外側ほど手前（下）にずらす */
+span {
+	--depth: 0;
+
+	width: var(--arrow-width);
+	height: var(--arrow-height);
+	margin-top: calc(var(--depth) * var(--arrow-step));
+	background: var(--arrow-color);
+	clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+span:nth-child(1),
+span:nth-child(7) {
+	--depth: 3;
+}
+
+span:nth-child(2),
+span:nth-child(6) {
+	--depth: 2;
+}
+
+span:nth-child(3),
+span:nth-child(5) {
+	--depth: 1;
+}
+
+span:nth-child(4) {
+	background: var(--color-red);
+}
+
+@media (width >= 768px) {
+	.spats {
+		--arrow-width: 16px;
+		--arrow-height: 22px;
+		--arrow-step: 12px;
+
+		column-gap: 2.25rem;
+	}
+}
+
+@media (width >= 1024px) {
+	.spats {
+		--arrow-width: 18px;
+		--arrow-height: 26px;
+		--arrow-step: 14px;
+
+		column-gap: 3rem;
+	}
+}
+
+/* クラス 2 つで画面幅ごとの .spats の値より強くし、どの幅でもこの大きさにする */
+.spats.small {
+	--arrow-width: 8px;
+	--arrow-height: 12px;
+	--arrow-step: 3px;
+	--arrow-color: var(--color-wood-400);
+
+	column-gap: 1rem;
+}
+</style>

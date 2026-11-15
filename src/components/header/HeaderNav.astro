@@ -1,0 +1,212 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import type { NavLink } from "../../utils/nav";
+
+// 開け閉めとスマホの面の位置は SiteHeader が持つ
+
+interface Props extends HTMLAttributes<"nav"> {
+	mainItems: NavLink[];
+	subItems: NavLink[];
+}
+
+const { mainItems, subItems, class: className, ...rest } = Astro.props;
+// 出てくる順番。外へ出るリンクの段はメインの項目の次に出す
+const subListStyle = `--nav-item-index: ${mainItems.length}`;
+---
+
+<nav
+	{...rest}
+	aria-label="メインメニュー"
+	class:list={["header-nav", className]}
+>
+	<ul class="nav-main">
+		{mainItems.map((item, index) => (
+			<li class="nav-item" style={`--nav-item-index: ${index}`}>
+				<a aria-current={item.current} href={item.url}>
+					<span class="nav-label">{item.label}</span>
+				</a>
+			</li>
+		))}
+	</ul>
+	<ul class="nav-sub nav-item" style={subListStyle}>
+		{subItems.map((item) => (
+			<li>
+				<a aria-current={item.current} href={item.url}>
+					{item.label}
+				</a>
+			</li>
+		))}
+	</ul>
+</nav>
+
+<style>
+.header-nav {
+	display: grid;
+	row-gap: 2rem;
+	align-content: start;
+}
+
+.header-nav ul {
+	padding: 0;
+	list-style: none;
+}
+
+.header-nav a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.nav-main {
+	border-top: 1px solid var(--color-navy-800);
+}
+
+.nav-main li {
+	border-bottom: 1px solid var(--color-navy-800);
+}
+
+.nav-main a {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	column-gap: 0.75rem;
+	min-height: 4rem;
+	padding-inline: 0.25rem;
+	font-family: var(--font-display);
+	font-size: var(--font-size-26);
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+.nav-main a::after {
+	content: "→" / "";
+	color: var(--color-navy-550);
+	font-family: var(--font-body);
+	font-size: var(--font-size-18);
+}
+
+.nav-main a[aria-current]::after {
+	color: var(--color-lane-light);
+}
+
+/* 矢印に線が付かないよう、文字の span に引く */
+.nav-main a[aria-current] .nav-label {
+	text-decoration: underline 3px var(--color-lane-light);
+	text-underline-offset: 0.3em;
+}
+
+.nav-sub {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+	gap: 0.75rem;
+}
+
+.nav-sub a {
+	display: grid;
+	place-items: center;
+	height: 3rem;
+	border-radius: var(--radius-full);
+	box-shadow: inset 0 0 0 1px var(--color-navy-550);
+	font-family: var(--font-display);
+	font-size: var(--font-size-16);
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+/* メニューを開くたびに 1 行ずつ出す（display: none から戻るたびに再生される） */
+.nav-item {
+	animation: nav-item-in 0.3s ease both;
+	animation-delay: calc(0.08s + var(--nav-item-index, 0) * 0.05s);
+}
+
+@keyframes nav-item-in {
+	from {
+		opacity: 0;
+		translate: 0 -0.5rem;
+	}
+}
+
+/* リセットは animation-delay を消さないので、ここで止める */
+@media (prefers-reduced-motion: reduce) {
+	.nav-item {
+		animation: none;
+	}
+}
+
+@media (width >= 768px) {
+	/* 常に出ているので動かさない */
+	.nav-item {
+		animation: none;
+	}
+
+	/* 入りきらないときに折り返すため flex */
+	.header-nav,
+	.nav-main,
+	.nav-sub {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: end;
+		align-items: center;
+		column-gap: 1.25rem;
+	}
+
+	.nav-main,
+	.nav-main li {
+		border: 0;
+	}
+
+	.nav-main + .nav-sub::before {
+		content: "|" / "";
+		color: var(--color-navy-550);
+		font-family: var(--font-display);
+		font-size: var(--font-size-15);
+	}
+
+	.nav-main a,
+	.nav-sub a {
+		display: block;
+		min-height: 0;
+		height: auto;
+		padding-block: 0.5rem;
+		padding-inline: 0;
+		border-radius: var(--radius-4);
+		box-shadow: none;
+		font-size: var(--font-size-15);
+		font-weight: 600;
+		letter-spacing: 0.1em;
+		line-height: 1.4;
+		white-space: nowrap;
+	}
+
+	.nav-main a::after {
+		content: none;
+	}
+
+	.nav-main a[aria-current] .nav-label {
+		text-underline-offset: 0.35em;
+	}
+
+	@media (hover: hover) {
+		.header-nav a:hover {
+			color: var(--color-lane-light);
+		}
+	}
+}
+
+@media (width >= 1024px) {
+	.header-nav,
+	.nav-main,
+	.nav-sub {
+		column-gap: 1.5rem;
+	}
+
+	.nav-main a,
+	.nav-sub a,
+	.nav-main + .nav-sub::before {
+		font-size: var(--font-size-16);
+		letter-spacing: 0.12em;
+	}
+}
+</style>

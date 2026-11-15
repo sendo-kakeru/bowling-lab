@@ -16,23 +16,4 @@ export const LIST_PER_PAGE = 20;
 /** 画像と動画を配信するドメイン（R2）。設計は docs/design/media.md */
 export const MEDIA_ORIGIN = "https://bowling-media.sendo.page";
 
-interface NavItem {
-	label: string;
-	href: string;
-}
-
-export const NAV_ITEMS: readonly NavItem[] = [
-	{ href: "/posts", label: "POSTS" },
-	{ href: "/memos", label: "MEMO" },
-	{ href: "/about", label: "ABOUT" },
-];
-
-export const FOOTER_NAV_ITEMS: readonly NavItem[] = [
-	{ href: "/privacy", label: "プライバシーポリシー" },
-];
-
 export const INSTAGRAM_URL = "https://www.instagram.com/sendo_bowling/";
-
-export const SOCIAL_LINKS: readonly NavItem[] = [
-	{ href: INSTAGRAM_URL, label: "Instagram" },
-];

@@ -1,0 +1,28 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+/*
+  RSS のグリフ。色は currentColor。飾りなので支援技術からは隠し、リンクに aria-label を付ける。
+  大きさは呼び出し側の class で CSS を当てる（14px は初期値）。
+*/
+
+interface Props extends HTMLAttributes<"svg"> {}
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<svg
+	{...rest}
+	aria-hidden="true"
+	class={className}
+	fill="none"
+	height="14"
+	stroke="currentColor"
+	stroke-linecap="round"
+	stroke-width="2.4"
+	viewBox="0 0 24 24"
+	width="14"
+>
+	<path d="M5 11a8 8 0 0 1 8 8M5 5a14 14 0 0 1 14 14"></path>
+	<circle cx="6" cy="18" fill="currentColor" r="1.6" stroke="none"></circle>
+</svg>

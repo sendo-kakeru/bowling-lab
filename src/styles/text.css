@@ -1,0 +1,79 @@
+/*
+  複数の場所で使うテキストスタイル。1 か所だけの文字はコンポーネント側に書く。
+  @layer utilities にあるので、スコープ付きスタイルで上書きできる。
+*/
+
+@layer utilities {
+	:is(.text-title, .text-body, .text-note, .text-label, .text-meta) {
+		font-family: var(--font-body);
+		font-weight: 400;
+		letter-spacing: 0;
+	}
+
+	/* 記事・ページのタイトル（h1） */
+	.text-title {
+		font-size: var(--font-size-26);
+		font-weight: 700;
+		letter-spacing: -0.01em;
+		line-height: 1.4;
+	}
+
+	.text-body {
+		font-size: var(--font-size-16);
+		line-height: 1.9;
+	}
+
+	/* 補助の文 */
+	.text-note {
+		font-size: var(--font-size-14);
+		line-height: 1.7;
+	}
+
+	/* 英字ラベル。日本語には使わない */
+	.text-label {
+		font-family: var(--font-display);
+		font-size: var(--font-size-15);
+		font-weight: 600;
+		letter-spacing: 0.12em;
+		line-height: 1.4;
+	}
+
+	.text-meta {
+		font-size: var(--font-size-13);
+		line-height: 1.6;
+	}
+
+	/* ホームの区画の見出し（h2）。記事の h2 と同じストライクの印を前に付ける */
+	.text-section-title {
+		display: grid;
+		grid-auto-flow: column;
+		align-items: center;
+		column-gap: 0.625rem;
+		color: var(--color-navy-900);
+		font-family: var(--font-display);
+		font-size: var(--font-size-24);
+		font-weight: 800;
+		letter-spacing: 0.04em;
+		line-height: 1.2;
+	}
+
+	.text-section-title::before {
+		content: "";
+		width: 1rem;
+		aspect-ratio: 1;
+		background: currentColor;
+		clip-path: var(--mark-strike-clip-path);
+	}
+
+	@media (width >= 768px) {
+		.text-title {
+			font-size: var(--font-size-40);
+			letter-spacing: -0.02em;
+			line-height: 1.3;
+		}
+
+		.text-section-title {
+			font-size: var(--font-size-26);
+		}
+	}
+}

@@ -1,0 +1,194 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { SITE_TITLE } from "../../consts";
+import { MAIN_NAV, SUB_NAV, withCurrent } from "../../utils/nav";
+import HeaderLogo from "./HeaderLogo.astro";
+import HeaderNav from "./HeaderNav.astro";
+import MenuButton from "./MenuButton.astro";
+
+type Props = HTMLAttributes<"header">;
+
+const { class: className, ...rest } = Astro.props;
+
+const mainItems = withCurrent({ links: MAIN_NAV, page: Astro.url });
+const subItems = withCurrent({ links: SUB_NAV, page: Astro.url });
+---
+
+<header {...rest} data-site-header class:list={["site-header", className]}>
+	<!-- 読み込み直後にメニューが一瞬見えないよう、描く前に印を付ける -->
+	<script is:inline>
+	document.currentScript?.parentElement?.setAttribute("data-js", "");
+	</script>
+	<div class="site-header-inner">
+		<HeaderLogo class="logo-area" title={SITE_TITLE} />
+		<!-- スマホでは閉じたメニューは Tab で通らず、開いたら最初のリンクへフォーカスを移す -->
+		<div class="menu-panel" id="menu-panel">
+			<HeaderNav mainItems={mainItems} subItems={subItems} />
+		</div>
+		<MenuButton aria-controls="menu-panel" class="menu-button" />
+	</div>
+</header>
+
+<script>
+function setupHeader(): void {
+	const header = document.querySelector<HTMLElement>("[data-site-header]");
+	const toggle = header?.querySelector<HTMLButtonElement>(
+		"[aria-controls='menu-panel']",
+	);
+	if (!header || !toggle) return;
+
+	// 自分で inert にした要素。閉じるときはこれだけ戻し、ほかの仕組みが付けた inert は残す
+	const inerted: Element[] = [];
+
+	function setOpen({ open }: { open: boolean }): void {
+		if (!header || !toggle) return;
+		header.toggleAttribute("data-open", open);
+		toggle.setAttribute("aria-expanded", String(open));
+		if (open && inerted.length === 0) {
+			// body までさかのぼり、ヘッダーを含まない兄弟をすべて操作させない
+			for (
+				let node: Element = header;
+				node.parentElement && node !== document.body;
+				node = node.parentElement
+			) {
+				for (const sibling of node.parentElement.children) {
+					if (sibling === node || sibling.hasAttribute("inert")) continue;
+					sibling.setAttribute("inert", "");
+					inerted.push(sibling);
+				}
+			}
+		} else if (!open) {
+			for (const element of inerted.splice(0)) element.removeAttribute("inert");
+		}
+		document.documentElement.style.overflow = open ? "hidden" : "";
+		header.style.setProperty(
+			"--menu-top",
+			`${header.getBoundingClientRect().bottom}px`,
+		);
+	}
+
+	toggle.addEventListener("click", () => {
+		const willOpen = !header.hasAttribute("data-open");
+		setOpen({ open: willOpen });
+		if (willOpen)
+			header.querySelector<HTMLAnchorElement>("#menu-panel a")?.focus();
+	});
+
+	// フォーカスがヘッダーの外（ページ全体）にあっても閉じられるよう、document で聞く
+	document.addEventListener("keydown", (event) => {
+		if (event.key !== "Escape" || !header.hasAttribute("data-open")) return;
+		setOpen({ open: false });
+		toggle.focus();
+	});
+
+	// ボタンが消える幅に広げたら閉じる
+	window.matchMedia("(width >= 768px)").addEventListener("change", (event) => {
+		if (event.matches) setOpen({ open: false });
+	});
+}
+
+setupHeader();
+</script>
+
+<style>
+.site-header {
+	/* base.css の :focus-visible が読む */
+	--color-focus: var(--color-focus-on-navy);
+
+	border-bottom: 6px solid var(--color-navy-950);
+	background: var(--color-navy-900);
+	color: var(--color-on-navy);
+}
+
+.site-header-inner {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	grid-template-areas:
+		"logo menu-button"
+		"nav nav";
+	align-items: center;
+	column-gap: 0.5rem;
+	max-width: var(--layout-page-width);
+	margin-inline: auto;
+	padding: 0.75rem 0.75rem 0.75rem 1rem;
+}
+
+.logo-area {
+	grid-area: logo;
+	justify-self: start;
+}
+
+.menu-button {
+	grid-area: menu-button;
+}
+
+.menu-panel {
+	grid-area: nav;
+	padding-top: 0.75rem;
+}
+
+/* JavaScript が動かないときは、メニューをヘッダーの 2 行目に出したままにする */
+.site-header:not([data-js]) .menu-button {
+	display: none;
+}
+
+/* --menu-top はスクリプトが入れる、ヘッダーの下端の位置 */
+.site-header:where([data-js]) .menu-panel {
+	position: fixed;
+	z-index: 10;
+	inset: var(--menu-top, 0) 0 0;
+	overflow-y: auto;
+	padding: 0.75rem 1.25rem 1.5rem;
+	background: var(--color-navy-900);
+	transition:
+		opacity 0.2s ease,
+		translate 0.25s ease,
+		display 0.25s allow-discrete;
+}
+
+.site-header:where([data-js]:not([data-open])) .menu-panel {
+	display: none;
+	opacity: 0;
+	translate: 0 -0.75rem;
+}
+
+@starting-style {
+	.site-header:where([data-js][data-open]) .menu-panel {
+		opacity: 0;
+		translate: 0 -0.75rem;
+	}
+}
+
+@media (width >= 768px) {
+	.site-header-inner {
+		/* ロゴは縮めず、メニューが入りきらなければ折り返す */
+		grid-template-columns: minmax(max-content, 1fr) minmax(0, auto);
+		grid-template-areas: "logo nav";
+		column-gap: 1.25rem;
+		padding: 0.75rem 1.5rem;
+	}
+
+	.site-header .menu-button {
+		display: none;
+	}
+
+	.site-header .menu-panel {
+		position: static;
+		display: block;
+		min-width: 0;
+		overflow: visible;
+		padding: 0;
+		background: none;
+		opacity: 1;
+		translate: none;
+		transition: none;
+	}
+}
+
+@media (width >= 1024px) {
+	.site-header-inner {
+		column-gap: 1.5rem;
+		padding: 1rem 2.5rem;
+	}
+}
+</style>

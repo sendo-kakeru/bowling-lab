@@ -1,27 +1,108 @@
 /*
-  全ページで共有する最小限のスタイル。見た目の作り込みはコンテンツ管理の実装のあとで行う
+  要素そのものの初期の見た目。テキストスタイルは text.css、汎用クラスは utilities.css、値は tokens.css に置く。
+  リセットは困る点だけを直すモダンリセット。本文はクラスのない HTML なので、リストの記号や太字は消さない。
 */
 
-*,
-*::before,
-*::after {
-	box-sizing: border-box;
-}
+@layer base {
+	:root {
+		color-scheme: only light;
+	}
 
-body {
-	margin: 0;
-	font-family: system-ui, sans-serif;
-	line-height: 1.8;
-	overflow-wrap: anywhere;
-}
+	:where(*, ::before, ::after) {
+		box-sizing: border-box;
+	}
 
-img,
-video {
-	max-width: 100%;
-	height: auto;
-}
+	:where(html) {
+		-webkit-text-size-adjust: 100%;
+		text-size-adjust: 100%;
+		tab-size: 4;
+	}
 
-/* iframe は幅と高さの属性から比率が決まらないので、height: auto にすると潰れる */
-iframe {
-	max-width: 100%;
+	@media (prefers-reduced-motion: no-preference) {
+		:where(html) {
+			interpolate-size: allow-keywords;
+		}
+	}
+
+	body {
+		margin: 0;
+		color: var(--color-ink-900);
+		font-family: var(--font-body);
+		line-height: 1.6;
+		overflow-wrap: break-word;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+
+	/* 間隔は gap か上方向の margin で付ける */
+	:where(h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd, ul, ol) {
+		margin: 0;
+	}
+
+	:where(h1, h2, h3, h4, h5, h6) {
+		text-wrap: balance;
+	}
+
+	:where(p) {
+		text-wrap: pretty;
+	}
+
+	:where(img, picture, video, canvas, svg) {
+		display: block;
+		max-width: 100%;
+	}
+
+	:where(img, video) {
+		height: auto;
+	}
+
+	:where(input, button, textarea, select) {
+		font: inherit;
+		color: inherit;
+	}
+
+	:where(textarea) {
+		resize: vertical;
+	}
+
+	:where(table) {
+		border-collapse: collapse;
+	}
+
+	/* フォーカスリングはキーボード操作のときだけ出す。紺の面の上では --color-focus-on-navy に変える */
+	:focus:not(:focus-visible) {
+		outline: none;
+	}
+
+	:focus-visible {
+		outline: 3px solid var(--color-focus);
+		outline-offset: 2px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		/* biome-ignore-start lint/complexity/noImportantStyles: スコープ付きスタイルの transition にも勝たせるため */
+		*,
+		::before,
+		::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+			scroll-behavior: auto !important;
+		}
+		/* biome-ignore-end lint/complexity/noImportantStyles: ここまで */
+	}
+
+	/* 検索で一致した語。赤の面は主ボタンと注意だけなので、赤をごく薄くして地に敷く */
+	mark {
+		padding-inline: 0.125rem;
+		border-radius: 2px;
+		background: color-mix(in srgb, var(--color-red) 15%, var(--color-card));
+		color: inherit;
+	}
+
+	@media (forced-colors: active) {
+		mark {
+			outline: 1px solid;
+		}
+	}
 }

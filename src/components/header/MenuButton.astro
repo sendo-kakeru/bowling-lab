@@ -1,0 +1,79 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+// 開け閉めの処理は SiteHeader が持つ
+
+interface Props extends HTMLAttributes<"button"> {
+	"aria-controls": string;
+}
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<button
+	{...rest}
+	aria-expanded="false"
+	aria-label="メニュー"
+	type="button"
+	class:list={["menu-button", className]}
+>
+	<svg aria-hidden="true" height="22" viewBox="0 0 24 24" width="22">
+		<g
+			fill="none"
+			stroke="currentColor"
+			stroke-linecap="round"
+			stroke-width="2"
+		>
+			<path class="line line-top" d="M4 7h16"></path>
+			<path class="line line-middle" d="M4 12h16"></path>
+			<path class="line line-bottom" d="M4 17h16"></path>
+		</g>
+	</svg>
+</button>
+
+<style>
+.menu-button {
+	display: grid;
+	place-items: center;
+	width: 2.75rem;
+	height: 2.75rem;
+	padding: 0;
+	border: 0;
+	border-radius: var(--radius-6);
+	background: var(--color-navy-800);
+	color: var(--color-on-navy);
+	cursor: pointer;
+}
+
+.menu-button[aria-expanded="true"] {
+	background: var(--color-card);
+	color: var(--color-navy-900);
+}
+
+/* 強制カラーモードでは背景が消えるため */
+@media (forced-colors: active) {
+	.menu-button {
+		border: 1px solid;
+	}
+}
+
+.line {
+	transform-origin: 12px 12px;
+	transition:
+		transform 0.25s ease,
+		opacity 0.15s ease;
+}
+
+/* transform は右から効くので、中央に寄せてから回す */
+.menu-button[aria-expanded="true"] .line-top {
+	transform: rotate(45deg) translateY(5px);
+}
+
+.menu-button[aria-expanded="true"] .line-middle {
+	opacity: 0;
+}
+
+.menu-button[aria-expanded="true"] .line-bottom {
+	transform: rotate(-45deg) translateY(-5px);
+}
+</style>

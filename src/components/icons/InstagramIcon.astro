@@ -1,0 +1,28 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+/*
+  Instagram のグリフ。色は currentColor。飾りなので支援技術からは隠し、リンクに aria-label を付ける。
+  大きさは呼び出し側の class で CSS を当てる（14px は初期値）。
+*/
+
+interface Props extends HTMLAttributes<"svg"> {}
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<svg
+	{...rest}
+	aria-hidden="true"
+	class={className}
+	fill="none"
+	height="14"
+	stroke="currentColor"
+	stroke-width="2"
+	viewBox="0 0 24 24"
+	width="14"
+>
+	<rect height="18" rx="5" width="18" x="3" y="3"></rect>
+	<circle cx="12" cy="12" r="4"></circle>
+	<circle cx="17.5" cy="6.5" fill="currentColor" r="1.2" stroke="none"></circle>
+</svg>

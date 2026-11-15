@@ -1,5 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { getPageHref, getRestPageStaticPaths, paginate } from "./pagination.ts";
+import {
+	GAP,
+	getFrameItems,
+	getPageHref,
+	getRestPageStaticPaths,
+	paginate,
+} from "./pagination.ts";
 
 function range({ length }: { length: number }): number[] {
 	return Array.from({ length }, (_, i) => i + 1);
@@ -77,5 +83,30 @@ describe("getRestPageStaticPaths", () => {
 		const pages = paginate({ items: range({ length: 3 }), perPage: 20 });
 
 		expect(getRestPageStaticPaths({ pages })).toEqual([]);
+	});
+});
+
+describe("getFrameItems", () => {
+	test.each([
+		{ current: 1, expected: [1], pageCount: 1 },
+		{ current: 3, expected: [1, 2, 3, 4, 5], pageCount: 5 },
+	])(
+		"$pageCount ページまでは全部並べる",
+		({ current, pageCount, expected }) => {
+			expect(getFrameItems({ current, pageCount })).toEqual(expected);
+		},
+	);
+
+	test.each([
+		{ current: 1, expected: [1, 2, 3, GAP, 9] },
+		{ current: 3, expected: [1, 2, 3, GAP, 9] },
+		{ current: 4, expected: [1, GAP, 4, GAP, 9] },
+		{ current: 6, expected: [1, GAP, 6, GAP, 9] },
+		{ current: 7, expected: [1, GAP, 7, 8, 9] },
+		{ current: 9, expected: [1, GAP, 7, 8, 9] },
+	])("9 ページの $current ページ目", ({ current, expected }) => {
+		const items = getFrameItems({ current, pageCount: 9 });
+		expect(items).toEqual(expected);
+		expect(items).toContain(current);
 	});
 });
