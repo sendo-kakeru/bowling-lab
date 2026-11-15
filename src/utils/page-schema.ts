@@ -6,43 +6,21 @@ import { formatIssues } from "./valibot.ts";
   astro:content を読み込むと vitest で動かないので、取得関数（pages.ts）と分けている
 */
 
-const TextSchema = v.pipe(v.string(), v.nonEmpty("空にしない"));
-
-const AboutSchema = v.strictObject({
-	bowler: v.strictObject({
-		ball: TextSchema,
-		hand: v.picklist(["右投げ", "左投げ"], "右投げ か 左投げ にする"),
-		homeCenter: TextSchema,
-		name: TextSchema,
-		style: v.picklist(["1ハンド", "2ハンド"], "1ハンド か 2ハンド にする"),
-	}),
-	title: TextSchema,
+const PageSchema = v.strictObject({
+	title: v.pipe(v.string(), v.nonEmpty("空にしない")),
 });
 
-const PrivacySchema = v.strictObject({
-	title: TextSchema,
-});
-
-const PAGE_SCHEMAS = {
-	about: AboutSchema,
-	privacy: PrivacySchema,
-};
-
-export type PageId = keyof typeof PAGE_SCHEMAS;
-
-export type PageData<Id extends PageId> = v.InferOutput<
-	(typeof PAGE_SCHEMAS)[Id]
->;
+export type PageData = v.InferOutput<typeof PageSchema>;
 
 /** 固定ページのフロントマターを検証する。形が違えば、どの項目が違うかを添えて投げる */
-export function parsePageData<Id extends PageId>({
+export function parsePageData({
 	id,
 	data,
 }: {
-	id: Id;
+	id: string;
 	data: unknown;
-}): PageData<Id> {
-	const result = v.safeParse(PAGE_SCHEMAS[id], data);
+}): PageData {
+	const result = v.safeParse(PageSchema, data);
 	if (result.success) return result.output;
 
 	const details = formatIssues({ issues: result.issues });

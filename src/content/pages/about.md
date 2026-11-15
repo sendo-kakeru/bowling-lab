@@ -1,11 +1,5 @@
 ---
 title: About
-bowler:
-  name: sendo-kakeru
-  hand: 右投げ
-  style: 1ハンド
-  ball: 仮のボール名
-  homeCenter: 仮のセンター名
 ---
 
 sendo-kakeru です。[ボウリングとの関わり、普段していること]

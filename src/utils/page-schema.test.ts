@@ -1,57 +1,28 @@
 import { describe, expect, test } from "vitest";
 import { parsePageData } from "./page-schema.ts";
 
-const ABOUT = {
-	bowler: {
-		ball: "仮のボール名",
-		hand: "右投げ",
-		homeCenter: "仮のセンター名",
-		name: "sendo-kakeru",
-		style: "1ハンド",
-	},
-	title: "About",
-};
-
 describe("parsePageData", () => {
-	test("About のフロントマターを受け付ける", () => {
-		expect(parsePageData({ data: ABOUT, id: "about" })).toEqual(ABOUT);
+	test("題名を受け付ける", () => {
+		expect(parsePageData({ data: { title: "About" }, id: "about" })).toEqual({
+			title: "About",
+		});
 	});
 
-	test("名前がないと、ファイルと項目を添えて投げる", () => {
-		const { name: _, ...bowler } = ABOUT.bowler;
-
-		expect(() =>
-			parsePageData({ data: { ...ABOUT, bowler }, id: "about" }),
-		).toThrow(
-			/src\/content\/pages\/about\.md のフロントマターが正しくない\nbowler\.name: /,
-		);
-	});
-
-	test("投げ方は 右投げ か 左投げ だけ", () => {
-		const bowler = { ...ABOUT.bowler, hand: "両手" };
-
-		expect(() =>
-			parsePageData({ data: { ...ABOUT, bowler }, id: "about" }),
-		).toThrow("bowler.hand: 右投げ か 左投げ にする");
-	});
-
-	test("知らない項目は書き間違いとして投げる", () => {
-		const bowler = { ...ABOUT.bowler, homeCenterr: "仮のセンター名" };
-
-		expect(() =>
-			parsePageData({ data: { ...ABOUT, bowler }, id: "about" }),
-		).toThrow(/bowler\.homeCenterr: /);
-	});
-
-	test("BOWLER CARD の項目がまるごとないと投げる", () => {
-		expect(() =>
-			parsePageData({ data: { title: "About" }, id: "about" }),
-		).toThrow(/bowler: /);
-	});
-
-	test("プライバシーポリシーに題名がないと投げる", () => {
+	test("題名がないと、ファイルと項目を添えて投げる", () => {
 		expect(() => parsePageData({ data: {}, id: "privacy" })).toThrow(
 			/src\/content\/pages\/privacy\.md のフロントマターが正しくない\ntitle: /,
 		);
+	});
+
+	test("題名が空だと投げる", () => {
+		expect(() => parsePageData({ data: { title: "" }, id: "about" })).toThrow(
+			"title: 空にしない",
+		);
+	});
+
+	test("知らない項目は書き間違いとして投げる", () => {
+		expect(() =>
+			parsePageData({ data: { tilte: "About", title: "About" }, id: "about" }),
+		).toThrow(/tilte: /);
 	});
 });
