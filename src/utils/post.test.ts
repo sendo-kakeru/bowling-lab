@@ -4,7 +4,6 @@ import { formatIsoDate } from "./date.ts";
 import {
 	comparePosts,
 	getExcerpt,
-	getReadingMinutes,
 	getToc,
 	PostFrontmatterSchema,
 	parsePostSlug,
@@ -289,48 +288,6 @@ describe("getExcerpt", () => {
 		expect(
 			getExcerpt({ html: "<h2>見出し</h2><pre><code>x</code></pre>" }),
 		).toBe("");
-	});
-});
-
-describe("getReadingMinutes", () => {
-	test("日本語は 500 字で 1 分", () => {
-		expect(getReadingMinutes({ html: `<p>${"あ".repeat(1000)}</p>` })).toBe(2);
-		expect(getReadingMinutes({ html: `<p>${"あ".repeat(1001)}</p>` })).toBe(3);
-	});
-
-	test("英語は 200 語で 1 分", () => {
-		expect(getReadingMinutes({ html: `<p>${"strike ".repeat(600)}</p>` })).toBe(
-			3,
-		);
-	});
-
-	test("長音符、句読点、かぎ括弧も 1 字として数える", () => {
-		expect(
-			getReadingMinutes({
-				html: `<p>${"「ボーリング、ストライク。」".repeat(100)}</p>`,
-			}),
-		).toBe(3);
-	});
-
-	test("日本語と英語が混ざると足し合わせる", () => {
-		expect(
-			getReadingMinutes({
-				html: `<p>${"あ".repeat(500)}</p><p>${"spare ".repeat(200)}</p>`,
-			}),
-		).toBe(2);
-	});
-
-	test("タグは数えない", () => {
-		expect(
-			getReadingMinutes({
-				html: `<p class="${"x ".repeat(500)}">短い</p>`,
-			}),
-		).toBe(1);
-	});
-
-	test("短くても最低 1 分", () => {
-		expect(getReadingMinutes({ html: "" })).toBe(1);
-		expect(getReadingMinutes({ html: "<p>ストライク</p>" })).toBe(1);
 	});
 });
 

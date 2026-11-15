@@ -27,7 +27,6 @@ const { Content } = await render(post.entry);
 				<time datetime={formatIsoDate({ date: post.publishedAt })}>
 					{formatDotDate({ date: post.publishedAt })}
 				</time>
-				<span>{post.readingMinutes} 分で読めます</span>
 			</p>
 		</header>
 		{post.toc.length > 0 && (
@@ -82,9 +81,6 @@ const { Content } = await render(post.entry);
 }
 
 .meta {
-	display: flex;
-	flex-wrap: wrap;
-	column-gap: 1rem;
 	margin: 0;
 	font-size: 0.875rem;
 }

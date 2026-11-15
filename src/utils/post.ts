@@ -205,25 +205,6 @@ export function getExcerpt({ html }: { html: string }): string {
 	return `${chars.slice(0, EXCERPT_LENGTH).join("").trimEnd()}…`;
 }
 
-const WORDS_PER_MINUTE = 200;
-const CJK_CHARACTERS_PER_MINUTE = 500;
-// かなと漢字だけでなく、長音符、句読点、かぎ括弧、全角英数字も 1 文字として数える
-const CJK_CHARACTER_REGEX = /[^\p{ASCII}\s]/gu;
-
-/** 読了時間（分）。ASCII 以外の文字は文字数、英語などは語数で数える。最低 1 分 */
-export function getReadingMinutes({ html }: { html: string }): number {
-	const text = htmlToText({ html, skip: () => false });
-	const cjkCount = text.match(CJK_CHARACTER_REGEX)?.length ?? 0;
-	const wordCount = text
-		.replace(CJK_CHARACTER_REGEX, " ")
-		.split(/\s+/)
-		.filter(Boolean).length;
-	const minutes = Math.ceil(
-		wordCount / WORDS_PER_MINUTE + cjkCount / CJK_CHARACTERS_PER_MINUTE,
-	);
-	return Math.max(1, minutes);
-}
-
 export interface TocItem {
 	/** 本文の見出しの id */
 	id: string;

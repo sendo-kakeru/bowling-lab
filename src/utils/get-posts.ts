@@ -4,7 +4,6 @@ import * as v from "valibot";
 import {
 	comparePosts,
 	getExcerpt,
-	getReadingMinutes,
 	getToc,
 	PostFrontmatterSchema,
 	type PostSlug,
@@ -21,7 +20,6 @@ export interface Post {
 	description?: string;
 	publishedAt: Date;
 	thumbnail?: string;
-	readingMinutes: number;
 	/** 見出しが少ない記事では空 */
 	toc: TocItem[];
 	/** 本文を描画するときに render() に渡す */
@@ -64,7 +62,6 @@ async function toPost({
 		entry,
 		isDraft,
 		publishedAt,
-		readingMinutes: getReadingMinutes({ html }),
 		slug,
 		thumbnail,
 		title,
