@@ -1,0 +1,26 @@
+---
+import { Image } from "astro:assets";
+import avatar from "../assets/avatar.png";
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="About">
+	<h1>About</h1>
+	{/* 直後の本文が「sendo-kakeru です。」で始まるので、画像は飾りとして読み上げない */}
+	<Image alt="" densities={[1, 2]} loading="eager" src={avatar} width={96} />
+	<div class="prose">
+		<p>sendo-kakeru です。[ボウリングとの関わり、普段していること]</p>
+		<p>
+			コードは{" "}
+			<a href="https://github.com/sendo-kakeru">GitHub</a>{" "}
+			に置いています。
+		</p>
+
+		<h2>このサイトについて</h2>
+		<p>
+			Sendo Bowling Lab
+			は、ボウリングを観察して、考えたことを書き残すブログです。フォーム、ボール、レーンの読み方、スペアの取り方などを、自分で試しながらまとめています。
+		</p>
+		<p>[ブログを始めた理由、どんな人に読んでほしいか]</p>
+	</div>
+</Base>
