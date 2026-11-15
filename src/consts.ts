@@ -1,7 +1,6 @@
 export const SITE_TITLE = "Sendo Bowling Lab";
 
-export const SITE_TAGLINE =
-	"sendo-kakeru のボウリングブログ。フォーム、ボール、レーンの読み方、スペアの取り方を、自分で試しながらまとめています。";
+export const SITE_TAGLINE = "ボウリングの雑記";
 
 export const SITE_LANG = "ja";
 
