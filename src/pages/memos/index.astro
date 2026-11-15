@@ -1,0 +1,27 @@
+---
+import MemoList from "../../components/MemoList.astro";
+import Pagination from "../../components/Pagination.astro";
+import { LIST_PER_PAGE } from "../../consts";
+import Base from "../../layouts/Base.astro";
+import { getMemos } from "../../utils/get-memos";
+import { paginate } from "../../utils/pagination";
+
+const [page] = paginate({ items: await getMemos(), perPage: LIST_PER_PAGE });
+---
+
+<Base title="メモ">
+	<h1>メモ</h1>
+	<MemoList memos={page.items} />
+	<Pagination
+		basePath="/memos"
+		class="pager"
+		current={page.page}
+		pageCount={page.pageCount}
+	/>
+</Base>
+
+<style>
+.pager {
+	margin-top: 1.5rem;
+}
+</style>
