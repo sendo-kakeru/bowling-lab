@@ -182,6 +182,31 @@ describe("getExcerpt", () => {
 
 		expect(getExcerpt({ html: `<p>${text}</p>` })).toBe(text);
 	});
+
+	test("切った末尾の空白は残さない", () => {
+		const text = `${"あ".repeat(119)} いいい${"う".repeat(20)}`;
+
+		expect(getExcerpt({ html: `<p>${text}</p>` })).toBe(`${"あ".repeat(119)}…`);
+	});
+
+	test("結合した絵文字の途中で切らない", () => {
+		const family = "👨‍👩‍👧";
+		const text = `${"あ".repeat(119)}${family}${"う".repeat(5)}`;
+
+		expect(getExcerpt({ html: `<p>${text}</p>` })).toBe(
+			`${"あ".repeat(119)}${family}…`,
+		);
+	});
+
+	test("範囲外の数値参照はそのまま残す", () => {
+		expect(getExcerpt({ html: "<p>&#x110000;</p>" })).toBe("&#x110000;");
+	});
+
+	test("文がない本文では空文字", () => {
+		expect(
+			getExcerpt({ html: "<h2>見出し</h2><pre><code>x</code></pre>" }),
+		).toBe("");
+	});
 });
 
 describe("getReadingMinutes", () => {
@@ -194,6 +219,14 @@ describe("getReadingMinutes", () => {
 		expect(getReadingMinutes({ html: `<p>${"strike ".repeat(600)}</p>` })).toBe(
 			3,
 		);
+	});
+
+	test("長音符、句読点、かぎ括弧も 1 字として数える", () => {
+		expect(
+			getReadingMinutes({
+				html: `<p>${"「ボーリング、ストライク。」".repeat(100)}</p>`,
+			}),
+		).toBe(3);
 	});
 
 	test("日本語と英語が混ざると足し合わせる", () => {

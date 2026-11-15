@@ -15,8 +15,8 @@ export interface Post {
 	slug: PostSlug;
 	isDraft: boolean;
 	title: string;
-	/** フロントマターの description。省いたときは本文の抜粋 */
-	description: string;
+	/** フロントマターの description。省いたときは本文の抜粋。本文に文がなければない */
+	description?: string;
 	publishedAt: Date;
 	thumbnail?: string;
 	readingMinutes: number;
@@ -31,13 +31,18 @@ const HeadingsSchema = v.array(
 	v.object({ depth: v.number(), slug: v.string(), text: v.string() }),
 );
 
-function toPost({ entry }: { entry: CollectionEntry<"posts"> }): Post {
-	// entry.id は glob ローダーが小文字にするなど手を加えるので、スラッグはファイル名から作る
+/** 本番では下書きを検証せずに除く。書きかけのフロントマターでビルドを落とさないため */
+function toPost({
+	entry,
+}: {
+	entry: CollectionEntry<"posts">;
+}): Post | undefined {
 	const { filePath } = entry;
 	if (!filePath || !entry.rendered) {
 		throw new Error(`記事のファイルを読めない: ${entry.id}`);
 	}
 	const { slug, isDraft } = parsePostSlug({ filePath });
+	if (isDraft && import.meta.env.PROD) return undefined;
 
 	const result = v.safeParse(PostFrontmatterSchema, entry.data);
 	if (!result.success) {
@@ -49,7 +54,7 @@ function toPost({ entry }: { entry: CollectionEntry<"posts"> }): Post {
 	const { html, metadata } = entry.rendered;
 
 	return {
-		description: description ?? getExcerpt({ html }),
+		description: description ?? (getExcerpt({ html }) || undefined),
 		entry,
 		isDraft,
 		publishedAt,
@@ -67,7 +72,6 @@ function toPost({ entry }: { entry: CollectionEntry<"posts"> }): Post {
 export async function getPosts(): Promise<Post[]> {
 	const entries = await getCollection("posts");
 	return entries
-		.map((entry) => toPost({ entry }))
-		.filter((post) => !(import.meta.env.PROD && post.isDraft))
+		.flatMap((entry) => toPost({ entry }) ?? [])
 		.toSorted(comparePosts);
 }

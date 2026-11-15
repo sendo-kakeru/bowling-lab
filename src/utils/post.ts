@@ -55,8 +55,6 @@ export const PostFrontmatterSchema = v.object({
 	title: v.pipe(v.string(), v.nonEmpty("title を書く")),
 });
 
-export type PostFrontmatter = v.InferOutput<typeof PostFrontmatterSchema>;
-
 /** `_` は下書きの印。残りは英小文字・数字・ハイフンだけ */
 const SLUG_REGEX = /^_?[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const DRAFT_PREFIX = "_";
@@ -113,8 +111,15 @@ function decodeEntities({ text }: { text: string }): string {
 	return text.replace(
 		/&(?:#x([0-9a-f]+)|#(\d+)|([a-z]+));/gi,
 		(entity, hex: string | undefined, dec: string | undefined, name) => {
-			if (hex) return String.fromCodePoint(Number.parseInt(hex, 16));
-			if (dec) return String.fromCodePoint(Number.parseInt(dec, 10));
+			const codePoint = hex
+				? Number.parseInt(hex, 16)
+				: dec
+					? Number.parseInt(dec, 10)
+					: undefined;
+			if (codePoint !== undefined) {
+				// 本文に生の HTML で書かれた範囲外の参照で、ビルドを落とさない
+				return codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : entity;
+			}
 			return Object.hasOwn(NAMED_ENTITIES, name)
 				? (NAMED_ENTITIES[name] ?? entity)
 				: entity;
@@ -131,24 +136,29 @@ function htmlToText({ html }: { html: string }): string {
 
 const EXCERPT_LENGTH = 120;
 
+const graphemeSegmenter = new Intl.Segmenter("ja", { granularity: "grapheme" });
+
 /** description がないときの抜粋。コード、見出し、表は文として読めないので除く */
 export function getExcerpt({ html }: { html: string }): string {
 	const body = html
 		.replace(/<pre[\s>][\s\S]*?<\/pre>/gi, " ")
 		.replace(/<h([1-6])[\s>][\s\S]*?<\/h\1>/gi, " ")
 		.replace(/<table[\s>][\s\S]*?<\/table>/gi, " ");
-	// 文字数は書記素ではなくコードポイントで数える。絵文字の途中で切らないため
-	const chars = [...htmlToText({ html: body })];
+	// 書記素で数える。結合した絵文字の途中で切らないため
+	const chars = Array.from(
+		graphemeSegmenter.segment(htmlToText({ html: body })),
+		({ segment }) => segment,
+	);
 	if (chars.length <= EXCERPT_LENGTH) return chars.join("");
-	return `${chars.slice(0, EXCERPT_LENGTH).join("")}…`;
+	return `${chars.slice(0, EXCERPT_LENGTH).join("").trimEnd()}…`;
 }
 
 const WORDS_PER_MINUTE = 200;
 const CJK_CHARACTERS_PER_MINUTE = 500;
-const CJK_CHARACTER_REGEX =
-	/\p{Script=Han}|\p{Script=Hangul}|\p{Script=Hiragana}|\p{Script=Katakana}/gu;
+// かなと漢字だけでなく、長音符、句読点、かぎ括弧、全角英数字も 1 文字として数える
+const CJK_CHARACTER_REGEX = /[^\p{ASCII}\s]/gu;
 
-/** 読了時間（分）。日本語は文字数、それ以外は語数で数える。最低 1 分 */
+/** 読了時間（分）。ASCII 以外の文字は文字数、英語などは語数で数える。最低 1 分 */
 export function getReadingMinutes({ html }: { html: string }): number {
 	const text = htmlToText({ html });
 	const cjkCount = text.match(CJK_CHARACTER_REGEX)?.length ?? 0;

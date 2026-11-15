@@ -26,7 +26,7 @@ const Heading = `h${headingLevel}` as const;
 	<time class="date" datetime={formatIsoDate({ date: post.publishedAt })}>
 		{formatDotDate({ date: post.publishedAt })}
 	</time>
-	<p class="excerpt">{post.description}</p>
+	{post.description && <p class="excerpt">{post.description}</p>}
 	<Image alt="" class="thumbnail" src={defaultThumbnail} width={600} />
 </article>
 

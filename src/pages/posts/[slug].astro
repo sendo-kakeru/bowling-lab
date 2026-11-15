@@ -48,13 +48,11 @@ const { Content } = await render(post.entry);
 	</article>
 	{(older || newer) && (
 		<nav aria-label="前後の記事" class="siblings">
-			{older ? (
+			{older && (
 				<a class="older" href={`/posts/${older.slug}`}>
 					<span class="sibling-label">前の記事</span>
 					{older.title}
 				</a>
-			) : (
-				<span />
 			)}
 			{newer && (
 				<a class="newer" href={`/posts/${newer.slug}`}>
@@ -135,6 +133,7 @@ const { Content } = await render(post.entry);
 	}
 
 	.newer {
+		grid-column: 2;
 		text-align: right;
 	}
 }
