@@ -1,0 +1,66 @@
+/*
+  Markdown から変換した本文。クラスのない HTML なので、ページのスコープ付きスタイルが届かない
+*/
+
+.prose {
+	display: grid;
+	row-gap: 1.25rem;
+}
+
+.prose > * {
+	margin: 0;
+	min-width: 0;
+}
+
+.prose :is(h2, h3, h4) {
+	margin-top: 1rem;
+	line-height: 1.4;
+}
+
+.prose h2 {
+	font-size: 1.5rem;
+}
+
+.prose h3 {
+	font-size: 1.25rem;
+}
+
+.prose h4 {
+	font-size: 1rem;
+}
+
+.prose :is(ul, ol) {
+	padding-left: 1.5rem;
+}
+
+.prose blockquote {
+	padding-left: 1rem;
+	border-left: 4px solid #ccc;
+	color: #555;
+}
+
+.prose pre {
+	padding: 1rem;
+	overflow-x: auto;
+	font-size: 0.875rem;
+	line-height: 1.6;
+}
+
+.prose :not(pre) > code {
+	padding: 0 0.25rem;
+	background: #eee;
+	font-size: 0.875em;
+}
+
+/* 表は幅を超えたら横にスクロールさせる。table のままだと横幅を縮められない */
+.prose table {
+	display: block;
+	overflow-x: auto;
+	border-collapse: collapse;
+}
+
+.prose :is(th, td) {
+	padding: 0.25rem 0.75rem;
+	border: 1px solid #ccc;
+	white-space: nowrap;
+}
