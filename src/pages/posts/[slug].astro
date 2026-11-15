@@ -5,6 +5,7 @@ import type { GetStaticPaths } from "astro";
 import Base from "../../layouts/Base.astro";
 import { formatDotDate, formatIsoDate } from "../../utils/date";
 import { getPosts } from "../../utils/get-posts";
+import { toImageAttributes } from "../../utils/media";
 
 export const getStaticPaths = (async () => {
 	const posts = await getPosts();
@@ -17,6 +18,11 @@ export const getStaticPaths = (async () => {
 
 const { post, older, newer } = Astro.props;
 const { Content } = await render(post.entry);
+// 本文の最初の画像で代用したときは、同じ画像が 2 回並ぶので冒頭に出さない
+const headerImage =
+	post.thumbnail.source === "frontmatter"
+		? toImageAttributes({ image: post.thumbnail.image, loading: "eager" })
+		: undefined;
 ---
 
 <Base description={post.description} title={post.title}>
@@ -29,6 +35,7 @@ const { Content } = await render(post.entry);
 				</time>
 			</p>
 		</header>
+		{headerImage && <img {...headerImage} alt="" />}
 		{post.toc.length > 0 && (
 			<nav aria-label="目次" class="toc">
 				<p class="toc-heading">目次</p>

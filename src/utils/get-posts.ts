@@ -1,6 +1,8 @@
 import { type CollectionEntry, getCollection } from "astro:content";
 import { readFile } from "node:fs/promises";
 import * as v from "valibot";
+import { decideThumbnail, type Thumbnail } from "./media";
+import { getMediaManifest } from "./media-manifest";
 import {
 	comparePosts,
 	getExcerpt,
@@ -19,7 +21,7 @@ export interface Post {
 	/** フロントマターの description。省いたときは本文の抜粋。本文に文がなければない */
 	description?: string;
 	publishedAt: Date;
-	thumbnail?: string;
+	thumbnail: Thumbnail;
 	/** 見出しが少ない記事では空 */
 	toc: TocItem[];
 	/** 本文を描画するときに render() に渡す */
@@ -56,6 +58,17 @@ async function toPost({
 	}
 	const { title, description, publishedAt, thumbnail } = result.output;
 	const { html, metadata } = entry.rendered;
+	let decided: Thumbnail;
+	try {
+		decided = decideThumbnail({
+			manifest: getMediaManifest(),
+			markdown: entry.body ?? "",
+			thumbnail,
+		});
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		throw new Error(`${filePath}: ${message}`, { cause: error });
+	}
 
 	return {
 		description: description ?? (getExcerpt({ html }) || undefined),
@@ -63,7 +76,7 @@ async function toPost({
 		isDraft,
 		publishedAt,
 		slug,
-		thumbnail,
+		thumbnail: decided,
 		title,
 		toc: getToc({
 			headings: v.parse(HeadingsSchema, metadata?.headings ?? []),
