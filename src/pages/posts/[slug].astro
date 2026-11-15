@@ -1,0 +1,136 @@
+---
+import "../../styles/prose.css";
+import { render } from "astro:content";
+import type { GetStaticPaths } from "astro";
+import Base from "../../layouts/Base.astro";
+import { formatDotDate, formatIsoDate } from "../../utils/date";
+import { getPosts } from "../../utils/get-posts";
+
+export const getStaticPaths = (async () => {
+	const posts = await getPosts();
+	// posts は新しい順なので、前（古い）の記事は 1 つ後ろ、次（新しい）の記事は 1 つ前
+	return posts.map((post, i) => ({
+		params: { slug: post.slug },
+		props: { newer: posts[i - 1], older: posts[i + 1], post },
+	}));
+}) satisfies GetStaticPaths;
+
+const { post, older, newer } = Astro.props;
+const { Content } = await render(post.entry);
+---
+
+<Base description={post.description} title={post.title}>
+	<article class="post">
+		<header class="header">
+			<h1 class="title">{post.title}</h1>
+			<p class="meta">
+				<time datetime={formatIsoDate({ date: post.publishedAt })}>
+					{formatDotDate({ date: post.publishedAt })}
+				</time>
+			</p>
+		</header>
+		{post.toc.length > 0 && (
+			<nav aria-label="目次" class="toc">
+				<p class="toc-heading">目次</p>
+				<ul class="toc-list">
+					{post.toc.map((item) => (
+						<li data-depth={item.depth}>
+							<a href={`#${item.id}`}>{item.text}</a>
+						</li>
+					))}
+				</ul>
+			</nav>
+		)}
+		<div class="prose">
+			<Content />
+		</div>
+	</article>
+	{(older || newer) && (
+		<nav aria-label="前後の記事" class="siblings">
+			{older && (
+				<a class="older" href={`/posts/${older.slug}`}>
+					<span class="sibling-label">前の記事</span>
+					{older.title}
+				</a>
+			)}
+			{newer && (
+				<a class="newer" href={`/posts/${newer.slug}`}>
+					<span class="sibling-label">次の記事</span>
+					{newer.title}
+				</a>
+			)}
+		</nav>
+	)}
+</Base>
+
+<style>
+.post {
+	display: grid;
+	row-gap: 2rem;
+}
+
+.header {
+	display: grid;
+	row-gap: 0.5rem;
+}
+
+.title {
+	margin: 0;
+	font-size: 1.75rem;
+	line-height: 1.4;
+}
+
+.meta {
+	margin: 0;
+	font-size: 0.875rem;
+}
+
+.toc {
+	padding: 1rem;
+	border: 1px solid #ccc;
+}
+
+.toc-heading {
+	margin: 0;
+	font-weight: 700;
+}
+
+.toc-list {
+	display: grid;
+	row-gap: 0.25rem;
+	margin: 0;
+	margin-top: 0.5rem;
+	padding: 0;
+	list-style: none;
+}
+
+.toc-list [data-depth="3"] {
+	padding-left: 1.5rem;
+}
+
+.siblings {
+	display: grid;
+	row-gap: 1rem;
+	margin-top: 3rem;
+}
+
+.siblings a {
+	display: grid;
+}
+
+.sibling-label {
+	font-size: 0.875rem;
+}
+
+@media (width >= 768px) {
+	.siblings {
+		grid-template-columns: 1fr 1fr;
+		column-gap: 2rem;
+	}
+
+	.newer {
+		grid-column: 2;
+		text-align: right;
+	}
+}
+</style>

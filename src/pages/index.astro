@@ -1,11 +1,38 @@
 ---
+import PostList from "../components/PostList.astro";
 import { SITE_TAGLINE, SITE_TITLE } from "../consts";
 import Base from "../layouts/Base.astro";
+import { getPosts } from "../utils/get-posts";
 
-/* 最新の記事とメモは、それぞれの issue（#17、#18）で足す */
+/* 最新のメモは #18 で足す */
+
+const LATEST_POST_COUNT = 3;
+
+const latestPosts = (await getPosts()).slice(0, LATEST_POST_COUNT);
 ---
 
 <Base>
-	<h1>{SITE_TITLE}</h1>
-	<p>{SITE_TAGLINE}</p>
+	<div class="stack">
+		<div>
+			<h1>{SITE_TITLE}</h1>
+			<p>{SITE_TAGLINE}</p>
+		</div>
+		<section aria-labelledby="latest-posts" class="stack">
+			<h2 id="latest-posts">最新の記事</h2>
+			<PostList headingLevel={3} posts={latestPosts} />
+			<a href="/posts">記事の一覧へ</a>
+		</section>
+	</div>
 </Base>
+
+<style>
+.stack {
+	display: grid;
+	row-gap: 2rem;
+}
+
+h1,
+h2 {
+	margin: 0;
+}
+</style>
