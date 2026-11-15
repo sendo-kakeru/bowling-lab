@@ -34,4 +34,4 @@ Sendo Bowling Lab（以下「本サイト」）での、読者の情報の扱い
 
 このポリシーについてのお問い合わせは、[Instagram（@sendo_bowling）](https://www.instagram.com/sendo_bowling/)の DM までお願いします。
 
-制定日 2026年11月13日
+制定日 <time datetime="2026-11-13">2026年11月13日</time>

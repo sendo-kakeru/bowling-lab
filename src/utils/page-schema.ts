@@ -6,9 +6,13 @@ import { formatIssues } from "./valibot.ts";
   astro:content を読み込むと vitest で動かないので、取得関数（pages.ts）と分けている
 */
 
-const PageSchema = v.strictObject({
-	title: v.pipe(v.string(), v.nonEmpty("空にしない")),
-});
+const PageSchema = v.strictObject(
+	{
+		title: v.pipe(v.string("文字列で書く"), v.trim(), v.nonEmpty("空にしない")),
+	},
+	// 項目が欠けたときと、知らない項目があったときの両方に出る
+	"フロントマターには title だけを書く",
+);
 
 export type PageData = v.InferOutput<typeof PageSchema>;
 
