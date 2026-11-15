@@ -37,11 +37,15 @@ function joinTrimmedLines({ lines }: { lines: readonly string[] }): string {
 }
 
 /**
- * メモの本文を、`## YYYY-MM-DD HH:mm` の見出しで書き込みに分ける。
+ * メモの本文を、`## YYYY-MM-DD HH:mm` の見出しで区切る。
  * コードブロックや HTML コメントの中の見出しの形の行は区切りにしない。
- * 末尾の見出しの下が空なら読み飛ばす（コマンドが見出しだけを先に書くため）
+ * 末尾の見出しの下は空でもよく、その区切りも markdown を空にして返す（コマンドが見出しだけを先に書くため）
  */
-export function parseMemo({ source }: { source: string }): ParsedMemoNote[] {
+export function parseMemoSections({
+	source,
+}: {
+	source: string;
+}): ParsedMemoNote[] {
 	// BOM つきで保存されると、1 行目の見出しが見出しと判定されない
 	const text = source.replace(/^\uFEFF/, "");
 	// 単独の CR も行の区切りにする。構文木の行番号と数え方をそろえるため
@@ -81,9 +85,7 @@ export function parseMemo({ source }: { source: string }): ParsedMemoNote[] {
 			lines: lines.slice(index + 1, nextIndex),
 		});
 		const line = index + 1;
-		const isLast = i === headings.length - 1;
-		if (markdown === "") {
-			if (isLast) break;
+		if (markdown === "" && i < headings.length - 1) {
 			throw new MemoParseError({
 				line,
 				message: "見出しの下に文がない（空にしてよいのは末尾の見出しだけ）",
@@ -92,4 +94,10 @@ export function parseMemo({ source }: { source: string }): ParsedMemoNote[] {
 		notes.push({ line, markdown, postedAt });
 	}
 	return notes;
+}
+
+/** メモの本文を書き込みに分ける。末尾の見出しの下が空なら、その区切りは書き込みに数えない */
+export function parseMemo({ source }: { source: string }): ParsedMemoNote[] {
+	const sections = parseMemoSections({ source });
+	return sections.at(-1)?.markdown === "" ? sections.slice(0, -1) : sections;
 }
