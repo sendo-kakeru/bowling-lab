@@ -1,11 +1,12 @@
 import { randomInt } from "node:crypto";
-import { readdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { POST_DIR, planNewPost } from "./post-plan.ts";
 
 const ROOT = path.resolve(import.meta.dirname, "../..");
 
 try {
+	await mkdir(path.join(ROOT, POST_DIR), { recursive: true });
 	const existingSlugs = (await readdir(path.join(ROOT, POST_DIR)))
 		.filter((file) => file.endsWith(".md"))
 		.map((file) => path.basename(file, ".md"));

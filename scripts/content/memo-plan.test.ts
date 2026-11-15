@@ -254,6 +254,17 @@ describe("planAddNote", () => {
 		).toThrow("src/content/memos/2026-01-01-0000.md");
 	});
 
+	test("id を指定したときは、ほかのメモの書式の誤りで止めない", () => {
+		const broken = memo("2026-11-01-1000", "文だけで見出しがない");
+		const change = planAddNote({
+			id: "2026-11-14-2100",
+			memos: [broken, older],
+			now: NOW,
+		});
+
+		expect(change.id).toBe("2026-11-14-2100");
+	});
+
 	test("メモが 1 つもなければエラー", () => {
 		expect(() => planAddNote({ memos: [], now: NOW })).toThrow("メモがない");
 	});

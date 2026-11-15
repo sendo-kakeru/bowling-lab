@@ -35,6 +35,16 @@ describe("planNewPost", () => {
 		expect(readPublishedAtSource({ source: post.source })).toBe("2026-11-16");
 	});
 
+	test("page はページ送りとぶつかるので引き直す", () => {
+		const post = planNewPost({
+			date,
+			existingSlugs: [],
+			randomInt: sequence({ chars: "pagek3f9" }),
+		});
+
+		expect(post.slug).toBe("_k3f9");
+	});
+
 	test("既にある名前は引き直す。`_` を外した公開済みの名前も避ける", () => {
 		const post = planNewPost({
 			date,

@@ -135,19 +135,20 @@ export function planAddNote({
 	memos: readonly MemoFile[];
 	now: Date;
 }): MemoChange {
-	const sectioned = memos.map((memo) => sectionMemo({ memo }));
 	let target: SectionedMemo | undefined;
 	if (id === undefined) {
-		target = findNewest({ memos: sectioned });
+		target = findNewest({ memos: memos.map((memo) => sectionMemo({ memo })) });
 		if (target === undefined) {
 			throw new Error(`${MEMO_DIR} にメモがない。先に pnpm memo で作る`);
 		}
 	} else {
 		const targetId = normalizeMemoId({ id });
-		target = sectioned.find((memo) => memo.id === targetId);
-		if (target === undefined) {
+		// 指定したメモだけを読む。ほかのメモの書式の誤りで止めないため
+		const memo = memos.find((memo) => memo.id === targetId);
+		if (memo === undefined) {
 			throw new Error(`メモがない: ${MEMO_DIR}/${targetId}.md`);
 		}
+		target = sectionMemo({ memo });
 	}
 
 	const heading = formatMemoHeading({ date: now });

@@ -23,7 +23,11 @@ export function planNewPost({
 	/** 0 以上 max 未満の整数。node:crypto の randomInt を渡す */
 	randomInt: (max: number) => number;
 }): { slug: string; source: string } {
-	const taken = new Set(existingSlugs.map((slug) => slug.replace(/^_/, "")));
+	// page は /posts/page/2 のページ送りとぶつかるので、parsePostSlug が受け付けない
+	const taken = new Set([
+		"page",
+		...existingSlugs.map((slug) => slug.replace(/^_/, "")),
+	]);
 	let name: string;
 	do {
 		name = Array.from({ length: SLUG_LENGTH }, () =>

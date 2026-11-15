@@ -1,4 +1,4 @@
-import { readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import {
@@ -38,6 +38,8 @@ async function main(): Promise<void> {
 
 /** ローダーと同じく、ドットで始まるファイルは読まない */
 async function readMemos(): Promise<MemoFile[]> {
+	// 仮データを消すとディレクトリごとなくなる（git は空のディレクトリを持たない）
+	await mkdir(path.join(ROOT, MEMO_DIR), { recursive: true });
 	const files = (await readdir(path.join(ROOT, MEMO_DIR))).filter(
 		(file) => file.endsWith(".md") && !file.startsWith("."),
 	);
