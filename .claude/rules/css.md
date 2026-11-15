@@ -7,6 +7,8 @@ paths: ["**/*.{ts,tsx,astro,css}"]
 原則であり、見た目のために破るほうが妥当なら破ってよい。
 
 - 基本的にはスコープ付きスタイルを使用。複数の部品で共有するものだけグローバル（`src/styles/`）
+- グローバルは `@layer base, components, utilities`（順番は `layers.css`）に入れ、スコープ付きスタイルで上書きできるようにする。値は `tokens.css`、要素の初期の見た目は `base.css`、複数の場所で使う文字は `text.css` の `.text-*`、1 つの役目のクラスは `utilities.css`
+- 色、フォントサイズ、角丸、影は `tokens.css` の変数を使う。スタイルガイドにない色は足さない
 - 子コンポーネントのスタイルは props で `class` を渡す。受け取る側は `const { class: className, ...rest } = Astro.props` で受け、`class:list` に `className` を入れて `{...rest}` を展開する（親のスコープ属性も `rest` で渡ってくる）
 - font-size は `rem` を使用
 - line-heightは単位無し（例: 1.6）

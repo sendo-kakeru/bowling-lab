@@ -187,9 +187,12 @@ export function decideThumbnail({
 	return { image: toStillImage({ entry }), source: "body" };
 }
 
-/** サムネイルの切り抜き。card は 96px 角の 2 倍 */
+/**
+ * サムネイルの切り抜き。card は記事カードの画像の枠でいちばん大きい、ホームのタイル（約 352 × 160px）の 2 倍。
+ * ほかの枠（スマホの 96px 角、一覧の 200 × 120px）は CSS の object-fit: cover で中央を切り出す
+ */
 export const THUMBNAIL_CROPS = {
-	card: { height: 192, width: 192 },
+	card: { height: 320, width: 704 },
 	ogp: { height: 630, width: 1200 },
 } as const;
 

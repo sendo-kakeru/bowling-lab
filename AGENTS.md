@@ -36,7 +36,7 @@ The development workflow (who does what, where rules go) is in [docs/ai-developm
 
 The visual design is the canvas at https://claude.ai/artifact/TAHbv2CgLCvL1bLiufaZE2 (`StyleGuide` for colours, type, and parts; `Post` / `MobilePost`, `MobileHome`, `Posts`, `About`, `Search`, `NotFound`). When unsure about a value, check `StyleGuide` first.
 
-The content-management issues (#16 to #23) do not reproduce the design faithfully: semantically correct HTML and a minimal layout are enough there. `.claude/rules/css.md` holds the CSS conventions.
+The styles were ported from the previous site in #30, which is the reference for the look. `.claude/rules/css.md` holds the CSS conventions.
 
 ## Previous site
 

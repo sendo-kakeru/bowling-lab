@@ -1,7 +1,9 @@
 ---
-import "../../styles/prose.css";
 import { render } from "astro:content";
 import type { GetStaticPaths } from "astro";
+import Breadcrumb from "../../components/Breadcrumb.astro";
+import Card from "../../components/Card.astro";
+import TableOfContents from "../../components/post/TableOfContents.astro";
 import Base from "../../layouts/Base.astro";
 import { formatDotDate, formatIsoDate } from "../../utils/date";
 import { getPosts } from "../../utils/get-posts";
@@ -23,121 +25,352 @@ const headerImage =
 	post.thumbnail.source === "frontmatter"
 		? toImageAttributes({ image: post.thumbnail.image, loading: "eager" })
 		: undefined;
+// 見出しの下のリードは、フロントマターに書いた description だけ。本文からの抜粋だと冒頭の段落と同じ文が並ぶ
+const lead: unknown = post.entry.data.description;
+const hasToc = post.toc.length > 0;
 ---
 
 <Base description={post.description} title={post.title}>
-	<article class="post">
-		<header class="header">
-			<h1 class="title">{post.title}</h1>
-			<p class="meta">
-				<time datetime={formatIsoDate({ date: post.publishedAt })}>
+	<div class="post-page">
+		<Breadcrumb
+			items={[
+				{ href: "/", label: "HOME" },
+				{ href: "/posts", label: "POSTS" },
+				{ label: post.title },
+			]}
+		/>
+
+		<Card as="article" class="post" raised>
+			<header class="post-header">
+				<time
+					class="post-date"
+					datetime={formatIsoDate({ date: post.publishedAt })}
+				>
 					{formatDotDate({ date: post.publishedAt })}
 				</time>
-			</p>
-		</header>
-		{headerImage && <img {...headerImage} alt="" />}
-		{post.toc.length > 0 && (
-			<nav aria-label="目次" class="toc">
-				<p class="toc-heading">目次</p>
-				<ul class="toc-list">
-					{post.toc.map((item) => (
-						<li data-depth={item.depth}>
-							<a href={`#${item.id}`}>{item.text}</a>
-						</li>
-					))}
-				</ul>
-			</nav>
-		)}
-		<div class="prose">
-			<Content />
-		</div>
-	</article>
-	{(older || newer) && (
-		<nav aria-label="前後の記事" class="siblings">
-			{older && (
-				<a class="older" href={`/posts/${older.slug}`}>
-					<span class="sibling-label">前の記事</span>
-					{older.title}
-				</a>
+				<h1 class="post-title text-title">{post.title}</h1>
+				{typeof lead === "string" && <p class="post-lead">{lead}</p>}
+			</header>
+
+			{headerImage && (
+				<div class="post-image">
+					<img {...headerImage} alt="" />
+				</div>
 			)}
-			{newer && (
-				<a class="newer" href={`/posts/${newer.slug}`}>
-					<span class="sibling-label">次の記事</span>
-					{newer.title}
-				</a>
+
+			<div class="post-body" data-has-toc={hasToc}>
+				<TableOfContents
+					class="post-toc-collapsible"
+					items={post.toc}
+					variant="collapsible"
+				/>
+				<div class="post-content prose text-body">
+					<Content />
+				</div>
+				<TableOfContents class="post-toc-side" items={post.toc} />
+			</div>
+
+			{(older || newer) && (
+				<nav aria-label="前後の記事" class="post-nav">
+					{older && (
+						<a
+							class="post-nav-link"
+							data-direction="prev"
+							href={`/posts/${older.slug}`}
+							rel="prev"
+						>
+							<span class="post-nav-label text-label">
+								<span aria-hidden="true">←</span> PREV FRAME
+							</span>
+							<span class="post-nav-title">{older.title}</span>
+						</a>
+					)}
+					{newer && (
+						<a
+							class="post-nav-link"
+							data-direction="next"
+							href={`/posts/${newer.slug}`}
+							rel="next"
+						>
+							<span class="post-nav-label text-label">
+								NEXT FRAME <span aria-hidden="true">→</span>
+							</span>
+							<span class="post-nav-title">{newer.title}</span>
+						</a>
+					)}
+				</nav>
 			)}
-		</nav>
-	)}
+		</Card>
+	</div>
 </Base>
 
 <style>
+.post-page {
+	display: grid;
+	row-gap: 0.75rem;
+}
+
+/* カードの左右の内余白。前後の記事も同じ値で揃える */
 .post {
-	display: grid;
-	row-gap: 2rem;
+	--post-padding-inline: 1.25rem;
 }
 
-.header {
+.post-header {
 	display: grid;
-	row-gap: 0.5rem;
+	padding: 1.5rem var(--post-padding-inline) 1.25rem;
+	border-bottom: 1px solid var(--color-wood-150);
 }
 
-.title {
-	margin: 0;
-	font-size: 1.75rem;
+.post-date {
+	justify-self: start;
+	color: var(--color-ink-600);
+	font-family: var(--font-display);
+	font-size: var(--font-size-15);
+	font-weight: 500;
+	letter-spacing: 0.08em;
 	line-height: 1.4;
 }
 
-.meta {
-	margin: 0;
-	font-size: 0.875rem;
+.post-title {
+	margin-top: 0.75rem;
+	color: var(--color-navy-900);
 }
 
-.toc {
-	padding: 1rem;
-	border: 1px solid #ccc;
-}
-
-.toc-heading {
-	margin: 0;
-	font-weight: 700;
-}
-
-.toc-list {
-	display: grid;
-	row-gap: 0.25rem;
-	margin: 0;
+.post-lead {
 	margin-top: 0.5rem;
-	padding: 0;
-	list-style: none;
+	color: var(--color-ink-700);
+	font-size: var(--font-size-15);
+	line-height: 1.75;
 }
 
-.toc-list [data-depth="3"] {
-	padding-left: 1.5rem;
+/* スマホは見出しの下に端まで広げる */
+.post-image img {
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	object-fit: cover;
 }
 
-.siblings {
+.post-body {
 	display: grid;
-	row-gap: 1rem;
-	margin-top: 3rem;
+	grid-template-columns: minmax(0, 1fr);
+	row-gap: 1.5rem;
+	padding: 1.25rem var(--post-padding-inline) 1.75rem;
 }
 
-.siblings a {
+.post-toc-side {
+	display: none;
+}
+
+/*
+  前後の記事。PREV は 1 つ古い記事、NEXT は 1 つ新しい記事。スマホは縦に積み、768px 以上は 2 列。
+  ホバーの面がカードの下の角からはみ出さないよう、カードと同じ角丸で切る
+*/
+.post-nav {
 	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	overflow: hidden;
+	border-top: 1px solid var(--color-wood-150);
+	border-radius: 0 0 var(--radius-16) var(--radius-16);
 }
 
-.sibling-label {
-	font-size: 0.875rem;
+.post-nav-link {
+	display: grid;
+	align-content: start;
+	padding: 1rem var(--post-padding-inline);
+	color: var(--color-ink-900);
+	text-decoration: none;
+	transition: background-color 0.15s;
+}
+
+/* 面の色で、押せる範囲を示す */
+.post-nav-link:is(:hover, :focus-visible) {
+	background: var(--color-wood-50);
+}
+
+/* 色の変化だけでフォーカスを示さない。リングは内側に寄せ、カードの角で切れないようにする */
+.post-nav-link:focus-visible {
+	outline-offset: -6px;
+}
+
+.post-nav-link + .post-nav-link {
+	border-top: 1px solid var(--color-wood-150);
+}
+
+.post-nav-link[data-direction="next"] {
+	text-align: right;
+}
+
+.post-nav-label {
+	color: var(--color-ink-600);
+	font-size: var(--font-size-14);
+	font-weight: 700;
+	letter-spacing: 0.14em;
+}
+
+.post-nav-title {
+	font-size: var(--font-size-15);
+	font-weight: 600;
+	line-height: 1.75;
 }
 
 @media (width >= 768px) {
-	.siblings {
-		grid-template-columns: 1fr 1fr;
-		column-gap: 2rem;
+	.post-page {
+		row-gap: 1rem;
 	}
 
-	.newer {
+	.post {
+		--post-padding-inline: 2.25rem;
+	}
+
+	.post-header {
+		padding-top: 2.75rem;
+		padding-bottom: 2rem;
+	}
+
+	.post-title {
+		margin-top: 1rem;
+	}
+
+	.post-lead {
+		margin-top: 0.75rem;
+		font-size: var(--font-size-16);
+	}
+
+	.post-date {
+		font-size: var(--font-size-16);
+	}
+
+	/* 768px 以上は見出しの中に、カードの内余白の内側で角を丸めて置く */
+	.post-header:has(+ .post-image) {
+		padding-bottom: 0;
+		border-bottom: 0;
+	}
+
+	.post-image {
+		padding: 1.5rem var(--post-padding-inline) 2rem;
+		border-bottom: 1px solid var(--color-wood-150);
+	}
+
+	.post-image img {
+		aspect-ratio: 5 / 2;
+		border-radius: var(--radius-6);
+	}
+
+	.post-body {
+		padding: 2.25rem var(--post-padding-inline) 3rem;
+		grid-template-columns: minmax(0, var(--layout-content-width));
+		justify-content: center;
+	}
+
+	.post-nav {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.post-nav-link {
+		padding-block: 1.25rem;
+	}
+
+	/* NEXT だけのときも右の列に置く */
+	.post-nav-link[data-direction="next"] {
 		grid-column: 2;
-		text-align: right;
+	}
+
+	.post-nav-link + .post-nav-link {
+		border-top: 0;
+		border-left: 1px solid var(--color-wood-150);
+	}
+
+	.post-nav-label {
+		font-size: var(--font-size-15);
+	}
+}
+
+/*
+  1024px 以上は 2 カラム。ノート PC で必ず 2 カラムになるよう 1024px で切り替え、1279px までは余白と目次を詰めて本文の幅を確保する。
+  --post-toc-* は 2 列の指定と内余白の計算の両方で使う。未定義だと両方が無効になるので必ず指定する
+*/
+@media (width >= 1024px) {
+	.post {
+		--post-padding-inline: 3rem;
+		--post-toc-padding-inline: 2.25rem;
+		--post-toc-width: 220px;
+		--post-toc-gap: 2.5rem;
+	}
+
+	.post-header {
+		padding-top: 3rem;
+	}
+
+	.post-lead {
+		font-size: var(--font-size-17);
+	}
+
+	.post-body {
+		padding-top: 2.5rem;
+	}
+
+	/* 目次がない記事は 768px と同じく本文だけを中央に置く */
+	.post-body[data-has-toc="true"] {
+		grid-template-columns: minmax(0, var(--layout-content-width)) var(
+				--post-toc-width
+			);
+		justify-content: space-between;
+		align-items: start;
+		column-gap: var(--post-toc-gap);
+	}
+
+	/*
+	  見出し・画像・本文を「本文 + 間 + 目次」の幅にそろえて中央に置く。余りを左右に等しく分け、タイトルの左だけが空かないようにする。
+	  % はカードの中の幅
+	*/
+	.post:has(.post-body[data-has-toc="true"])
+		:is(.post-header, .post-image, .post-body) {
+		padding-inline: max(
+			var(--post-toc-padding-inline),
+			calc(
+				(
+					100% -
+					var(--layout-content-width) -
+					var(--post-toc-gap) -
+					var(--post-toc-width)
+				) /
+				2
+			)
+		);
+	}
+
+	.post-toc-collapsible {
+		display: none;
+	}
+
+	/*
+	  長い記事でも目次が見えるよう、画面の上に付いてくる。目次が画面より長いときは目次の中だけスクロールする。
+	  スクロールの枠でフォーカスリングが切れないよう、内余白を足して同じだけ外へ広げる
+	*/
+	.post-toc-side {
+		position: sticky;
+		top: 1.5rem;
+		display: block;
+		grid-column: 2;
+		grid-row: 1;
+		max-height: calc(100dvh - 3rem);
+		overflow-y: auto;
+		margin: -0.5rem;
+		padding: 0.5rem;
+	}
+
+	.post-body[data-has-toc="true"] .post-content {
+		grid-column: 1;
+		grid-row: 1;
+	}
+}
+
+/* 本文が上限の幅に届くので、詰めていた余白と目次を戻す。1280px で本文がちょうど 760px になる値 */
+@media (width >= 1280px) {
+	.post {
+		--post-toc-padding-inline: 3rem;
+		--post-toc-width: 240px;
+		--post-toc-gap: 3.5rem;
 	}
 }
 </style>

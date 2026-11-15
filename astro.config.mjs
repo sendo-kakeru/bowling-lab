@@ -6,6 +6,7 @@ import { defineConfig, fontProviders } from "astro/config";
 import { embedPlugin } from "./src/utils/embed.ts";
 import { getMediaManifest } from "./src/utils/media-manifest.ts";
 import { createMediaPlugin } from "./src/utils/media-plugin.ts";
+import { tablePlugin } from "./src/utils/table-plugin.ts";
 
 // https://astro.build/config
 export default defineConfig({
@@ -31,9 +32,11 @@ export default defineConfig({
 	integrations: [sitemap()],
 	markdown: {
 		processor: satteri({
-			hastPlugins: [embedPlugin],
+			hastPlugins: [embedPlugin, tablePlugin],
 			mdastPlugins: [createMediaPlugin({ manifest: getMediaManifest() })],
 		}),
+		// コードは色を付けず、prose.css の明るい地と本文の色で出す（Shiki は style 属性で地の色を上書きする）
+		syntaxHighlight: false,
 	},
 	site: "https://bowling.sendo.page",
 	// URL は末尾スラッシュなしで統一する（/posts、/posts/page/2）。

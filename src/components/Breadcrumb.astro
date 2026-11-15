@@ -105,9 +105,11 @@ nav {
 	grid-column: 2;
 }
 
+/* 8rem を超えた文字は見えないまま横にはみ出し、ページの横スクロールを作るので切る */
 .current-sizer {
 	max-width: 8rem;
 	height: 0;
+	overflow: hidden;
 	font-size: var(--font-size-13);
 	font-weight: 500;
 	visibility: hidden;

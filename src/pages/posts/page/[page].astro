@@ -1,6 +1,5 @@
 ---
 import type { GetStaticPaths } from "astro";
-import Pagination from "../../../components/Pagination.astro";
 import PostList from "../../../components/PostList.astro";
 import { LIST_PER_PAGE } from "../../../consts";
 import Base from "../../../layouts/Base.astro";
@@ -15,25 +14,9 @@ export const getStaticPaths = (async () => {
 const { page } = Astro.props;
 ---
 
-<Base title={`記事（${page.page} ページ目）`}>
-	<div class="stack">
-		<h1>記事</h1>
-		<PostList headingLevel={2} posts={page.items} />
-		<Pagination
-			basePath="/posts"
-			current={page.page}
-			pageCount={page.pageCount}
-		/>
-	</div>
+<Base
+	description="すべての記事。新しい順に並んでいます。"
+	title={`記事一覧（${page.page} ページ目）`}
+>
+	<PostList current={page.page} pageCount={page.pageCount} posts={page.items} />
 </Base>
-
-<style>
-.stack {
-	display: grid;
-	row-gap: 2rem;
-}
-
-h1 {
-	margin: 0;
-}
-</style>

@@ -1,29 +1,105 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 import type { Memo } from "../utils/memo-schema";
+import Breadcrumb from "./Breadcrumb.astro";
 import MemoSlip from "./MemoSlip.astro";
+import Pagination from "./Pagination.astro";
 
-interface Props extends HTMLAttributes<"ul"> {
+/*
+  メモ一覧のページの中身（パンくず、見出し、伝票、ページ送り）。1 ページ目と 2 ページ目以降で共有する。
+  スマホは 1 列、768px 以上は 2 列。日付は伝票ごとに載っているので、日付の見出しで区切らない
+*/
+
+interface Props extends HTMLAttributes<"div"> {
+	/** 新しい順 */
 	memos: readonly Memo[];
+	/** 今のページ（1 始まり） */
+	current: number;
+	pageCount: number;
 }
 
-const { memos, class: className, ...rest } = Astro.props;
+const { memos, current, pageCount, class: className, ...rest } = Astro.props;
 ---
 
-<ul {...rest} class:list={["memo-list", className]}>
-	{memos.map((memo) => (
-		<li>
-			<MemoSlip memo={memo} />
-		</li>
-	))}
-</ul>
+<div {...rest} class:list={["memo-page", className]}>
+	<Breadcrumb items={[{ href: "/", label: "HOME" }, { label: "MEMO" }]} />
+
+	<h1 class="title">MEMO</h1>
+
+	{memos.length > 0 ? (
+		<ol class="list">
+			{memos.map((memo) => (
+				<li>
+					<MemoSlip memo={memo} />
+				</li>
+			))}
+		</ol>
+	) : (
+		<p class="empty">まだメモはありません。</p>
+	)}
+
+	<Pagination
+		basePath="/memos"
+		class="pagination"
+		current={current}
+		pageCount={pageCount}
+	/>
+</div>
 
 <style>
-.memo-list {
+.memo-page {
 	display: grid;
-	row-gap: 1rem;
-	margin: 0;
-	padding: 0;
+	grid-template-columns: minmax(0, 1fr);
+	row-gap: 0.75rem;
+}
+
+.title {
+	padding-top: 0.5rem;
+	color: var(--color-navy-900);
+	font-family: var(--font-display);
+	font-size: var(--font-size-40);
+	/* 細い書体なので、この大きさでは 700 だと線が細く見える */
+	font-weight: 800;
+	letter-spacing: 0.02em;
+	line-height: 1;
+}
+
+.list {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	margin-top: 0.5rem;
+	/* 伝票の後ろに重ねた紙（右下に 16px）の分も空ける。スマホのレーンの内余白（12px）では右の溝にかかるので、右も 4px 空ける */
+	row-gap: 1.5rem;
+	padding: 0 0.25rem 0 0;
 	list-style: none;
+}
+
+.empty {
+	margin-top: 0.5rem;
+	color: var(--color-ink-900);
+	font-size: var(--font-size-14);
+	line-height: 1.7;
+}
+
+.pagination {
+	justify-self: center;
+	margin-top: 1rem;
+}
+
+@media (width >= 768px) {
+	.memo-page {
+		row-gap: 1rem;
+	}
+
+	.title {
+		font-size: var(--font-size-56);
+	}
+
+	.list {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		/* 片方の続きを開いても、隣の伝票は伸ばさない */
+		align-items: start;
+		gap: 1.5rem;
+	}
 }
 </style>
