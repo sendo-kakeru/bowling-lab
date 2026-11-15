@@ -1,0 +1,29 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import type { Memo } from "../utils/memo-schema";
+import MemoSlip from "./MemoSlip.astro";
+
+interface Props extends HTMLAttributes<"ol"> {
+	memos: readonly Memo[];
+}
+
+const { memos, class: className, ...rest } = Astro.props;
+---
+
+<ol {...rest} class:list={["memo-list", className]}>
+	{memos.map((memo) => (
+		<li>
+			<MemoSlip memo={memo} />
+		</li>
+	))}
+</ol>
+
+<style>
+.memo-list {
+	display: grid;
+	row-gap: 1rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+</style>

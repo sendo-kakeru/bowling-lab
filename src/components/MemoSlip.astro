@@ -1,0 +1,73 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { formatDotDate, formatTime } from "../utils/date";
+import type { Memo } from "../utils/memo-schema";
+
+/*
+  メモ 1 件。公開日時と最初の書き込み、続きがあれば開閉できる一覧で出す
+*/
+
+interface Props extends HTMLAttributes<"article"> {
+	memo: Memo;
+}
+
+const { memo, class: className, ...rest } = Astro.props;
+const [first, ...replies] = memo.notes;
+
+const formatPostedAt = ({ date }: { date: Date }): string =>
+	`${formatDotDate({ date })} ${formatTime({ date })}`;
+---
+
+<article {...rest} class:list={["slip", className]}>
+	<time class="meta" datetime={first.postedAt.toISOString()}>
+		{formatPostedAt({ date: first.postedAt })}
+	</time>
+	<div class="prose" set:html={first.html} />
+	{replies.length > 0 && (
+		<details>
+			<summary>続き {replies.length} 件</summary>
+			<ol class="replies">
+				{replies.map((reply) => (
+					<li class="reply">
+						<time class="meta" datetime={reply.postedAt.toISOString()}>
+							{formatPostedAt({ date: reply.postedAt })}
+						</time>
+						<div class="prose" set:html={reply.html} />
+					</li>
+				))}
+			</ol>
+		</details>
+	)}
+</article>
+
+<style>
+.slip {
+	display: grid;
+	align-content: start;
+	row-gap: 0.5rem;
+	padding: 0.75rem 1rem;
+	border: 1px solid;
+}
+
+.meta {
+	font-size: 0.875rem;
+}
+
+summary {
+	cursor: pointer;
+}
+
+.replies {
+	display: grid;
+	row-gap: 0.75rem;
+	margin: 0;
+	padding: 0.5rem 0 0 0.75rem;
+	border-left: 2px solid;
+	list-style: none;
+}
+
+.reply {
+	display: grid;
+	row-gap: 0.25rem;
+}
+</style>
