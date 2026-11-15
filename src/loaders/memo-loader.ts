@@ -22,6 +22,10 @@ function removeHeadingIds({ html }: { html: string }): string {
 	return html.replace(HEADING_ID_PATTERN, "$1");
 }
 
+// renderMarkdown は渡した文字列の先頭のフロントマターを読み取って捨てる。
+// 書き込みが区切り線（---）で始まると、次の --- までが消えるので、空のフロントマターを先に付ける
+const EMPTY_FRONTMATTER = "---\n---\n";
+
 /** 1 ファイルを読み、store に入れる。書き込みがない（見出しだけの）ファイルは store から外す */
 async function syncMemo({
 	context: { generateDigest, renderMarkdown, store },
@@ -34,8 +38,8 @@ async function syncMemo({
 }): Promise<void> {
 	const id = basename(path, ".md");
 	const source = await readFile(path, "utf-8");
+	// 未変更でも読み直す。ローダーの処理を変えたときに、保存済みの古い HTML が残らないようにするため
 	const digest = generateDigest(source);
-	if (store.get(id)?.digest === digest) return;
 
 	const filePath = relative(root, path);
 	let notes: ReturnType<typeof resolvePostedAt>;
@@ -58,7 +62,9 @@ async function syncMemo({
 	const fileURL = pathToFileURL(path);
 	const renderedNotes = await Promise.all(
 		notes.map(async ({ markdown, postedAt }) => {
-			const { html } = await renderMarkdown(markdown, { fileURL });
+			const { html } = await renderMarkdown(`${EMPTY_FRONTMATTER}${markdown}`, {
+				fileURL,
+			});
 			return { html: removeHeadingIds({ html }), postedAt };
 		}),
 	);

@@ -55,6 +55,12 @@ describe("parseMemo", () => {
 		]);
 	});
 
+	test("先頭の BOM は無視する", () => {
+		const notes = parseMemo({ source: "\uFEFF## 2026-11-06 21:14\n本文" });
+
+		expect(notes.map(({ line }) => line)).toEqual([1]);
+	});
+
 	test("見出しより前の空行は許す", () => {
 		const notes = parseMemo({
 			source: source("", "  ", "## 2026-11-06 21:14", "本文"),
@@ -114,6 +120,25 @@ describe("parseMemo", () => {
 			});
 
 			expect(notes.map(({ line }) => line)).toEqual([1, 7]);
+		});
+
+		test("リストや引用の中のフェンスも、字下げした閉じまでを 1 つのコードブロックとする", () => {
+			const notes = parseMemo({
+				source: source(
+					"## 2026-11-06 21:14",
+					"- 手順",
+					"- ```js",
+					"  ## 2026-11-07 10:00",
+					"  ```",
+					"> ~~~",
+					"## 2026-11-07 11:00",
+					"> ~~~",
+					"## 2026-11-06 21:38",
+					"続き",
+				),
+			});
+
+			expect(notes.map(({ line }) => line)).toEqual([1, 9]);
 		});
 
 		test("閉じていないフェンスは末尾まで続く", () => {
