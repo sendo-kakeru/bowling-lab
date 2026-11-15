@@ -10,6 +10,8 @@ astro dev --background
 
 Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
 
+Storybook runs with `pnpm storybook` (port 6006) and builds with `pnpm build-storybook`. Stories sit next to the component as `*.stories.ts`, and their sample data lives in `.storybook/fixtures/`.
+
 ## Documentation
 
 Full documentation: https://docs.astro.build
