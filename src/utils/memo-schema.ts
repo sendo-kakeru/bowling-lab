@@ -3,7 +3,7 @@ import { formatMemoHeading } from "./memo-heading.ts";
 import { MemoParseError, type ParsedMemoNote } from "./parse-memo.ts";
 
 /** `2026-11-06 21:14` を日本時間として読む。存在しない日付は Date が繰り上げるので、ここでは検査しない */
-function toJstDate(postedAt: string): Date {
+function toJstDate({ postedAt }: { postedAt: string }): Date {
 	return new Date(`${postedAt.replace(" ", "T")}:00+09:00`);
 }
 
@@ -14,13 +14,13 @@ function toJstDate(postedAt: string): Date {
 const PostedAtSchema = v.pipe(
 	v.string(),
 	v.check((postedAt) => {
-		const date = toJstDate(postedAt);
+		const date = toJstDate({ postedAt });
 		return (
 			!Number.isNaN(date.getTime()) &&
 			formatMemoHeading({ date }) === `## ${postedAt}`
 		);
 	}, "存在しない日時"),
-	v.transform(toJstDate),
+	v.transform((postedAt) => toJstDate({ postedAt })),
 );
 
 /** 日時を Date にした書き込み */
@@ -69,5 +69,4 @@ export const MemoSchema = v.object({
 	notes: v.tupleWithRest([MemoNoteSchema], MemoNoteSchema),
 });
 
-export type MemoNote = v.InferOutput<typeof MemoNoteSchema>;
 export type Memo = v.InferOutput<typeof MemoSchema>;

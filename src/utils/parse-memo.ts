@@ -22,8 +22,10 @@ export class MemoParseError extends Error {
 	}
 }
 
-// CommonMark のフェンス。字下げは 3 文字まで（4 文字だと字下げのコードブロックになる）
-const FENCE_OPEN_PATTERN = /^ {0,3}(`{3,}|~{3,})/;
+// リストや引用の中のフェンスも拾うため、行頭の字下げ・リスト記号・引用記号を読み飛ばす
+const CONTAINER_PREFIX = String.raw`(?:[ \t]*(?:[-*+]|\d{1,9}[.)]|>)(?=[ \t]))*[ \t]*`;
+const FENCE_OPEN_PATTERN = new RegExp(`^${CONTAINER_PREFIX}(\`{3,}|~{3,})`);
+const FENCE_CLOSE_PATTERN = new RegExp(`^${CONTAINER_PREFIX}(\`+|~+)[ \t]*$`);
 
 interface Fence {
 	char: string;
@@ -47,7 +49,7 @@ function openFence({ line }: { line: string }): Fence | undefined {
 
 /** 開いたフェンスを閉じる行か。同じ記号で、開きと同じ長さ以上で、後ろは空白だけ */
 function closesFence({ fence, line }: { fence: Fence; line: string }): boolean {
-	const match = /^ {0,3}(`+|~+)[ \t]*$/.exec(line);
+	const match = FENCE_CLOSE_PATTERN.exec(line);
 	const marker = match?.[1];
 	return (
 		marker !== undefined &&
@@ -56,13 +58,13 @@ function closesFence({ fence, line }: { fence: Fence; line: string }): boolean {
 	);
 }
 
-const isBlank = (line: string): boolean => line.trim() === "";
+const isBlank = ({ line }: { line: string }): boolean => line.trim() === "";
 
 /** 前後の空行を除いて行をつなぐ。1 行目の字下げは字下げのコードブロックなので残す */
 function joinTrimmedLines({ lines }: { lines: readonly string[] }): string {
-	const start = lines.findIndex((line) => !isBlank(line));
+	const start = lines.findIndex((line) => !isBlank({ line }));
 	if (start === -1) return "";
-	const end = lines.findLastIndex((line) => !isBlank(line));
+	const end = lines.findLastIndex((line) => !isBlank({ line }));
 	return lines.slice(start, end + 1).join("\n");
 }
 
@@ -72,7 +74,8 @@ function joinTrimmedLines({ lines }: { lines: readonly string[] }): string {
  * 末尾の見出しの下が空なら読み飛ばす（コマンドが見出しだけを先に書くため）
  */
 export function parseMemo({ source }: { source: string }): ParsedMemoNote[] {
-	const lines = source.split(/\r?\n/);
+	// BOM つきで保存されると、1 行目の見出しが見出しと判定されない
+	const lines = source.replace(/^\uFEFF/, "").split(/\r?\n/);
 	const headings: { postedAt: string; index: number }[] = [];
 
 	let fence: Fence | undefined;
@@ -92,7 +95,7 @@ export function parseMemo({ source }: { source: string }): ParsedMemoNote[] {
 	const firstHeadingIndex = headings[0]?.index ?? lines.length;
 	const preambleIndex = lines
 		.slice(0, firstHeadingIndex)
-		.findIndex((line) => !isBlank(line));
+		.findIndex((line) => !isBlank({ line }));
 	if (preambleIndex !== -1) {
 		throw new MemoParseError({
 			line: preambleIndex + 1,
