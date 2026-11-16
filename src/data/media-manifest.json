@@ -1,0 +1,49 @@
+{
+	"2026/ten-pin/lane.jpg": {
+		"key": "images/2026/ten-pin/lane.a1b2c3.jpg",
+		"type": "image", "width": 2400, "height": 1600
+	},
+	"2026/ten-pin/release.mov": {
+		"key": "videos/2026/ten-pin/release.d4e5f6.mp4",
+		"type": "video", "width": 1920, "height": 1080, "duration": 12.4,
+		"poster": "images/2026/ten-pin/release.d4e5f6.poster.jpg"
+	},
+	"2026/thumb-release/hand.jpg": {
+		"key": "images/2026/thumb-release/hand.b7c8d9.jpg",
+		"type": "image", "width": 1800, "height": 2400
+	},
+	"2026/wrist-support/glove.jpg": {
+		"key": "images/2026/wrist-support/glove.e1f2a3.jpg",
+		"type": "image", "width": 2400, "height": 1600
+	},
+	"2026/pin-deck/deck.jpg": {
+		"key": "images/2026/pin-deck/deck.c4d5e6.jpg",
+		"type": "image", "width": 2400, "height": 1600
+	},
+	"2026/pin-deck/pins.jpg": {
+		"key": "images/2026/pin-deck/pins.f7a8b9.jpg",
+		"type": "image", "width": 1800, "height": 2400
+	},
+	"2026/oil/lane-oil.jpg": {
+		"key": "images/2026/oil/lane-oil.0a1b2c.jpg",
+		"type": "image", "width": 1800, "height": 2400
+	},
+	"2026/approach/steps.mov": {
+		"key": "videos/2026/approach/steps.3d4e5f.mp4",
+		"type": "video", "width": 1080, "height": 1920, "duration": 8.2,
+		"poster": "images/2026/approach/steps.3d4e5f.poster.jpg"
+	},
+	"2026/approach/foul-line.jpg": {
+		"key": "images/2026/approach/foul-line.6a7b8c.jpg",
+		"type": "image", "width": 640, "height": 427
+	},
+	"2026/memo/score.jpg": {
+		"key": "images/2026/memo/score.9d0e1f.jpg",
+		"type": "image", "width": 1000, "height": 750
+	},
+	"2026/memo/warmup.mov": {
+		"key": "videos/2026/memo/warmup.2b3c4d.mp4",
+		"type": "video", "width": 1920, "height": 1080, "duration": 21.7,
+		"poster": "images/2026/memo/warmup.2b3c4d.poster.jpg"
+	}
+}

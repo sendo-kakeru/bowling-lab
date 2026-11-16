@@ -1,0 +1,92 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { formatDotDate, formatIsoDate } from "../utils/date";
+import type { Post } from "../utils/get-posts";
+import { THUMBNAIL_CROPS } from "../utils/media";
+import { getThumbnailUrl } from "../utils/thumbnail";
+
+/*
+  記事のカード（一覧とホーム）。サムネイルは隣にタイトルがあるので alt を空にする
+*/
+
+interface Props extends HTMLAttributes<"article"> {
+	post: Post;
+	/** タイトルの見出しの階層。ページの見出しの 1 つ下にする */
+	headingLevel: 2 | 3;
+}
+
+const { post, headingLevel, class: className, ...rest } = Astro.props;
+const Heading = `h${headingLevel}` as const;
+const thumbnailUrl = await getThumbnailUrl({
+	crop: "card",
+	thumbnail: post.thumbnail,
+});
+const { width, height } = THUMBNAIL_CROPS.card;
+---
+
+<article {...rest} class:list={["card", className]}>
+	<Heading class="title">
+		<a href={`/posts/${post.slug}`}>{post.title}</a>
+	</Heading>
+	<time class="date" datetime={formatIsoDate({ date: post.publishedAt })}>
+		{formatDotDate({ date: post.publishedAt })}
+	</time>
+	{post.description && <p class="excerpt">{post.description}</p>}
+	<img
+		alt=""
+		class="thumbnail"
+		decoding="async"
+		height={height}
+		loading="lazy"
+		src={thumbnailUrl}
+		width={width}
+	>
+</article>
+
+<style>
+.card {
+	display: grid;
+	grid-template-areas:
+		"thumbnail"
+		"title"
+		"date"
+		"excerpt";
+	row-gap: 0.5rem;
+}
+
+.title {
+	grid-area: title;
+	margin: 0;
+	font-size: 1.25rem;
+	line-height: 1.4;
+}
+
+.date {
+	grid-area: date;
+	font-size: 0.875rem;
+}
+
+.excerpt {
+	grid-area: excerpt;
+	margin: 0;
+}
+
+.thumbnail {
+	grid-area: thumbnail;
+	width: 6rem;
+	height: 6rem;
+	object-fit: cover;
+}
+
+@media (width >= 768px) {
+	.card {
+		grid-template-columns: 6rem minmax(0, 1fr);
+		grid-template-rows: auto auto 1fr;
+		grid-template-areas:
+			"thumbnail title"
+			"thumbnail date"
+			"thumbnail excerpt";
+		column-gap: 1.5rem;
+	}
+}
+</style>

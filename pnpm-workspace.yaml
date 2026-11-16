@@ -1,0 +1,5 @@
+# 依存のビルドスクリプトは、必要なものだけ許可する
+# esbuild と workerd は wrangler（デプロイとローカルでの配信確認）が使う
+allowBuilds:
+  esbuild: true
+  workerd: true

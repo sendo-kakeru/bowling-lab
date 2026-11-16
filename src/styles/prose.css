@@ -1,0 +1,122 @@
+/*
+  Markdown から変換した本文。クラスのない HTML なので、ページのスコープ付きスタイルが届かない
+*/
+
+.prose {
+	display: grid;
+	row-gap: 1.25rem;
+}
+
+.prose > * {
+	margin: 0;
+	min-width: 0;
+}
+
+.prose :is(h2, h3, h4) {
+	margin-top: 1rem;
+	line-height: 1.4;
+}
+
+/* 見出しで始まる本文でも、上に余白を足さない */
+.prose > :first-child {
+	margin-top: 0;
+}
+
+.prose h2 {
+	font-size: 1.5rem;
+}
+
+.prose h3 {
+	font-size: 1.25rem;
+}
+
+.prose h4 {
+	font-size: 1rem;
+}
+
+.prose :is(ul, ol) {
+	padding-left: 1.5rem;
+}
+
+/* 一覧の中に置くと、ブラウザの既定では 2 階層目の白丸になる */
+.prose ul {
+	list-style-type: disc;
+}
+
+.prose blockquote {
+	padding-left: 1rem;
+	border-left: 4px solid #ccc;
+	color: #555;
+}
+
+.prose pre {
+	padding: 1rem;
+	overflow-x: auto;
+	font-size: 0.875rem;
+	line-height: 1.6;
+}
+
+.prose :not(pre) > code {
+	padding: 0 0.25rem;
+	background: #eee;
+	font-size: 0.875em;
+}
+
+/* 表は幅を超えたら横にスクロールさせる。table のままだと横幅を縮められない */
+.prose table {
+	display: block;
+	overflow-x: auto;
+	border-collapse: collapse;
+}
+
+.prose :is(th, td) {
+	padding: 0.25rem 0.75rem;
+	border: 1px solid #ccc;
+	white-space: nowrap;
+}
+
+/* 脚注の区画の見出し（Footnotes）。読み上げにだけ残す */
+.prose .sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* URL だけの行から作った埋め込み（src/utils/embed.ts）。比率を保つ枠に iframe を広げる */
+.prose .embed {
+	display: grid;
+}
+
+.prose .embed iframe {
+	width: 100%;
+	height: 100%;
+	border: 0;
+}
+
+.prose .embed-landscape {
+	aspect-ratio: 16 / 9;
+}
+
+.prose .embed-portrait {
+	width: 100%;
+	max-width: 20rem;
+	aspect-ratio: 9 / 16;
+}
+
+/*
+  Instagram の埋め込みは、上下の見出しと操作欄が幅によらず 208px で、その間に画像が幅いっぱいに入る。
+  高さを中身に合わせられないので、いまの標準の 4:5 で枠を取る（正方形の投稿は下が空く）。
+  幅は Instagram の埋め込みの上限の 540px まで
+*/
+.prose .embed-instagram {
+	width: 100%;
+	max-width: 33.75rem;
+	container-type: inline-size;
+}
+
+.prose .embed-instagram iframe {
+	height: calc(125cqi + 208px);
+}

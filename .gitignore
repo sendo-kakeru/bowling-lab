@@ -22,3 +22,10 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# メディアの原本（アップロード前と、アップロード済み）。位置情報が入っているのでコミットしない
+media/inbox/
+media/uploaded/
+
+# wrangler dev のローカル状態
+.wrangler/
