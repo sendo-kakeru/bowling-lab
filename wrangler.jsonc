@@ -12,6 +12,10 @@
 	"compatibility_date": "2026-11-01",
 	"name": "bowling-lab",
 	"observability": { "enabled": true, "issues": { "enabled": true } },
+	// 画像と動画の公開バケット（docs/design/media.md）。サイト本体からは使わず、
+	// deploy でバケットを作らせるためだけに書いている（無ければ wrangler deploy が作る）。
+	// 独自ドメインの紐付けと API トークンの発行は別の作業
+	"r2_buckets": [{ "binding": "MEDIA", "bucket_name": "bowling-lab-media" }],
 	"routes": [{ "custom_domain": true, "pattern": "bowling.sendo.page" }],
 	// 本番は独自ドメインだけで配信し、workers.dev の URL は出さない
 	"workers_dev": false
