@@ -1,0 +1,2 @@
+/* 最初の宣言が順番になるので、Base.astro が <head> の先頭に埋め込む */
+@layer base, components, utilities;

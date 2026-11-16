@@ -1,47 +1,285 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import { FOOTER_NAV_ITEMS, SITE_TITLE, SOCIAL_LINKS } from "../consts";
+import { SITE_TITLE } from "../consts";
+import { LEGAL_NAV, MAIN_NAV, SOCIAL_NAV, withCurrent } from "../utils/nav";
+import SocialIcon from "./icons/SocialIcon.astro";
+
+// フッターはアプローチ。上の線がファウルライン、丸印がアプローチの目印
 
 type Props = HTMLAttributes<"footer">;
 
 const { class: className, ...rest } = Astro.props;
+
+const year = new Date().getFullYear();
+
+const mainItems = withCurrent({ links: MAIN_NAV, page: Astro.url });
+const legalItems = withCurrent({ links: LEGAL_NAV, page: Astro.url });
+
+const DOT_COUNT = 7;
 ---
 
-<footer {...rest} class:list={["footer", className]}>
-	<ul class="links">
-		{FOOTER_NAV_ITEMS.map(({ href, label }) => (
-			<li>
-				<a href={href}>{label}</a>
-			</li>
-		))}
-		{SOCIAL_LINKS.map(({ href, label }) => (
-			<li>
-				<a href={href}>{label}</a>
-			</li>
-		))}
-	</ul>
-	<p class="copyright"><small>&copy; {SITE_TITLE}</small></p>
+<footer {...rest} class:list={["site-footer", className]}>
+	<div class="inner">
+		<div aria-hidden="true" class="dots">
+			{Array.from({ length: DOT_COUNT }, () => <span class="dot" />)}
+		</div>
+
+		<!-- 768px 以上は 2 段とも左右に振り分ける。上は名前とメニュー、下は外へのリンクと規約 -->
+		<div class="top">
+			<p class="site-name">{SITE_TITLE}</p>
+			<nav aria-label="フッターメニュー" class="footer-nav text-label">
+				<ul class="nav-list">
+					{mainItems.map((item) => (
+						<li>
+							<a aria-current={item.current} href={item.url}>
+								{item.label}
+							</a>
+						</li>
+					))}
+				</ul>
+			</nav>
+		</div>
+
+		<div class="bottom">
+			<ul class="social">
+				{SOCIAL_NAV.map(({ icon, label, url }) => (
+					<li>
+						<a aria-label={label} class="social-link" href={url}>
+							<SocialIcon class="social-icon" name={icon} />
+						</a>
+					</li>
+				))}
+			</ul>
+			<div class="legal">
+				<ul class="legal-list">
+					{legalItems.map((item) => (
+						<li>
+							<a
+								aria-current={item.current}
+								class="legal-link text-meta"
+								href={item.url}
+							>
+								{item.label}
+							</a>
+						</li>
+					))}
+				</ul>
+				<small class="text-meta">{`© ${year} ${SITE_TITLE}`}</small>
+			</div>
+		</div>
+	</div>
 </footer>
 
 <style>
-.footer {
-	display: grid;
-	row-gap: 0.5rem;
-	padding: 1rem;
-	border-top: 1px solid;
+.site-footer {
+	padding: 1.5rem 1.25rem 2rem;
+	border-top: 6px solid var(--color-carpet);
+	background: var(--color-approach);
 }
 
-.links {
+.inner {
+	display: grid;
+	row-gap: 1rem;
+	max-width: var(--layout-footer-width);
+	margin-inline: auto;
+}
+
+/* 赤はスパットだけに使うので、丸印は全部同じ色 */
+.dots {
 	display: grid;
 	grid-auto-flow: column;
-	justify-content: start;
-	column-gap: 1rem;
-	margin: 0;
+	justify-content: center;
+	column-gap: 1.5rem;
+}
+
+.dot {
+	width: 6px;
+	height: 6px;
+	border-radius: var(--radius-full);
+	background: var(--color-wood-650);
+}
+
+/* スマホは左右対称の丸印に合わせて中央揃え。メニューのリンクの内余白（0.5rem）で名前との間が 12px になる */
+.top {
+	display: grid;
+	justify-items: center;
+	row-gap: 0.25rem;
+	/* 丸印との間を 24px にする */
+	padding-top: 0.5rem;
+	text-align: center;
+}
+
+.site-name {
+	color: var(--color-navy-900);
+	font-family: var(--font-display);
+	font-size: var(--font-size-18);
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	line-height: 1.4;
+	text-transform: uppercase;
+}
+
+.social,
+.nav-list,
+.legal-list {
 	padding: 0;
 	list-style: none;
 }
 
-.copyright {
-	margin: 0;
+.social {
+	display: grid;
+	grid-auto-flow: column;
+	column-gap: 0.75rem;
+}
+
+/* 押せる大きさを 40px にする */
+.social-link {
+	display: grid;
+	place-items: center;
+	width: 2.5rem;
+	height: 2.5rem;
+	border-radius: var(--radius-full);
+	background: var(--color-card);
+	color: var(--color-navy-900);
+}
+
+.social-icon {
+	width: 1.125rem;
+	height: 1.125rem;
+}
+
+.bottom {
+	display: grid;
+	justify-items: center;
+	row-gap: 0.5rem;
+	padding-top: 1rem;
+	border-top: 1px solid var(--color-wood-250);
+	color: var(--color-ink-700);
+	text-align: center;
+}
+
+/* 折り返しが要るので grid ではなく flex */
+.nav-list,
+.legal,
+.legal-list {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	column-gap: 1rem;
+}
+
+.legal {
+	align-items: center;
+}
+
+.footer-nav {
+	font-size: var(--font-size-16);
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+}
+
+/* 押せる高さを約 38px にする。ホバーの面だけ左右に広げ、文字の位置は動かさない */
+.nav-list a,
+.legal-link {
+	display: block;
+	margin-inline: -0.5rem;
+	padding: 0.5rem;
+	border-radius: var(--radius-4);
+	color: var(--color-ink-900);
+	text-decoration: none;
+}
+
+/* 区切り線（wood-250）と見分けるため、現在地は丸印と同じ色の目印にする */
+/* 大文字だけで下に出る字がないので、線を離さないと文字に貼り付いて見える */
+.nav-list a[aria-current] {
+	text-decoration: underline 1px var(--color-wood-650);
+	text-underline-offset: 7px;
+}
+
+/* © と同じ行の補助の文字なので、メニューより一段薄くする */
+.legal-link {
+	color: var(--color-ink-700);
+}
+
+.legal-link[aria-current] {
+	text-decoration: underline 1px var(--color-wood-650);
+	text-underline-offset: 4px;
+}
+
+/* タッチ端末でホバーが残らないように。動きを減らす設定ではリセット（base.css）が止める */
+@media (hover: hover) {
+	.nav-list a,
+	.legal-link,
+	.social-link {
+		transition: background-color 0.15s;
+	}
+
+	.legal-link {
+		transition-property: background-color, color;
+	}
+
+	/* 地（approach）より明るい色だと白く浮くので、一段濃い木の色にする */
+	.nav-list a:hover,
+	.legal-link:hover {
+		background: var(--color-wood-250);
+	}
+
+	/* wood-250 の上の ink-700 は 4.48:1 で 4.5 に届かないので、本文の色に戻す */
+	.legal-link:hover {
+		color: var(--color-ink-900);
+	}
+
+	.social-link:hover {
+		background: var(--color-wood-50);
+	}
+}
+
+@media (width >= 768px) {
+	/* 下はリンクの内余白と合わせて 40px */
+	.site-footer {
+		padding: 1.75rem 2rem 2rem;
+	}
+
+	.dots {
+		column-gap: 2.5rem;
+	}
+
+	.dot {
+		width: 8px;
+		height: 8px;
+	}
+
+	/* 上の段は名前とメニュー、下の段は外へのリンクと規約を、それぞれ左右に置く */
+	.top,
+	.bottom {
+		grid-template-columns: auto minmax(0, 1fr);
+		justify-items: start;
+		align-items: center;
+		column-gap: 1.25rem;
+		text-align: start;
+	}
+
+	.site-name {
+		font-size: var(--font-size-20);
+	}
+
+	.footer-nav,
+	.legal {
+		justify-self: end;
+	}
+
+	.legal {
+		justify-content: end;
+	}
+}
+
+@media (width >= 1024px) {
+	.site-footer {
+		padding-inline: 2.5rem;
+	}
+
+	.dots {
+		column-gap: 3rem;
+	}
 }
 </style>

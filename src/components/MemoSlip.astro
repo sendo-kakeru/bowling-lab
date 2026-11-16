@@ -1,11 +1,13 @@
 ---
-import "../styles/prose.css";
 import type { HTMLAttributes } from "astro/types";
 import { formatDotDate, formatTime } from "../utils/date";
 import type { Memo } from "../utils/memo-schema";
 
 /*
-  メモ 1 件。公開日時と最初の書き込み、続きがあれば開閉できる一覧で出す
+  メモ 1 件の伝票。上に最初の書き込みの日時、点線の下にその本文。
+  記事のカード（Card）より角を小さくして、紙の伝票に見せる。
+  続きの書き込みがあれば、閉じているあいだはメモ帳のように紙を後ろに重ね、
+  開くと続きを下に 1 枚ずつ並べる。
 */
 
 interface Props extends HTMLAttributes<"article"> {
@@ -13,27 +15,40 @@ interface Props extends HTMLAttributes<"article"> {
 }
 
 const { memo, class: className, ...rest } = Astro.props;
-const [first, ...replies] = memo.notes;
 
-const formatPostedAt = ({ date }: { date: Date }): string =>
-	`${formatDotDate({ date })} ${formatTime({ date })}`;
+/** 後ろに重ねる紙の上限。続きがこれより多くても、紙の数はここで止める */
+const MAX_SHEETS = 3;
+
+const [first, ...replies] = memo.notes;
 ---
 
-<article {...rest} class:list={["slip", className]}>
+<article
+	{...rest}
+	data-sheets={replies.length > 0
+		? Math.min(replies.length, MAX_SHEETS)
+		: undefined}
+	class:list={["slip", className]}
+>
 	<time class="meta" datetime={first.postedAt.toISOString()}>
-		{formatPostedAt({ date: first.postedAt })}
+		<span>{formatDotDate({ date: first.postedAt })}</span>
+		<span>{formatTime({ date: first.postedAt })}</span>
 	</time>
-	<div class="prose" set:html={first.html} />
+	<div class="prose text" set:html={first.html} />
 	{replies.length > 0 && (
-		<details>
-			<summary>続き {replies.length} 件</summary>
+		<details class="thread">
+			<summary class="toggle">
+				<span aria-hidden="true">THREAD · {replies.length}</span>
+				<span class="sr-only">続きの書き込み {replies.length} 件</span>
+				<span aria-hidden="true" class="caret" />
+			</summary>
 			<ol class="replies">
 				{replies.map((reply) => (
 					<li class="reply">
 						<time class="meta" datetime={reply.postedAt.toISOString()}>
-							{formatPostedAt({ date: reply.postedAt })}
+							<span>{formatDotDate({ date: reply.postedAt })}</span>
+							<span>{formatTime({ date: reply.postedAt })}</span>
 						</time>
-						<div class="prose" set:html={reply.html} />
+						<div class="prose text" set:html={reply.html} />
 					</li>
 				))}
 			</ol>
@@ -43,32 +58,184 @@ const formatPostedAt = ({ date }: { date: Date }): string =>
 
 <style>
 .slip {
+	position: relative;
 	display: grid;
+	grid-template-columns: minmax(0, 1fr);
 	align-content: start;
 	row-gap: 0.5rem;
-	padding: 0.75rem 1rem;
-	border: 1px solid;
+	padding: 0.75rem 1rem 1rem;
+	border-radius: var(--radius-4);
+	background: var(--color-card);
+	box-shadow: var(--shadow-card);
+}
+
+/* 後ろに重ねる紙。続きの件数と同じ枚数で、3 件以上は 3 枚。奥ほど少し濃い */
+.slip[data-sheets="1"]:not(:has(.thread[open])) {
+	box-shadow:
+		var(--shadow-card),
+		5px 5px 0 var(--color-wood-50),
+		5px 5px 0 1px var(--color-wood-200);
+}
+
+.slip[data-sheets="2"]:not(:has(.thread[open])) {
+	box-shadow:
+		var(--shadow-card),
+		5px 5px 0 var(--color-wood-50),
+		5px 5px 0 1px var(--color-wood-200),
+		10px 10px 0 var(--color-wood-150),
+		10px 10px 0 1px var(--color-wood-200);
+}
+
+.slip[data-sheets="3"]:not(:has(.thread[open])) {
+	box-shadow:
+		var(--shadow-card),
+		5px 5px 0 var(--color-wood-50),
+		5px 5px 0 1px var(--color-wood-200),
+		10px 10px 0 var(--color-wood-150),
+		10px 10px 0 1px var(--color-wood-200),
+		15px 15px 0 var(--color-wood-200),
+		15px 15px 0 1px var(--color-wood-300);
+}
+
+/* 押して開ける（続きがあり、閉じている）伝票だけ、記事のカードと同じく地の色を変える。
+	   タッチ端末でホバーが残らないように。動きを減らす設定ではリセット（base.css）が止める */
+@media (hover: hover) {
+	/* 下の .slip の box-shadow の transition より詳細度が高いので、ここにも書く */
+	.slip:has(.thread) {
+		transition:
+			background-color 0.15s,
+			box-shadow 0.25s;
+	}
+
+	.slip:has(.thread:not([open])):hover {
+		background: var(--color-chip);
+	}
 }
 
 .meta {
-	font-size: 0.875rem;
+	display: grid;
+	grid-template-columns: auto auto;
+	justify-content: space-between;
+	padding-bottom: 0.5rem;
+	border-bottom: 1px dashed var(--color-wood-300);
+	color: var(--color-ink-600);
+	font-family: var(--font-display);
+	font-size: var(--font-size-13);
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	line-height: 1.4;
 }
 
-summary {
+/* 本文の大きさと行間は .prose の中の要素へ継承させる（.prose は大きさを持たない） */
+.text {
+	color: var(--color-ink-900);
+	font-size: var(--font-size-15);
+	line-height: 1.8;
+}
+
+.thread {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+}
+
+.toggle {
+	display: grid;
+	grid-auto-flow: column;
+	align-items: center;
+	justify-content: start;
+	column-gap: 0.5rem;
+	/* 指で押しやすいよう、見た目の行より上下に広げる */
+	padding-block: 0.5rem;
+	color: var(--color-link);
+	font-family: var(--font-display);
+	font-size: var(--font-size-14);
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	line-height: 1.2;
 	cursor: pointer;
+	list-style: none;
 }
 
+.toggle::-webkit-details-marker {
+	display: none;
+}
+
+/* 閉じているあいだは伝票のどこを押しても開く。開いたら本文を選べるよう外す */
+.thread:not([open]) > .toggle::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+}
+
+/* 本文のリンクは、閉じているあいだも開閉の覆いより上に出して押せるようにする */
+.text :global(a) {
+	position: relative;
+	z-index: 1;
+}
+
+.caret {
+	width: 0.625rem;
+	aspect-ratio: 2 / 1;
+	background: currentColor;
+	clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.thread[open] .caret {
+	rotate: 180deg;
+}
+
+/* 続きは閉じていたときに後ろに重ねていた紙。左の糸で最初の書き込みとつなぐ */
 .replies {
 	display: grid;
-	row-gap: 0.75rem;
-	margin: 0;
-	padding: 0.5rem 0 0 0.75rem;
-	border-left: 2px solid;
+	grid-template-columns: minmax(0, 1fr);
+	row-gap: 0.5rem;
+	padding: 0.25rem 0 0 0.75rem;
+	border-left: 2px solid var(--color-wood-200);
 	list-style: none;
 }
 
 .reply {
 	display: grid;
-	row-gap: 0.25rem;
+	grid-template-columns: minmax(0, 1fr);
+	row-gap: 0.5rem;
+	padding: 0.75rem;
+	border-radius: var(--radius-4);
+	background: var(--color-wood-50);
+	box-shadow: 0 1px 0 var(--color-wood-200);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.slip {
+		transition: box-shadow 0.25s;
+	}
+
+	.caret {
+		transition: rotate 0.15s;
+	}
+
+	/* interpolate-size がないブラウザでは動きなしで開く */
+	.thread {
+		interpolate-size: allow-keywords;
+	}
+
+	.thread::details-content {
+		block-size: 0;
+		overflow: clip;
+		transition:
+			block-size 0.25s,
+			content-visibility 0.25s allow-discrete;
+	}
+
+	.thread[open]::details-content {
+		block-size: auto;
+	}
+}
+
+/* 強制カラーモードでは背景と影が消えるので、枠で紙の形を残す */
+@media (forced-colors: active) {
+	.reply {
+		border: 1px solid;
+	}
 }
 </style>

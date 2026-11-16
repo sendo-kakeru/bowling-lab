@@ -4,18 +4,34 @@ import { formatDotDate, formatIsoDate } from "../utils/date";
 import type { Post } from "../utils/get-posts";
 import { THUMBNAIL_CROPS } from "../utils/media";
 import { getThumbnailUrl } from "../utils/thumbnail";
+import Card from "./Card.astro";
 
 /*
-  記事のカード（一覧とホーム）。サムネイルは隣にタイトルがあるので alt を空にする
+  記事一覧とホームの記事カード。左に画像、右にタイトルと公開日（768px 以上は抜粋も）。
+  layout="tile" はホーム用で、768px 以上は画像を上に置いた縦長のタイルにし、抜粋は出さない。
+  カード全体を押せるよう、リンクは見出しの <a> に置いて ::after でカードの面に広げる
+  （カードを <a> で包むと、見出しも抜粋も日付もリンク名として読み上げられる）。
+  サムネイルは隣にタイトルがあるので alt を空にする
 */
 
 interface Props extends HTMLAttributes<"article"> {
 	post: Post;
 	/** タイトルの見出しの階層。ページの見出しの 1 つ下にする */
-	headingLevel: 2 | 3;
+	headingLevel?: 2 | 3;
+	/** 画像を遅延読み込みしない。最初の画面に入る一番大きな画像に使う */
+	priority?: boolean;
+	layout?: "row" | "tile";
 }
 
-const { post, headingLevel, class: className, ...rest } = Astro.props;
+const {
+	post,
+	headingLevel = 2,
+	priority = false,
+	layout = "row",
+	class: className,
+	...rest
+} = Astro.props;
+
 const Heading = `h${headingLevel}` as const;
 const thumbnailUrl = await getThumbnailUrl({
 	crop: "card",
@@ -24,69 +40,151 @@ const thumbnailUrl = await getThumbnailUrl({
 const { width, height } = THUMBNAIL_CROPS.card;
 ---
 
-<article {...rest} class:list={["card", className]}>
-	<Heading class="title">
-		<a href={`/posts/${post.slug}`}>{post.title}</a>
-	</Heading>
-	<time class="date" datetime={formatIsoDate({ date: post.publishedAt })}>
-		{formatDotDate({ date: post.publishedAt })}
-	</time>
-	{post.description && <p class="excerpt">{post.description}</p>}
-	<img
-		alt=""
-		class="thumbnail"
-		decoding="async"
-		height={height}
-		loading="lazy"
-		src={thumbnailUrl}
-		width={width}
-	>
-</article>
+<Card
+	{...rest}
+	as="article"
+	data-layout={layout}
+	class:list={["post-card", className]}
+>
+	<div class="thumb">
+		<img
+			alt=""
+			decoding="async"
+			fetchpriority={priority ? "high" : undefined}
+			height={height}
+			loading={priority ? "eager" : "lazy"}
+			src={thumbnailUrl}
+			width={width}
+		>
+	</div>
+	<div class="body">
+		<Heading class="title">
+			<a class="link" href={`/posts/${post.slug}`}>{post.title}</a>
+		</Heading>
+		{layout === "row" && post.description && (
+			<p class="excerpt">{post.description}</p>
+		)}
+		<time
+			class="date text-meta"
+			datetime={formatIsoDate({ date: post.publishedAt })}
+		>
+			{formatDotDate({ date: post.publishedAt })}
+		</time>
+	</div>
+</Card>
 
 <style>
-.card {
+.post-card {
+	position: relative;
 	display: grid;
-	grid-template-areas:
-		"thumbnail"
-		"title"
-		"date"
-		"excerpt";
-	row-gap: 0.5rem;
+	grid-template-columns: 6rem minmax(0, 1fr);
+	align-items: start;
+	column-gap: 0.75rem;
+	padding: var(--card-padding);
+}
+
+.thumb {
+	overflow: hidden;
+	height: 6rem;
+	border-radius: var(--radius-6);
+	background: var(--color-wood-100);
+}
+
+.thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: scale 0.3s;
+}
+
+.body {
+	display: grid;
+	row-gap: 0.25rem;
 }
 
 .title {
-	grid-area: title;
-	margin: 0;
-	font-size: 1.25rem;
-	line-height: 1.4;
+	font-size: var(--font-size-16);
+	font-weight: 700;
+	line-height: 1.45;
 }
 
-.date {
-	grid-area: date;
-	font-size: 0.875rem;
+.link {
+	color: var(--color-ink-900);
+	text-decoration: none;
+}
+
+.link::after {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	content: "";
+}
+
+/* タッチ端末でホバーが残らないように。動きを減らす設定ではリセット（base.css）が止める */
+@media (hover: hover) {
+	.post-card {
+		transition: background-color 0.15s;
+	}
+
+	.post-card:hover {
+		background: var(--color-chip);
+	}
+
+	.post-card:hover .thumb img {
+		scale: 1.05;
+	}
 }
 
 .excerpt {
-	grid-area: excerpt;
-	margin: 0;
+	display: none;
+	color: var(--color-ink-700);
+	font-size: var(--font-size-14);
+	line-height: 1.7;
 }
 
-.thumbnail {
-	grid-area: thumbnail;
-	width: 6rem;
-	height: 6rem;
-	object-fit: cover;
+.date {
+	color: var(--color-ink-600);
 }
 
 @media (width >= 768px) {
-	.card {
-		grid-template-columns: 6rem minmax(0, 1fr);
-		grid-template-rows: auto auto 1fr;
-		grid-template-areas:
-			"thumbnail title"
-			"thumbnail date"
-			"thumbnail excerpt";
+	/* 横に広いカードでは --card-padding だと画像が縁に詰まって見えるので広げる。角丸は同心円からずれるが、この大きさでは目立たない */
+	.post-card {
+		grid-template-columns: 12.5rem minmax(0, 1fr);
+		align-items: center;
 		column-gap: 1.5rem;
+		padding: 1rem;
+	}
+
+	.thumb {
+		height: 7.5rem;
+	}
+
+	.title {
+		font-size: var(--font-size-19);
+	}
+
+	.excerpt {
+		display: block;
+	}
+
+	.post-card[data-layout="tile"] {
+		grid-template-columns: minmax(0, 1fr);
+		/* 同じ段の高いカードに合わせて伸びた分は、画像と文字の間ではなくカードの下に空ける */
+		align-content: start;
+		align-items: start;
+		padding: var(--card-padding);
+	}
+
+	[data-layout="tile"] .thumb {
+		height: 10rem;
+	}
+
+	[data-layout="tile"] .body {
+		padding: 0.875rem 0.5rem 0.5rem;
+	}
+
+	[data-layout="tile"] .title {
+		font-size: var(--font-size-17);
 	}
 }
 </style>

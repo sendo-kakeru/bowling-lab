@@ -1,0 +1,102 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import type { Memo } from "../../utils/memo-schema";
+import MemoSlip from "../MemoSlip.astro";
+import SectionHead from "./SectionHead.astro";
+
+/*
+  ホームのメモ（MEMO）
+*/
+
+interface Props extends HTMLAttributes<"section"> {
+	/** 新しい順 */
+	memos: Memo[];
+}
+
+const { memos, class: className, ...rest } = Astro.props;
+---
+
+<section
+	{...rest}
+	aria-labelledby="latest-memos-title"
+	class:list={["latest-memos", className]}
+>
+	<SectionHead
+		class="head"
+		moreHref={memos.length > 0 ? "/memos" : undefined}
+		moreLabel="メモをすべて見る"
+		title="MEMO"
+		titleId="latest-memos-title"
+	/>
+
+	{memos.length > 0 ? (
+		<ol class="list">
+			{memos.map((memo) => (
+				<li>
+					<MemoSlip class="pinned" memo={memo} />
+				</li>
+			))}
+		</ol>
+	) : (
+		<p class="empty">まだメモはありません。</p>
+	)}
+</section>
+
+<style>
+.latest-memos {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	row-gap: 1rem;
+}
+
+/* 「すべて見る」の札の右端を、右を 4px 空けた伝票の列にそろえる */
+.head {
+	padding: 0 0.25rem 0 0;
+}
+
+.list {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	/* 伝票の後ろに重ねた紙（右下に 16px）の分も空ける。スマホのレーンの内余白（12px）では右の溝にかかるので、右も 4px 空ける */
+	row-gap: 1.5rem;
+	padding: 0 0.25rem 0 0;
+	list-style: none;
+}
+
+/* 板に貼ったメモ。上にテープを貼り、1 枚おきに逆へ少し傾ける */
+.pinned::before {
+	content: "";
+	position: absolute;
+	top: -0.625rem;
+	left: 50%;
+	width: 5.25rem;
+	height: 1.375rem;
+	background: color-mix(in srgb, var(--color-wood-50) 70%, transparent);
+	box-shadow: 0 1px 2px color-mix(in srgb, var(--color-shadow) 15%, transparent);
+	translate: -50% 0;
+	rotate: -3deg;
+}
+
+.list > li:nth-child(odd) .pinned {
+	rotate: -0.8deg;
+}
+
+.list > li:nth-child(even) .pinned {
+	rotate: 0.9deg;
+}
+
+.empty {
+	color: var(--color-ink-900);
+	font-size: var(--font-size-14);
+	line-height: 1.7;
+}
+
+@media (width >= 768px) {
+	.list {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		/* 片方の続きを開いても、隣の伝票は伸ばさない */
+		align-items: start;
+		gap: 1.5rem;
+	}
+}
+</style>

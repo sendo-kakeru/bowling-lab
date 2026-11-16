@@ -10,6 +10,8 @@ astro dev --background
 
 Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
 
+Storybook runs with `pnpm storybook` (port 6006) and builds with `pnpm build-storybook`. Stories sit next to the component as `*.stories.ts`, and their sample data lives in `.storybook/fixtures/`.
+
 ## Documentation
 
 Full documentation: https://docs.astro.build
@@ -34,9 +36,7 @@ The development workflow (who does what, where rules go) is in [docs/ai-developm
 
 ## Styling
 
-The visual design is the canvas at https://claude.ai/artifact/TAHbv2CgLCvL1bLiufaZE2 (`StyleGuide` for colours, type, and parts; `Post` / `MobilePost`, `MobileHome`, `Posts`, `About`, `Search`, `NotFound`). When unsure about a value, check `StyleGuide` first.
-
-The content-management issues (#16 to #23) do not reproduce the design faithfully: semantically correct HTML and a minimal layout are enough there. `.claude/rules/css.md` holds the CSS conventions.
+The code is the reference for the look (the design canvas is no longer maintained). `.claude/rules/css.md` holds the CSS conventions.
 
 ## Previous site
 

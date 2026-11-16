@@ -1,0 +1,169 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+// 最後の項目は今のページで、リンクにせず、長いときは「…」で省略する
+
+interface BreadcrumbItem {
+	label: string;
+	/** 最後の項目（今のページ）では使わない */
+	href?: string;
+}
+
+interface Props extends HTMLAttributes<"nav"> {
+	items: BreadcrumbItem[];
+}
+
+const { items, class: className, ...rest } = Astro.props;
+
+const ancestors = items.slice(0, -1);
+const current = items.at(-1);
+---
+
+{current && (
+	<nav aria-label="パンくずリスト" {...rest} class:list={[className]}>
+		<ol class="list">
+			{ancestors.map((item) => (
+				<li class="item">
+					{item.href !== undefined ? (
+						<a class="crumb text-label" href={item.href}>
+							{item.label}
+						</a>
+					) : (
+						<span class="crumb text-label">{item.label}</span>
+					)}
+				</li>
+			))}
+			<li class="item" data-current>
+				<span aria-current="page" class="current">
+					{current.label}
+				</span>
+				<span aria-hidden="true" class="current-sizer">
+					{current.label}
+				</span>
+			</li>
+		</ol>
+	</nav>
+)}
+
+<style>
+/* 列全体を 1 枚の札にして、札の幅は中身の長さまでにする */
+nav {
+	display: grid;
+	justify-items: start;
+}
+
+.list {
+	/*
+		  規約は grid が基本だが、入る分だけ並べて折り返すので flex にする。
+		  今のページは入りきらなければ次の行に回り、その行の幅で「…」になる。
+		*/
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+	max-width: 100%;
+	/* 上下の 2px は札の厚みとしてデザインの値のまま（4 の倍数に丸めると札が大きく見える） */
+	padding: 0.125rem 0.75rem;
+	border-radius: var(--radius-4);
+	background: var(--color-card);
+	list-style: none;
+}
+
+.item {
+	display: grid;
+	grid-auto-flow: column;
+	align-items: center;
+	column-gap: 0.5rem;
+}
+
+.item + .item::before {
+	content: "›";
+	/* biome-ignore lint/suspicious/noDuplicateProperties: 上の行は、区切りを読み上げない書き方（この行）を読めないブラウザ向け */
+	content: "›" / "";
+	color: var(--color-ink-700);
+	font-size: var(--font-size-16);
+	line-height: 1;
+}
+
+/*
+	  幅の基準を 0 にして、残りの幅いっぱいまで伸ばす。
+	  縮められる下限は「8rem とタイトルの長さの短いほう」で、それより狭くしか残らないときは次の行に回る。
+	  CSS ではこの「短いほう」を直接書けないので、見えない写し（.current-sizer）で作る。
+	  - 写しは折り返さず、幅の上限が 8rem。これが項目の最小の幅になる
+	  - 見えるタイトルは 1 行で切る折り返しの文（line-clamp）なので、最小の幅を押し上げず、最大の幅はタイトルの長さになる
+	  札の幅（max-content）はタイトルの長さで決まり、短いタイトルで札の右が余らない。
+	*/
+.item[data-current] {
+	flex: 1 1 0;
+	grid-auto-columns: auto;
+	justify-content: start;
+}
+
+.current,
+.current-sizer {
+	grid-row: 1;
+	grid-column: 2;
+}
+
+/* 8rem を超えた文字は見えないまま横にはみ出し、ページの横スクロールを作るので切る */
+.current-sizer {
+	max-width: 8rem;
+	height: 0;
+	overflow: hidden;
+	font-size: var(--font-size-13);
+	font-weight: 500;
+	visibility: hidden;
+	white-space: nowrap;
+}
+
+.crumb {
+	color: var(--color-ink-900);
+	text-decoration: none;
+}
+
+/* .text-label の字間と書体はそのまま使い、スマホだけ 1 段小さくする（768px 以上で .text-label と同じ 15px に戻す） */
+.crumb.text-label {
+	font-size: var(--font-size-14);
+}
+
+/* 札が薄く、背景の面を出すと窮屈に見えるので、木目になじむ茶の文字色で示す。タッチ端末でホバーが残らないように。動きを減らす設定ではリセット（base.css）が止める */
+@media (hover: hover) {
+	a.crumb {
+		transition: color 0.15s;
+	}
+
+	a.crumb:hover {
+		color: var(--color-wood-500);
+	}
+}
+
+/* 1 行に収まらない分は「…」にする。ellipsis（white-space: nowrap）だと最小の幅がタイトルの長さになるので、line-clamp で切る */
+.current {
+	display: -webkit-box;
+	overflow: hidden;
+	color: var(--color-ink-600);
+	font-size: var(--font-size-13);
+	font-weight: 500;
+	line-height: 1.6;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 1;
+	line-clamp: 1;
+}
+
+@media (width >= 768px) {
+	.item + .item::before {
+		font-size: var(--font-size-18);
+	}
+
+	.crumb.text-label {
+		font-size: var(--font-size-15);
+	}
+}
+
+/* 強制カラーモードでは背景が消えるので、枠で札の形を残す */
+@media (forced-colors: active) {
+	.list {
+		border: 1px solid;
+	}
+}
+</style>

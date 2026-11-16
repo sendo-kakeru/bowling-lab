@@ -1,122 +1,332 @@
 /*
-  Markdown から変換した本文。クラスのない HTML なので、ページのスコープ付きスタイルが届かない
+  Markdown から変換した本文。クラスのない HTML なので、ページのスコープ付きスタイルが届かない。
+  文字の大きさと行間は同じ要素の .text-body から継承させるので、ここには書かない。
 */
 
-.prose {
-	display: grid;
-	row-gap: 1.25rem;
-}
+@layer components {
+	.prose {
+		/* 要素の間隔。値はデザインのボード（375 / 768 / 1280px）を 4px の倍数に丸めた */
+		--prose-gap: 1.25rem;
+		--prose-gap-block: 1.5rem; /* 引用、画像、表などの塊 */
+		--prose-gap-break: 2rem; /* 区切り（スパット）の上下 */
+		--prose-gap-h2: 2.5rem;
+		--prose-gap-h3: 1.75rem;
+		--prose-gap-after-h2: 1rem;
+		--prose-gap-after-h3: 0.5rem;
 
-.prose > * {
-	margin: 0;
-	min-width: 0;
-}
+		color: var(--color-ink-900);
+	}
 
-.prose :is(h2, h3, h4) {
-	margin-top: 1rem;
-	line-height: 1.4;
-}
+	.prose > * + * {
+		margin-top: var(--prose-gap);
+	}
 
-/* 見出しで始まる本文でも、上に余白を足さない */
-.prose > :first-child {
-	margin-top: 0;
-}
+	/*
+	  塊の前後。画像と動画は段落（p）に入って届くので、中身で見分ける。
+	  :where() で詳細度を .prose > * + * と同じ（0,1,0）にとどめ、下の見出しの間隔（0,1,1）を勝たせる
+	*/
+	.prose
+		> *
+		+ :where(
+			blockquote,
+			figure,
+			ul,
+			ol,
+			pre,
+			.table-scroll,
+			.embed,
+			p:has(> :is(img, video))
+		),
+	.prose
+		> :where(
+			blockquote,
+			figure,
+			pre,
+			.table-scroll,
+			.embed,
+			p:has(> :is(img, video))
+		)
+		+ * {
+		margin-top: var(--prose-gap-block);
+	}
 
-.prose h2 {
-	font-size: 1.5rem;
-}
+	.prose > * + h2 {
+		margin-top: var(--prose-gap-h2);
+	}
 
-.prose h3 {
-	font-size: 1.25rem;
-}
+	.prose > * + :is(h3, h4) {
+		margin-top: var(--prose-gap-h3);
+	}
 
-.prose h4 {
-	font-size: 1rem;
-}
+	.prose > h2 + * {
+		margin-top: var(--prose-gap-after-h2);
+	}
 
-.prose :is(ul, ol) {
-	padding-left: 1.5rem;
-}
+	.prose > :is(h3, h4) + * {
+		margin-top: var(--prose-gap-after-h3);
+	}
 
-/* 一覧の中に置くと、ブラウザの既定では 2 階層目の白丸になる */
-.prose ul {
-	list-style-type: disc;
-}
+	/* 区切り（---）の上下は、後ろに見出しが来ても区切りの間隔にする */
+	.prose > * + hr,
+	.prose > hr + * {
+		margin-top: var(--prose-gap-break);
+	}
 
-.prose blockquote {
-	padding-left: 1rem;
-	border-left: 4px solid #ccc;
-	color: #555;
-}
+	/* 見出し。h2 はストライク、h3 はスペアの印を付ける（スタイルガイドの「スコアのフレーム」） */
+	.prose :is(h2, h3, h4) {
+		font-weight: 700;
+		letter-spacing: 0;
+		/* 見出しへ飛んだとき、上端がぴったり画面の端に付かないように */
+		scroll-margin-top: 1.5rem;
+	}
 
-.prose pre {
-	padding: 1rem;
-	overflow-x: auto;
-	font-size: 0.875rem;
-	line-height: 1.6;
-}
+	/* 印は 1 行目の高さの真ん中に置く（折り返しても 2 行目にずれない）。--mark-size は印の幅と高さ */
+	.prose :is(h2, h3) {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr);
+		align-items: start;
+	}
 
-.prose :not(pre) > code {
-	padding: 0 0.25rem;
-	background: #eee;
-	font-size: 0.875em;
-}
+	.prose :is(h2, h3)::before {
+		content: "";
+		width: var(--mark-size);
+		aspect-ratio: 1;
+		margin-top: calc((1lh - var(--mark-size)) / 2);
+		color: var(--color-navy-900);
+	}
 
-/* 表は幅を超えたら横にスクロールさせる。table のままだと横幅を縮められない */
-.prose table {
-	display: block;
-	overflow-x: auto;
-	border-collapse: collapse;
-}
+	.prose h2 {
+		--mark-size: 1rem;
 
-.prose :is(th, td) {
-	padding: 0.25rem 0.75rem;
-	border: 1px solid #ccc;
-	white-space: nowrap;
-}
+		column-gap: 0.75rem;
+		padding-bottom: 0.5rem;
+		border-bottom: 2px solid var(--color-wood-150);
+		color: var(--color-navy-900);
+		font-size: var(--font-size-22);
+		line-height: 1.4;
+	}
 
-/* 脚注の区画の見出し（Footnotes）。読み上げにだけ残す */
-.prose .sr-only {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	overflow: hidden;
-	clip-path: inset(50%);
-	white-space: nowrap;
-}
+	.prose h2::before {
+		background: currentColor;
+		clip-path: var(--mark-strike-clip-path);
+	}
 
-/* URL だけの行から作った埋め込み（src/utils/embed.ts）。比率を保つ枠に iframe を広げる */
-.prose .embed {
-	display: grid;
-}
+	.prose h3 {
+		--mark-size: 0.8125rem;
 
-.prose .embed iframe {
-	width: 100%;
-	height: 100%;
-	border: 0;
-}
+		column-gap: 0.5rem;
+		font-size: var(--font-size-18);
+		line-height: 1.5;
+	}
 
-.prose .embed-landscape {
-	aspect-ratio: 16 / 9;
-}
+	.prose h3::before {
+		background: var(--mark-spare-background);
+	}
 
-.prose .embed-portrait {
-	width: 100%;
-	max-width: 20rem;
-	aspect-ratio: 9 / 16;
-}
+	.prose h4 {
+		font-size: var(--font-size-16);
+		line-height: 1.6;
+	}
 
-/*
-  Instagram の埋め込みは、上下の見出しと操作欄が幅によらず 208px で、その間に画像が幅いっぱいに入る。
-  高さを中身に合わせられないので、いまの標準の 4:5 で枠を取る（正方形の投稿は下が空く）。
-  幅は Instagram の埋め込みの上限の 540px まで
-*/
-.prose .embed-instagram {
-	width: 100%;
-	max-width: 33.75rem;
-	container-type: inline-size;
-}
+	.prose a:where(:not([class])) {
+		color: var(--color-link);
+		text-decoration-line: underline;
+		text-decoration-thickness: 1px;
+		text-underline-offset: 3px;
+	}
 
-.prose .embed-instagram iframe {
-	height: calc(125cqi + 208px);
+	/* 太字に赤は使わない */
+	.prose :is(strong, b) {
+		color: var(--color-navy-900);
+		font-weight: 700;
+	}
+
+	/* コードの書体は端末の等幅（読み込まない） */
+	.prose code {
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	}
+
+	/* 文字の大きさは変えずに、地の色の範囲を上下にも少し広げる（インラインの要素なので、上下の余白は行の高さを変えない） */
+	.prose :not(pre) > code {
+		padding: 0.125rem 0.25rem;
+		border-radius: var(--radius-4);
+		background: var(--color-wood-100);
+		font-size: 0.875em;
+		box-decoration-break: clone;
+		-webkit-box-decoration-break: clone;
+	}
+
+	/* コードのブロック。デザインにないので、文中のコードと同じ地の色・等幅書体に合わせる。長い行は折り返さずに横スクロール */
+	.prose pre {
+		padding: 1rem 1.25rem;
+		overflow-x: auto;
+		border-radius: var(--radius-6);
+		background: var(--color-wood-100);
+		color: var(--color-ink-900);
+		font-size: var(--font-size-14);
+		line-height: 1.7;
+		tab-size: 2;
+	}
+
+	.prose :is(sub, sup) {
+		font-size: 0.75em;
+		line-height: 0;
+	}
+
+	/* リスト。印はふつうの形のまま（2 階層目は白丸） */
+	.prose :is(ul, ol) {
+		padding-left: 1.5rem;
+	}
+
+	/* メモの一覧のようにリストの中に置くと、ブラウザの既定では 1 階層目から白丸になるので、深さを本文の中で数え直す */
+	.prose ul {
+		list-style-type: disc;
+	}
+
+	.prose :is(ul, ol) ul {
+		list-style-type: circle;
+	}
+
+	.prose :is(ul, ol) :is(ul, ol) ul {
+		list-style-type: square;
+	}
+
+	/* 引用は細い線で控えめに。ボウリングの目印は使わない */
+	.prose blockquote {
+		padding-left: 1rem;
+		border-left: 3px solid var(--color-wood-300);
+		color: var(--color-ink-700);
+	}
+
+	.prose blockquote > * + * {
+		margin-top: var(--prose-gap);
+	}
+
+	.prose :is(img, video) {
+		border-radius: var(--radius-6);
+	}
+
+	/* 動画は読み込むまで暗い面にする */
+	.prose video {
+		background: var(--color-ink-900);
+	}
+
+	/* 表は本文の幅いっぱいに広げ、超えたら枠（src/utils/table-plugin.ts）の中で横にスクロールさせる */
+	.prose .table-scroll {
+		overflow-x: auto;
+	}
+
+	.prose table {
+		width: 100%;
+		font-size: var(--font-size-14);
+		line-height: 1.6;
+	}
+
+	.prose :is(th, td) {
+		padding: 0.5rem 0.75rem;
+		border-bottom: 1px solid var(--color-wood-150);
+		text-align: left;
+		white-space: nowrap;
+	}
+
+	.prose thead th {
+		border-bottom: 0;
+		background: var(--color-navy-900);
+		color: var(--color-on-navy);
+		font-weight: 600;
+	}
+
+	.prose tbody tr:nth-child(even) {
+		background: var(--color-wood-50);
+	}
+
+	/*
+	  区切り（---）はスパットの矢印 5 つ。真ん中がいちばん奥（上）の V 字で、主張しないよう小さく、すべて木目色にする
+	  （赤い矢印はフッター直前の 7 つだけ）。形は SVG のマスクで抜き、色は背景で塗る。大きさはどの画面幅でも同じ
+	*/
+	.prose hr {
+		width: 189px;
+		height: 24px;
+		margin-inline: auto;
+		border: 0;
+		background: var(--color-wood-300);
+		mask:
+			url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 189 24'%3E%3Cpath d='M0 24L4.5 12L9 24ZM45 18L49.5 6L54 18ZM90 12L94.5 0L99 12ZM135 18L139.5 6L144 18ZM180 24L184.5 12L189 24Z'/%3E%3C/svg%3E")
+			center / 100% 100% no-repeat;
+	}
+
+	/* URL だけの行から作った埋め込み（src/utils/embed.ts）。比率を保つ枠に iframe を広げる */
+	.prose .embed {
+		display: grid;
+		overflow: hidden;
+		border-radius: var(--radius-6);
+	}
+
+	.prose .embed iframe {
+		width: 100%;
+		height: 100%;
+		border: 0;
+	}
+
+	.prose .embed-landscape {
+		background: var(--color-ink-900);
+		aspect-ratio: 16 / 9;
+	}
+
+	.prose .embed-portrait {
+		width: 100%;
+		max-width: 20rem;
+		background: var(--color-ink-900);
+		aspect-ratio: 9 / 16;
+	}
+
+	/*
+	  Instagram の埋め込みは、上下の見出しと操作欄が幅によらず 208px で、その間に画像が幅いっぱいに入る。
+	  高さを中身に合わせられないので、いまの標準の 4:5 で枠を取る（正方形の投稿は下が空く）。
+	  幅は Instagram の埋め込みの上限の 540px まで
+	*/
+	.prose .embed-instagram {
+		width: 100%;
+		max-width: 33.75rem;
+		container-type: inline-size;
+	}
+
+	.prose .embed-instagram iframe {
+		height: calc(125cqi + 208px);
+	}
+
+	@media (width >= 768px) {
+		.prose {
+			--prose-gap-break: 2.25rem;
+			--prose-gap-h2: 3.25rem;
+			--prose-gap-h3: 2.25rem;
+			--prose-gap-after-h2: 1.25rem;
+			--prose-gap-after-h3: 0.75rem;
+		}
+
+		.prose h2 {
+			--mark-size: 1.125rem;
+
+			padding-bottom: 0.75rem;
+			font-size: var(--font-size-24);
+		}
+
+		.prose h3 {
+			--mark-size: 0.875rem;
+
+			column-gap: 0.75rem;
+			font-size: var(--font-size-19);
+		}
+	}
+
+	/* 1024px 以上は清書（1280px）のボードの大きさ */
+	@media (width >= 1024px) {
+		.prose h2 {
+			font-size: var(--font-size-26);
+		}
+
+		.prose h3 {
+			font-size: var(--font-size-20);
+		}
+	}
 }

@@ -1,0 +1,39 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+/*
+  カードの面。記事、About、PostCard で使う。
+  中の余白は呼び出し側で決める。
+*/
+
+type Tag = "article" | "div" | "section";
+
+interface Props extends HTMLAttributes<"div"> {
+	as?: Tag;
+	/** 記事詳細のような大きな面は影を深くする */
+	raised?: boolean;
+}
+
+const {
+	as: Element = "div",
+	raised = false,
+	class: className,
+	...rest
+} = Astro.props;
+---
+
+<Element {...rest} data-raised={raised} class:list={["card", className]}>
+	<slot />
+</Element>
+
+<style>
+.card {
+	border-radius: var(--radius-16);
+	background: var(--color-card);
+	box-shadow: var(--shadow-card);
+}
+
+.card[data-raised="true"] {
+	box-shadow: var(--shadow-card-raised);
+}
+</style>
