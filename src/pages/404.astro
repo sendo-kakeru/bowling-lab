@@ -51,7 +51,7 @@ function drawLane({ length }: { length: number }): {
 	return {
 		arrowX: x(0.3),
 		ballX,
-		path: `M 20 80 C ${x(0.3)} 82, ${x(0.42)} 139, ${x(0.55)} 139 L ${ballX - 12} 139`,
+		path: `M 20 80 Q ${x(0.22)} 130, ${x(0.46)} 139 L ${ballX - 12} 139`,
 		pinX: length - 60,
 	};
 }
