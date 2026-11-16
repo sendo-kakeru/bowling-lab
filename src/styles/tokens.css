@@ -45,6 +45,7 @@
 	--color-gutter-edge: color-mix(in srgb, var(--color-gutter), black 40%);
 	--color-gutter-highlight: color-mix(in srgb, var(--color-gutter), white 10%);
 	--color-carpet: #1c1916;
+	--color-wall: #4a4540; /* ガターの外側の地（ボウリング場の壁） */
 	/* 影の色。透明度は使う側で color-mix で付ける */
 	--color-shadow: rgb(60 35 10);
 	--color-approach: #e6c99c; /* フッターの地 */
