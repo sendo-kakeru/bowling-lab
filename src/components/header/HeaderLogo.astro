@@ -1,0 +1,79 @@
+---
+import { Image } from "astro:assets";
+import type { HTMLAttributes } from "astro/types";
+import logo from "../../assets/avatar.png";
+
+// 画像は About のアバターと同じ。リンクの名前はサイト名の文字で付くので、画像は飾り（alt=""）にする
+
+interface Props extends HTMLAttributes<"a"> {
+	title: string;
+}
+
+const { title, class: className, ...rest } = Astro.props;
+---
+
+<a {...rest} href="/" class:list={["header-logo", className]}>
+	<Image
+		alt=""
+		class="header-logo-image"
+		densities={[1, 2]}
+		loading="eager"
+		src={logo}
+		width={48}
+	/>
+	<span class="header-logo-title">{title}</span>
+</a>
+
+<style>
+.header-logo {
+	display: grid;
+	grid-auto-flow: column;
+	justify-content: start;
+	align-items: center;
+	column-gap: 0.75rem;
+	border-radius: var(--radius-4);
+	color: inherit;
+	text-decoration: none;
+}
+
+.header-logo-image {
+	/* width 属性で比率が崩れないように */
+	width: auto;
+	height: 2.5rem;
+}
+
+.header-logo-title {
+	font-family: var(--font-display);
+	font-size: var(--font-size-20);
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	line-height: 1.2;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+@media (width >= 768px) {
+	.header-logo-image {
+		height: 2.75rem;
+	}
+
+	.header-logo-title {
+		font-size: var(--font-size-22);
+		letter-spacing: 0.06em;
+	}
+}
+
+@media (width >= 1024px) {
+	.header-logo {
+		column-gap: 0.875rem;
+	}
+
+	.header-logo-image {
+		height: 3rem;
+	}
+
+	.header-logo-title {
+		font-size: var(--font-size-26);
+	}
+}
+</style>

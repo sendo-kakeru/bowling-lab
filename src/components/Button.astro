@@ -1,0 +1,113 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+// primary は 1 画面に 1 つまで。outline は板目の上では枠が見えないので、カードの上で使う
+type Variant = "primary" | "secondary" | "outline";
+
+interface BaseProps {
+	variant?: Variant;
+}
+
+interface LinkProps extends BaseProps, HTMLAttributes<"a"> {
+	href: string;
+}
+
+interface ButtonProps extends BaseProps, HTMLAttributes<"button"> {
+	href?: undefined;
+}
+
+type Props = LinkProps | ButtonProps;
+
+const { variant = "primary", class: className, ...rest } = Astro.props;
+---
+
+{rest.href !== undefined ? (
+	<a {...rest} class:list={["button", className]} data-variant={variant}>
+		<span>
+			<slot />
+		</span>
+	</a>
+) : (
+	<button
+		{...rest}
+		class:list={["button", className]}
+		data-variant={variant}
+		type={rest.type ?? "button"}
+	>
+		<span>
+			<slot />
+		</span>
+	</button>
+)}
+
+<style>
+.button {
+	--button-bg: transparent;
+	--button-bg-hover: transparent;
+	--button-fg: var(--color-ink-900);
+	--button-border: transparent;
+
+	/* スロットは <span> で包む。直に置くと文字と要素が別々のグリッド項目になる */
+	display: inline-grid;
+	place-content: center;
+	padding: 0.75rem 1.5rem;
+	border: 0;
+	border-radius: var(--radius-full);
+	/* 枠は box-shadow で描き、大きさを変えない */
+	box-shadow: inset 0 0 0 1px var(--button-border);
+	background: var(--button-bg);
+	color: var(--button-fg);
+	/* 置く場所の文字を継承しない。行間 1.6 でデザインの高さに揃う */
+	font-family: var(--font-body);
+	font-size: var(--font-size-14);
+	font-weight: 600;
+	letter-spacing: 0;
+	line-height: 1.6;
+	text-decoration: none;
+	cursor: pointer;
+	transition: background-color 0.15s;
+}
+
+.button[data-variant="primary"] {
+	--button-bg: var(--color-red);
+	/* 濃い赤のトークンがないため */
+	--button-bg-hover: color-mix(in srgb, var(--color-red), black 15%);
+	--button-fg: var(--color-on-red);
+}
+
+.button[data-variant="secondary"] {
+	--button-bg: var(--color-navy-900);
+	--button-bg-hover: var(--color-navy-950);
+	--button-fg: var(--color-on-navy);
+}
+
+.button[data-variant="outline"] {
+	--button-bg-hover: var(--color-chip);
+	--button-border: var(--color-wood-400);
+}
+
+/* タッチ端末でホバーが残らないように */
+@media (hover: hover) {
+	.button:hover:not(:disabled) {
+		background: var(--button-bg-hover);
+	}
+}
+
+.button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* 強制カラーモードでは背景と影が消えるので、枠で形を残す */
+@media (forced-colors: active) {
+	.button {
+		border: 1px solid;
+	}
+
+	.button:disabled {
+		border-color: GrayText;
+		color: GrayText;
+		opacity: 1;
+	}
+}
+</style>

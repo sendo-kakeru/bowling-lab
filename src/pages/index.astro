@@ -1,7 +1,8 @@
 ---
-import MemoList from "../components/MemoList.astro";
-import PostList from "../components/PostList.astro";
-import { SITE_TAGLINE, SITE_TITLE } from "../consts";
+import HomeIntro from "../components/home/HomeIntro.astro";
+import LatestMemos from "../components/home/LatestMemos.astro";
+import LatestPosts from "../components/home/LatestPosts.astro";
+import PinDeck from "../components/home/PinDeck.astro";
 import Base from "../layouts/Base.astro";
 import { getMemos } from "../utils/get-memos";
 import { getPosts } from "../utils/get-posts";
@@ -14,32 +15,42 @@ const latestMemos = (await getMemos()).slice(0, LATEST_MEMO_COUNT);
 ---
 
 <Base>
-	<div class="stack">
-		<div>
-			<h1>{SITE_TITLE}</h1>
-			<p>{SITE_TAGLINE}</p>
+	<div class="home">
+		<div class="hero">
+			<PinDeck />
 		</div>
-		<section aria-labelledby="latest-posts" class="stack">
-			<h2 id="latest-posts">最新の記事</h2>
-			<PostList headingLevel={3} posts={latestPosts} />
-			<a href="/posts">記事の一覧へ</a>
-		</section>
-		<section aria-labelledby="latest-memos" class="stack">
-			<h2 id="latest-memos">最新のメモ</h2>
-			<MemoList memos={latestMemos} />
-			<a href="/memos">メモの一覧へ</a>
-		</section>
+		<HomeIntro class="column" />
+		<LatestMemos class="column" memos={latestMemos} />
+		<LatestPosts posts={latestPosts} />
 	</div>
 </Base>
 
 <style>
-.stack {
+/* PinDeck のボールは画面の下からカードや区画の下をくぐってくる。
+   区画ごとに位置と z-index 1 を持たせ、.hero の中で z-index 0 のボールをその下に通す。
+   切り抜きはボールをレーンの外（溝、スパット、フッター）に出さないため。overflow: clip で箱ちょうどに切ると、
+   伝票の後ろの紙（右下に 16px）とカードの影、奥へ滑った倒れたピンまで切れるので、その分だけ外に広げて切る */
+.home {
 	display: grid;
 	row-gap: 2rem;
+	clip-path: inset(-1rem calc(-1 * var(--layout-lane-padding)) -2.5rem);
 }
 
-h1,
-h2 {
-	margin: 0;
+.home > * {
+	position: relative;
+	z-index: 1;
+}
+
+/* 中身の少ないサイト説明とメモは、本文と同じ幅で中央に置く。記事の 3 列だけレーンいっぱいに使う */
+.column {
+	justify-self: center;
+	width: 100%;
+	max-width: var(--layout-content-width);
+}
+
+@media (width >= 768px) {
+	.home {
+		row-gap: 3rem;
+	}
 }
 </style>

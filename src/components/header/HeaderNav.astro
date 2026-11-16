@@ -1,0 +1,250 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { type NavLink, SOCIAL_NAV } from "../../utils/nav";
+import SocialIcon from "../icons/SocialIcon.astro";
+
+// 開け閉めとスマホの面の位置は SiteHeader が持つ
+
+interface Props extends HTMLAttributes<"nav"> {
+	mainItems: NavLink[];
+}
+
+const { mainItems, class: className, ...rest } = Astro.props;
+// 出てくる順番。外へ出るリンクの段はメインの項目の次に出す
+const socialListStyle = `--nav-item-index: ${mainItems.length}`;
+---
+
+<nav
+	{...rest}
+	aria-label="メインメニュー"
+	class:list={["header-nav", className]}
+>
+	<ul class="nav-main">
+		{mainItems.map((item, index) => (
+			<li class="nav-item" style={`--nav-item-index: ${index}`}>
+				<a aria-current={item.current} href={item.url}>
+					<span class="nav-label">{item.label}</span>
+				</a>
+			</li>
+		))}
+	</ul>
+	<!-- 名前は見える文字（768px 以上は見た目だけ隠す）。アイコンは飾り -->
+	<ul class="nav-social nav-item" style={socialListStyle}>
+		{SOCIAL_NAV.map(({ icon, label, url }) => (
+			<li>
+				<a href={url}>
+					<SocialIcon class="social-icon" name={icon} />
+					<span class="social-label">{label}</span>
+				</a>
+			</li>
+		))}
+	</ul>
+</nav>
+
+<style>
+.header-nav {
+	display: grid;
+	row-gap: 2rem;
+	align-content: start;
+}
+
+.header-nav ul {
+	padding: 0;
+	list-style: none;
+}
+
+.header-nav a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.nav-main {
+	border-top: 1px solid var(--color-navy-800);
+}
+
+.nav-main li {
+	border-bottom: 1px solid var(--color-navy-800);
+}
+
+.nav-main a {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	column-gap: 0.75rem;
+	min-height: 4rem;
+	padding-inline: 0.25rem;
+	font-family: var(--font-display);
+	font-size: var(--font-size-26);
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+.nav-main a::after {
+	content: "→" / "";
+	color: var(--color-navy-550);
+	font-family: var(--font-body);
+	font-size: var(--font-size-18);
+}
+
+.nav-main a[aria-current]::after {
+	color: var(--color-lane-light);
+}
+
+/* 矢印に線が付かないよう、文字の span に引く */
+.nav-main a[aria-current] .nav-label {
+	text-decoration: underline 3px var(--color-lane-light);
+	text-underline-offset: 0.3em;
+}
+
+/* スマホのメニューではアイコンと名前の札を横に並べる */
+.nav-social {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+	gap: 0.75rem;
+}
+
+.nav-social a {
+	display: grid;
+	grid-auto-flow: column;
+	place-content: center;
+	align-items: center;
+	column-gap: 0.5rem;
+	height: 3rem;
+	border-radius: var(--radius-full);
+	box-shadow: inset 0 0 0 1px var(--color-navy-550);
+	font-family: var(--font-display);
+	font-size: var(--font-size-16);
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+.social-icon {
+	width: 1.125rem;
+	height: 1.125rem;
+}
+
+/* メニューを開くたびに 1 行ずつ出す（display: none から戻るたびに再生される） */
+.nav-item {
+	animation: nav-item-in 0.3s ease both;
+	animation-delay: calc(0.08s + var(--nav-item-index, 0) * 0.05s);
+}
+
+@keyframes nav-item-in {
+	from {
+		opacity: 0;
+		translate: 0 -0.5rem;
+	}
+}
+
+/* リセットは animation-delay を消さないので、ここで止める */
+@media (prefers-reduced-motion: reduce) {
+	.nav-item {
+		animation: none;
+	}
+}
+
+@media (width >= 768px) {
+	/* 常に出ているので動かさない */
+	.nav-item {
+		animation: none;
+	}
+
+	/* 入りきらないときに折り返すため flex */
+	.header-nav,
+	.nav-main,
+	.nav-social {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: end;
+		align-items: center;
+		column-gap: 1.25rem;
+	}
+
+	.nav-main,
+	.nav-main li {
+		border: 0;
+	}
+
+	.nav-social {
+		column-gap: 0.5rem;
+	}
+
+	/* 区切りの左右の間を、メニューとの間（1.25rem）にそろえる */
+	.nav-main + .nav-social::before {
+		content: "|" / "";
+		margin-right: 0.75rem;
+		color: var(--color-navy-550);
+		font-family: var(--font-display);
+		font-size: var(--font-size-15);
+	}
+
+	.nav-main a {
+		display: block;
+		min-height: 0;
+		padding-block: 0.5rem;
+		padding-inline: 0;
+		border-radius: var(--radius-4);
+		font-size: var(--font-size-15);
+		font-weight: 600;
+		letter-spacing: 0.1em;
+		line-height: 1.4;
+		white-space: nowrap;
+	}
+
+	.nav-main a::after {
+		content: none;
+	}
+
+	/* 文字のメニューと見分けるため、外へのリンクは丸いアイコンのボタンにする */
+	.nav-social a {
+		/* .social-label の基準 */
+		position: relative;
+		width: 2.25rem;
+		height: 2.25rem;
+		box-shadow: none;
+		background: var(--color-navy-800);
+	}
+
+	/* 名前は読み上げに残し、見た目だけ隠す（.sr-only と同じ） */
+	.social-label {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+
+	.social-icon {
+		width: 1rem;
+		height: 1rem;
+	}
+
+	.nav-main a[aria-current] .nav-label {
+		text-underline-offset: 0.35em;
+	}
+
+	@media (hover: hover) {
+		.header-nav a:hover {
+			color: var(--color-lane-light);
+		}
+	}
+}
+
+@media (width >= 1024px) {
+	.header-nav,
+	.nav-main {
+		column-gap: 1.5rem;
+	}
+
+	.nav-main a,
+	.nav-main + .nav-social::before {
+		font-size: var(--font-size-16);
+		letter-spacing: 0.12em;
+	}
+}
+</style>

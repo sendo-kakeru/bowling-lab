@@ -29,3 +29,6 @@ media/uploaded/
 
 # wrangler dev のローカル状態
 .wrangler/
+
+# Storybook のビルド出力
+storybook-static/

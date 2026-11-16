@@ -1,0 +1,723 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import {
+	DECK_WIDTH,
+	INITIAL_STATE,
+	PIN_SPOTS,
+	toView,
+} from "../../utils/pin-deck";
+import Button from "../Button.astro";
+
+/*
+  ホームのいちばん上の、真上から見たピンデッキ。PLAY を押すと、見えている画面の下の外からボールが転がってきてピンを倒す。
+  結果の決め方と状態の進み方は src/utils/pin-deck.ts にあり、ここは描くだけにする。
+*/
+
+type Props = HTMLAttributes<"div">;
+
+const { class: className, ...rest } = Astro.props;
+
+const view = toView({ state: INITIAL_STATE });
+
+/** 寝た姿（横から見たピン）の輪郭。ピン座標で、底が 0、頭が -40 */
+const PIN_OUTLINE =
+	"M0,-40 C4,-40 4.6,-35 3.6,-31 C2.6,-28 2.3,-26 3.6,-23 C6.6,-17 7,-8 4.8,0 L-4.8,0 C-7,-8 -6.6,-17 -3.6,-23 C-2.3,-26 -2.6,-28 -3.6,-31 C-4.6,-35 -4,-40 0,-40 Z";
+const CLIP_ID = "pin-deck-clip";
+const SHADE_ID = "pin-deck-shade";
+
+function pinStyle({
+	x,
+	y,
+	depth,
+	pin,
+}: {
+	x: number;
+	y: number;
+	depth: number;
+	pin: number;
+}): string {
+	const fall = view.falls.find((item) => item.pin === pin);
+	const base = `--x: ${x}; --y: ${y}; --depth: ${depth}`;
+	return fall
+		? `${base}; --fall-x: ${fall.x}; --fall-y: ${fall.y}; --fall-angle: ${fall.angle}deg`
+		: base;
+}
+---
+
+<!-- 根に position・transform・opacity・filter を付けない。付けるとボールの位置と重なりの基準が根に移り、ボールがカードの上を通る -->
+<!-- biome-ignore lint/a11y/useSemanticElements: 入力欄の集まりではなく、フォーカスを預けるためのまとまりなので fieldset にしない -->
+<div
+	{...rest}
+	aria-label="ミニゲーム"
+	data-phase={view.phase}
+	data-pin-deck
+	role="group"
+	tabindex="-1"
+	class:list={["pin-deck", className]}
+>
+	<div aria-hidden="true" class="deck" style={`--deck-width: ${DECK_WIDTH}`}>
+		<svg aria-hidden="true" class="defs" height="0" width="0">
+			<defs>
+				<linearGradient id={SHADE_ID} x1="0" x2="1">
+					<stop class="shade-light" offset="0" />
+					<stop class="shade-clear" offset="0.45" />
+					<stop class="shade-dark" offset="1" />
+				</linearGradient>
+				<clipPath id={CLIP_ID}><path d={PIN_OUTLINE} /></clipPath>
+			</defs>
+		</svg>
+		{PIN_SPOTS.map(({ x, y }) => (
+			<span class="spot" style={`--x: ${x}; --y: ${y}`} />
+		))}
+		<div class="pins">
+			{PIN_SPOTS.map((spot) => (
+				<span
+					class="pin"
+					data-down={
+						view.falls.some(({ pin }) => pin === spot.pin) ? "" : undefined
+					}
+					data-pin={spot.pin}
+					style={pinStyle(spot)}
+				>
+					<span class="pin-top" />
+					<svg aria-hidden="true" class="pin-side" viewBox="-7.2 -40.5 14.4 41">
+						<path class="pin-body" d={PIN_OUTLINE} />
+						<g clip-path={`url(#${CLIP_ID})`}>
+							<rect class="pin-band" height="1.7" width="16" x="-8" y="-28.6" />
+							<rect class="pin-band" height="1.7" width="16" x="-8" y="-25.9" />
+							<rect
+								fill={`url(#${SHADE_ID})`}
+								height="42"
+								width="16"
+								x="-8"
+								y="-41"
+							/>
+						</g>
+						<path class="pin-line" d={PIN_OUTLINE} />
+					</svg>
+				</span>
+			))}
+		</div>
+	</div>
+
+	<div class="controls">
+		<p aria-hidden="true" class="result">
+			<span class="box" data-box={view.result?.box} data-pin-deck-box>
+				{view.result?.box === "count"
+					? view.result.count
+					: view.result?.box === "gutter"
+						? "G"
+						: ""}
+			</span>
+			<span class="result-text" data-pin-deck-result>{view.result?.text}</span>
+		</p>
+		<!-- 名前は見える文字に説明を続けたもの。sr-only の span で足すと、Chrome は間に空白を入れる -->
+		<Button
+			aria-label={`${view.button.text}${view.button.hint}`}
+			class="play"
+			data-pin-deck-play
+			variant="secondary"
+		>
+			<span class="play-content">
+				<span aria-hidden="true" class="play-ball" />
+				<span data-pin-deck-play-text>{view.button.text}</span>
+			</span>
+		</Button>
+	</div>
+
+	<p class="sr-only" data-pin-deck-status role="status">{view.speech}</p>
+
+	<span aria-hidden="true" class="ball-lane" data-pin-deck-ball
+		><span class="ball" /></span
+	>
+</div>
+
+<script>
+import {
+	type BallPath,
+	DECK_WIDTH,
+	type DeckEvent,
+	type DeckState,
+	getPhaseDuration,
+	INITIAL_STATE,
+	planBallPath,
+	rollShot,
+	type Shot,
+	toView,
+	transition,
+} from "../../utils/pin-deck";
+
+interface Parts {
+	deck: HTMLElement;
+	ball: HTMLElement;
+	button: HTMLButtonElement;
+	buttonText: Element;
+	box: HTMLElement;
+	resultText: Element;
+	status: Element;
+	pins: HTMLElement[];
+}
+
+/** 1 つでも見つからなければ undefined（結び付けない） */
+function findParts({ root }: { root: HTMLElement }): Parts | undefined {
+	const deck = root.querySelector<HTMLElement>(".deck");
+	const ball = root.querySelector<HTMLElement>("[data-pin-deck-ball]");
+	const button = root.querySelector<HTMLButtonElement>("[data-pin-deck-play]");
+	const buttonText = root.querySelector("[data-pin-deck-play-text]");
+	const box = root.querySelector<HTMLElement>("[data-pin-deck-box]");
+	const resultText = root.querySelector("[data-pin-deck-result]");
+	const status = root.querySelector("[data-pin-deck-status]");
+	const pins = [...root.querySelectorAll<HTMLElement>(".pin[data-pin]")];
+	if (
+		!deck ||
+		!ball ||
+		!button ||
+		!buttonText ||
+		!box ||
+		!resultText ||
+		!status
+	)
+		return undefined;
+	return { ball, box, button, buttonText, deck, pins, resultText, status };
+}
+
+function setupPinDeck({ root }: { root: HTMLElement }): void {
+	// 結び付け済みの根（script の再実行）は飛ばす
+	if ("ready" in root.dataset) return;
+	const parts = findParts({ root });
+	if (!parts) return;
+	const { deck, ball, button, buttonText, box, resultText, status, pins } =
+		parts;
+
+	const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+	let state: DeckState = INITIAL_STATE;
+	let timer: ReturnType<typeof setTimeout> | undefined;
+
+	function render(): void {
+		const view = toView({ state });
+		if (state.phase === "rolling") {
+			const { startX, startY, endX, endY, duration } = state.path;
+			root.style.setProperty("--ball-start-x", String(startX));
+			root.style.setProperty("--ball-start-y", String(startY));
+			root.style.setProperty("--ball-end-x", String(endX));
+			root.style.setProperty("--ball-end-y", String(endY));
+			root.style.setProperty("--roll-duration", String(duration));
+			// 出発点に transition なしで置き、描かれてから終点へ動かす
+			root.dataset.instant = "";
+			requestAnimationFrame(() =>
+				requestAnimationFrame(() => delete root.dataset.instant),
+			);
+		}
+		root.dataset.phase = view.phase;
+		for (const pin of pins) {
+			const fall = view.falls.find(
+				(item) => String(item.pin) === pin.dataset.pin,
+			);
+			if (!fall) {
+				delete pin.dataset.down;
+				continue;
+			}
+			pin.style.setProperty("--fall-x", String(fall.x));
+			pin.style.setProperty("--fall-y", String(fall.y));
+			pin.style.setProperty("--fall-angle", `${fall.angle}deg`);
+			pin.dataset.down = "";
+		}
+		if (view.result) {
+			box.dataset.box = view.result.box;
+			box.textContent =
+				view.result.box === "count"
+					? String(view.result.count)
+					: view.result.box === "gutter"
+						? "G"
+						: "";
+			resultText.textContent = view.result.text ?? "";
+		}
+		buttonText.textContent = view.button.text;
+		button.setAttribute("aria-label", `${view.button.text}${view.button.hint}`);
+		status.textContent = view.speech;
+	}
+
+	function dispatch({ event }: { event: DeckEvent }): void {
+		const next = transition({ event, state });
+		if (next === state) return;
+		state = next;
+		clearTimeout(timer);
+		const wait = getPhaseDuration({
+			reducedMotion: reducedMotion.matches,
+			state,
+		});
+		timer =
+			wait === undefined
+				? undefined
+				: setTimeout(() => dispatch({ event: { type: "elapsed" } }), wait);
+		render();
+		// キーボードで投げたときは根に預けていたフォーカスを、結果が出たら AGAIN に戻す
+		if (state.phase === "result" && document.activeElement === root)
+			button.focus({ preventScroll: true });
+	}
+
+	function measure({ shot }: { shot: Shot }): BallPath {
+		// ボールの座標の原点は、ボールの置き場（いちばん近い位置を持つ祖先。ホームでは .hero）
+		const origin = ball.offsetParent?.getBoundingClientRect() ?? {
+			left: -window.scrollX,
+			top: -window.scrollY,
+		};
+		const rect = deck.getBoundingClientRect();
+		return planBallPath({
+			deck: { x: rect.left - origin.left, y: rect.top - origin.top },
+			shot,
+			unit: deck.offsetWidth / DECK_WIDTH,
+			viewportBottom: window.innerHeight - origin.top,
+		});
+	}
+
+	button.addEventListener("click", () => {
+		const shot = rollShot({ random: Math.random });
+		const before = state;
+		const hadFocus = document.activeElement === button;
+		dispatch({ event: { path: measure({ shot }), shot, type: "roll" } });
+		// ボタンは転がっている間は隠れるので、フォーカスの行き先を根にする
+		if (state !== before && hadFocus) root.focus({ preventScroll: true });
+	});
+
+	const abort = (): void => dispatch({ event: { type: "abort" } });
+	document.addEventListener("visibilitychange", () => {
+		if (document.hidden) abort();
+	});
+	// 古い Safari は離れるときに visibilitychange が来ないことがある
+	window.addEventListener("pagehide", abort);
+
+	root.dataset.ready = "";
+}
+
+for (const root of document.querySelectorAll<HTMLElement>("[data-pin-deck]"))
+	setupPinDeck({ root });
+</script>
+
+<style>
+.pin-deck {
+	/* ピン座標 1 の長さ。ピンもボールも、これの何倍かで描く */
+	--deck-unit: 0.95px;
+	/* 影の色。木の影を直に書く */
+	--deck-shadow: color-mix(in srgb, var(--color-shadow) 30%, transparent);
+	--pin-highlight: color-mix(in srgb, var(--color-card), white 60%);
+
+	display: grid;
+	justify-items: center;
+	row-gap: 0.75rem;
+}
+
+/* キーボードで押すとボタンが隠れるので、フォーカスを根に預ける。そのあいだのリングは出さない */
+.pin-deck:focus-visible {
+	outline: none;
+}
+
+.deck {
+	position: relative;
+	z-index: 1;
+	width: calc(var(--deck-width) * var(--deck-unit));
+	height: calc(150 * var(--deck-unit));
+}
+
+/* ピンの並ぶ所だけ、板目をほんのり明るくする */
+.deck::before {
+	content: "";
+	position: absolute;
+	left: calc(26 * var(--deck-unit));
+	width: calc(208 * var(--deck-unit));
+	height: calc(160 * var(--deck-unit));
+	border-radius: calc(14 * var(--deck-unit));
+	background: radial-gradient(
+		closest-side,
+		color-mix(in srgb, var(--color-card) 50%, transparent),
+		color-mix(in srgb, var(--color-card) 15%, transparent) 70%,
+		transparent
+	);
+}
+
+.defs {
+	position: absolute;
+}
+
+.shade-light {
+	stop-color: var(--pin-highlight);
+	stop-opacity: 0.9;
+}
+
+.shade-clear {
+	stop-color: var(--pin-highlight);
+	stop-opacity: 0;
+}
+
+.shade-dark {
+	stop-color: var(--color-wood-500);
+	stop-opacity: 0.35;
+}
+
+/* 立ち位置の印。ピンが倒れても残る */
+.spot {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: calc(6 * var(--deck-unit));
+	height: calc(6 * var(--deck-unit));
+	border-radius: var(--radius-full);
+	background: color-mix(in srgb, var(--color-wood-650) 45%, transparent);
+	translate: calc((var(--x) - 3) * var(--deck-unit))
+		calc((var(--y) - 3) * var(--deck-unit));
+}
+
+/* 大きさ 0 の点をピンの中心に置き、立った姿と寝た姿をその上に重ねる */
+.pin {
+	position: absolute;
+	top: 0;
+	left: 0;
+	translate: calc(var(--x) * var(--deck-unit)) calc(var(--y) * var(--deck-unit));
+}
+
+.pin[data-down] {
+	translate: calc((var(--x) + var(--fall-x)) * var(--deck-unit))
+		calc((var(--y) + var(--fall-y)) * var(--deck-unit));
+}
+
+/* 立った姿: 真上から見た胴・赤いネックの 2 本線・頭の同心円 */
+.pin-top {
+	position: absolute;
+	top: calc(-12 * var(--deck-unit));
+	left: calc(-12 * var(--deck-unit));
+	width: calc(24 * var(--deck-unit));
+	height: calc(24 * var(--deck-unit));
+	border-radius: var(--radius-full);
+	background:
+		radial-gradient(
+			circle at 42% 40%,
+			var(--pin-highlight) 0 calc(3 * var(--deck-unit)),
+			transparent calc(3.5 * var(--deck-unit))
+		),
+		radial-gradient(
+			circle,
+			var(--color-card) 0 calc(5.6 * var(--deck-unit)),
+			var(--color-red) calc(5.8 * var(--deck-unit)) calc(6.8 * var(--deck-unit)),
+			var(--color-card) calc(7 * var(--deck-unit)) calc(7.8 * var(--deck-unit)),
+			var(--color-red) calc(8 * var(--deck-unit)) calc(9 * var(--deck-unit)),
+			var(--color-card) calc(9.2 * var(--deck-unit))
+		),
+		var(--color-card);
+	box-shadow:
+		inset calc(-2 * var(--deck-unit)) calc(-3 * var(--deck-unit))
+		calc(4 * var(--deck-unit))
+		color-mix(in srgb, var(--color-wood-500) 35%, transparent),
+		0 0 0 1px var(--color-wood-650),
+		calc(2 * var(--deck-unit)) calc(3 * var(--deck-unit))
+		calc(3 * var(--deck-unit)) var(--deck-shadow);
+}
+
+/* 寝た姿: 横から見たピン。倒れると立った姿と入れ替わり、回りながら滑る */
+.pin-side {
+	position: absolute;
+	top: calc(-20 * var(--deck-unit));
+	left: calc(-7 * var(--deck-unit));
+	width: calc(14 * var(--deck-unit));
+	/* .pin は大きさ 0 の点なので、base.css の max-width: 100% で幅が 0 にならないよう外す */
+	max-width: none;
+	height: calc(40 * var(--deck-unit));
+	opacity: 0;
+	filter: drop-shadow(
+		calc(1.5 * var(--deck-unit)) calc(2 * var(--deck-unit))
+			calc(1 * var(--deck-unit)) var(--deck-shadow)
+	);
+}
+
+.pin-body {
+	fill: var(--color-card);
+}
+
+.pin-band {
+	fill: var(--color-red);
+}
+
+.pin-line {
+	fill: none;
+	stroke: var(--color-wood-650);
+	stroke-width: 0.6;
+}
+
+.pin[data-down] .pin-top {
+	opacity: 0;
+}
+
+.pin[data-down] .pin-side {
+	opacity: 1;
+	rotate: var(--fall-angle);
+}
+
+/* 中身が変わっても行の高さは変えず、下の区画をずらさない */
+.controls {
+	position: relative;
+	z-index: 1;
+	display: grid;
+	grid-auto-flow: column;
+	justify-content: center;
+	align-items: center;
+	column-gap: 0.75rem;
+	min-height: 2.75rem;
+}
+
+/* 押せるボタンだけを見せる。JS が無い・結び付けに失敗したときは、立った 10 本の絵だけ */
+.pin-deck:not([data-ready]) .controls,
+.pin-deck:is([data-phase="rolling"], [data-phase="clearing"]) .controls {
+	visibility: hidden;
+}
+
+/* 結果の札: スコア表の 1 投目の欄と文字 */
+.result {
+	display: grid;
+	grid-auto-flow: column;
+	align-items: center;
+	column-gap: 0.5rem;
+	height: 2rem;
+	padding: 0 0.75rem 0 0.25rem;
+	border-radius: var(--radius-4);
+	background: var(--color-card);
+	box-shadow: 0 2px 0 var(--color-wood-400);
+	color: var(--color-navy-900);
+	font-family: var(--font-display);
+	font-size: var(--font-size-14);
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.box {
+	display: grid;
+	place-items: center;
+	width: 1.5rem;
+	height: 1.5rem;
+	border: 1.5px solid var(--color-navy-900);
+	border-radius: 2px;
+	background: var(--pin-highlight);
+	font-size: var(--font-size-16);
+	letter-spacing: 0;
+}
+
+/* 本数だけのときは文字が無いので、札を欄だけの大きさにする */
+.result-text:empty {
+	display: none;
+}
+
+.result:has(.result-text:empty) {
+	padding-right: 0.25rem;
+}
+
+.pin-deck[data-phase="idle"] .result {
+	display: none;
+}
+
+/* 見出しと目次と同じストライクの印 */
+.box[data-box="strike"]::before {
+	content: "";
+	width: 0.875rem;
+	height: 0.875rem;
+	background: currentColor;
+	clip-path: var(--mark-strike-clip-path);
+}
+
+/* 見た目は 32px。押せる範囲は ::before で 44px を保つ */
+.controls .play {
+	position: relative;
+	height: 2rem;
+	padding: 0 0.875rem 0 0.5rem;
+	font-family: var(--font-display);
+	font-size: var(--font-size-14);
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	line-height: 1;
+	box-shadow:
+		0 2px 0 var(--color-navy-950),
+		0 6px 14px color-mix(in srgb, var(--color-navy-950) 30%, transparent);
+}
+
+.controls .play::before {
+	content: "";
+	position: absolute;
+	inset: -0.375rem;
+}
+
+.play-content {
+	display: grid;
+	grid-auto-flow: column;
+	align-items: center;
+	column-gap: 0.375rem;
+}
+
+/* 小さくても球に見えるよう、紺の地にカードの色の球と指穴 3 つ */
+.play-ball {
+	width: 1rem;
+	height: 1rem;
+	border-radius: var(--radius-full);
+	background:
+		radial-gradient(
+			circle at 44% 34%,
+			var(--color-navy-900) 0 10%,
+			transparent 11%
+		),
+		radial-gradient(
+			circle at 63% 40%,
+			var(--color-navy-900) 0 10%,
+			transparent 11%
+		),
+		radial-gradient(
+			circle at 52% 60%,
+			var(--color-navy-900) 0 11%,
+			transparent 12%
+		),
+		var(--color-card);
+}
+
+/* ボール。縦を運ぶ .ball-lane と、横を運ぶ .ball を分け、まっすぐ上がって最後にポケットへ曲がる。
+	   置き場はいちばん近い位置を持つ祖先（ホームでは .hero）で、z-index 0 でカードや区画の下をくぐる */
+.ball-lane {
+	--ball-size: calc(30 * var(--deck-unit));
+
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 0;
+	opacity: 0;
+	pointer-events: none;
+	translate: calc(var(--ball-start-x, 0) * 1px)
+		calc(var(--ball-start-y, 0) * 1px);
+}
+
+.ball {
+	--ball-hole: color-mix(in srgb, var(--color-navy-950), black 50%);
+
+	display: block;
+	width: var(--ball-size);
+	height: var(--ball-size);
+	margin: calc(var(--ball-size) / -2) 0 0 calc(var(--ball-size) / -2);
+	border-radius: var(--radius-full);
+	background:
+		radial-gradient(circle at 46% 34%, var(--ball-hole) 0 8%, transparent 9%),
+		radial-gradient(circle at 60% 40%, var(--ball-hole) 0 8%, transparent 9%),
+		radial-gradient(circle at 53% 56%, var(--ball-hole) 0 9%, transparent 10%),
+		radial-gradient(
+			circle at 34% 30%,
+			var(--color-navy-550),
+			var(--color-navy-900) 58%,
+			var(--color-navy-950)
+		);
+	box-shadow: 2px 3px 3px
+		color-mix(in srgb, var(--color-shadow) 40%, transparent);
+}
+
+.pin-deck:is([data-phase="rolling"], [data-phase="result"]):not([data-instant])
+	.ball-lane {
+	translate: calc(var(--ball-start-x, 0) * 1px) calc(var(--ball-end-y, 0) * 1px);
+}
+
+.pin-deck:is([data-phase="rolling"], [data-phase="result"]):not([data-instant])
+	.ball {
+	translate: calc((var(--ball-end-x, 0) - var(--ball-start-x, 0)) * 1px) 0;
+	/* 進んだ距離だけ転がる */
+	rotate: calc((var(--ball-end-y, 0) - var(--ball-start-y, 0)) * 0.8deg);
+}
+
+@media (width >= 768px) {
+	.pin-deck {
+		--deck-unit: 1.35px;
+	}
+
+	.result {
+		font-size: var(--font-size-15);
+	}
+}
+
+/* 動きを減らす設定では、ボールを出さず、ピンは倒れた姿へ一瞬で変わる */
+@media (prefers-reduced-motion: no-preference) {
+	/* ピンに当たったら、着いた所で消える */
+	.pin-deck[data-phase="result"] .ball-lane {
+		transition: opacity 0.2s;
+	}
+
+	.pin-deck[data-phase="rolling"] .ball-lane {
+		opacity: 1;
+	}
+
+	.pin-deck[data-phase="rolling"]:not([data-instant]) .ball-lane {
+		transition: translate calc(var(--roll-duration, 0) * 1ms)
+			cubic-bezier(0.2, 0.25, 0.55, 1);
+	}
+
+	.pin-deck[data-phase="rolling"]:not([data-instant]) .ball {
+		transition:
+			translate calc(var(--roll-duration, 0) * 1ms)
+			cubic-bezier(0.7, 0, 0.9, 0.6),
+			rotate calc(var(--roll-duration, 0) * 1ms) linear;
+	}
+
+	/* ヘッドピンから奥へ順に倒れる */
+	.pin-deck[data-phase="result"] .pin {
+		--fall-delay: calc(var(--depth) * 45ms);
+
+		transition: translate 0.4s cubic-bezier(0.3, 0.7, 0.4, 1) var(--fall-delay);
+	}
+
+	.pin-deck[data-phase="result"] .pin-top {
+		transition: opacity 0.12s var(--fall-delay);
+	}
+
+	.pin-deck[data-phase="result"] .pin-side {
+		transition:
+			opacity 0.12s var(--fall-delay),
+			rotate 0.4s ease-out var(--fall-delay);
+	}
+
+	/* 倒れ終わってから札と AGAIN を出す */
+	.pin-deck[data-phase="result"] .controls {
+		animation: controls-in 0.2s 0.45s backwards;
+	}
+
+	/* 片付け: ピンを消し（220ms）、消えている間に立った姿へ戻し、また出す（200ms）。
+		   戻すのは 0 秒の transition を 220ms 遅らせて、消えきるまで倒れた姿を保つ */
+	.pin-deck[data-phase="clearing"] .pins {
+		animation: pins-clear 420ms;
+	}
+
+	.pin-deck[data-phase="clearing"] :is(.pin, .pin-top, .pin-side) {
+		transition-delay: 220ms;
+		transition-duration: 0s;
+		transition-property: translate, opacity, rotate;
+	}
+}
+
+@keyframes controls-in {
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes pins-clear {
+	52% {
+		opacity: 0;
+	}
+}
+
+/* 強制カラーモードでは背景と影が消えるので、枠で形を残す */
+@media (forced-colors: active) {
+	.pin-top,
+	.result,
+	.box {
+		border: 1px solid;
+	}
+
+	.ball {
+		background: CanvasText;
+	}
+
+	.play-ball {
+		background: ButtonText;
+	}
+}
+</style>

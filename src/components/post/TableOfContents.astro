@@ -1,0 +1,245 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import type { TocItem } from "../../utils/post";
+
+/*
+  目次「ON THIS LANE · 目次」。variant は side（PC の右の列）と collapsible（1023px 以下で本文の上に折りたたむ details）。
+  どちらを出すかは画面幅で呼び出し側（src/pages/posts/[slug].astro）が切り替える。
+  印は本文の見出しと同じ（h2＝ストライク、h3＝スペア。形は tokens.css）。
+  読んでいる見出しは赤くする（下の script が aria-current を付ける）。
+*/
+
+interface Props extends HTMLAttributes<"nav"> {
+	items: TocItem[];
+	variant?: "side" | "collapsible";
+}
+
+const { items, variant = "side", class: className, ...rest } = Astro.props;
+
+// 中身は同じで、折りたたむときだけ外側を details と summary にする
+const isCollapsible = variant === "collapsible";
+const Wrapper = isCollapsible ? "details" : "div";
+const Heading = isCollapsible ? "summary" : "p";
+---
+
+{items.length > 0 && (
+	<nav
+		{...rest}
+		aria-label="目次"
+		class:list={["toc", className]}
+		data-toc
+		data-variant={variant}
+	>
+		<Wrapper class={isCollapsible ? "details" : "body"}>
+			<Heading class:list={["heading", isCollapsible && "summary"]}>
+				<span class="heading-label text-label">ON THIS LANE</span>
+				<span class="heading-ja">· 目次</span>
+			</Heading>
+			<ol class="list">
+				{items.map((item) => (
+					<li class="item" data-depth={item.depth}>
+						<a class="link" href={`#${item.id}`}>
+							<span aria-hidden="true" class="mark" />
+							<span>{item.text}</span>
+						</a>
+					</li>
+				))}
+			</ol>
+		</Wrapper>
+	</nav>
+)}
+
+<script>
+// 画面の上から 3 割の線を越えた最後の見出しを、読んでいる見出しにする
+const READING_LINE = 0.3;
+
+function setupToc(): void {
+	const links = [
+		...document.querySelectorAll<HTMLAnchorElement>("[data-toc] a[href^='#']"),
+	];
+	const ids = [
+		...new Set(links.map((link) => decodeURIComponent(link.hash.slice(1)))),
+	];
+	const headings = ids
+		.map((id) => document.getElementById(id))
+		.filter((heading) => heading !== null);
+	if (headings.length === 0) return;
+
+	let currentId: string | undefined;
+	let scheduled = false;
+
+	function update(): void {
+		scheduled = false;
+		const line = window.innerHeight * READING_LINE;
+		let nextId: string | undefined;
+		for (const heading of headings) {
+			if (heading.getBoundingClientRect().top > line) break;
+			nextId = heading.id;
+		}
+		if (nextId === currentId) return;
+		currentId = nextId;
+		for (const link of links) {
+			if (decodeURIComponent(link.hash.slice(1)) === currentId) {
+				link.setAttribute("aria-current", "location");
+			} else {
+				link.removeAttribute("aria-current");
+			}
+		}
+	}
+
+	function schedule(): void {
+		if (scheduled) return;
+		scheduled = true;
+		requestAnimationFrame(update);
+	}
+
+	window.addEventListener("scroll", schedule, { passive: true });
+	window.addEventListener("resize", schedule);
+	update();
+}
+
+setupToc();
+</script>
+
+<style>
+.toc {
+	--toc-link-font-size: var(--font-size-13);
+	--toc-link-hover-background: var(--color-chip);
+}
+
+/* 地が wood-50 なので、chip では差が出ない */
+.toc[data-variant="collapsible"] {
+	--toc-link-font-size: var(--font-size-14);
+	--toc-link-hover-background: var(--color-wood-150);
+}
+
+.heading {
+	display: grid;
+	grid-auto-flow: column;
+	justify-content: start;
+	align-items: baseline;
+	column-gap: 0.25rem;
+	color: var(--color-navy-900);
+}
+
+.heading-label {
+	font-weight: 700;
+	letter-spacing: 0.14em;
+}
+
+/* 日本語なので Barlow Condensed にしない */
+.heading-ja {
+	color: var(--color-ink-600);
+	font-size: var(--font-size-13);
+	font-weight: 600;
+}
+
+.list {
+	display: grid;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.link {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	column-gap: 0.5rem;
+	padding: 0.25rem 0 0.25rem 0.75rem;
+	border-left: 2px solid var(--color-wood-150);
+	border-radius: 0 var(--radius-4) var(--radius-4) 0;
+	color: var(--color-ink-700);
+	font-size: var(--toc-link-font-size);
+	font-weight: 500;
+	line-height: 1.5;
+	text-decoration: none;
+}
+
+.item[data-depth="3"] .link {
+	padding-left: 1.75rem;
+}
+
+/* タッチ端末でホバーが残らないように。動きを減らす設定ではリセット（base.css）が止める */
+@media (hover: hover) {
+	.link {
+		transition: background-color 0.15s;
+	}
+
+	.link:hover {
+		background: var(--toc-link-hover-background);
+	}
+}
+
+.link[aria-current] {
+	border-left-color: var(--color-red);
+	color: var(--color-red);
+	font-weight: 700;
+}
+
+/* 1 行目の高さの真ん中にそろえる */
+.mark {
+	--mark-size: 11px;
+
+	width: var(--mark-size);
+	aspect-ratio: 1;
+	margin-top: calc((1lh - var(--mark-size)) / 2);
+	color: var(--color-navy-900);
+	background: currentColor;
+	clip-path: var(--mark-strike-clip-path);
+}
+
+.item[data-depth="3"] .mark {
+	--mark-size: 9px;
+
+	background: var(--mark-spare-background);
+	clip-path: none;
+}
+
+.link[aria-current] .mark {
+	color: var(--color-red);
+}
+
+/* 外側の nav には display を付けない（呼び出し側が画面幅で出し分けるため） */
+.body {
+	display: grid;
+	row-gap: 0.5rem;
+}
+
+.details {
+	border-radius: var(--radius-6);
+	background: var(--color-wood-50);
+	box-shadow: inset 0 0 0 1px var(--color-wood-150);
+}
+
+.summary {
+	/* 指で押しやすいよう高さを 44px 以上にする */
+	padding: 0.75rem 1rem;
+	border-radius: var(--radius-6);
+	cursor: pointer;
+	/* grid にすると開閉の三角が消えるので、三角を自分で描く */
+	list-style: none;
+}
+
+.summary::-webkit-details-marker {
+	display: none;
+}
+
+.summary::before {
+	content: "";
+	align-self: center;
+	width: 0.5rem;
+	aspect-ratio: 1;
+	margin-right: 0.25rem;
+	background: var(--color-navy-900);
+	clip-path: polygon(0 0, 100% 50%, 0 100%);
+	transition: rotate 0.15s;
+}
+
+.details[open] .summary::before {
+	rotate: 90deg;
+}
+
+.details .list {
+	padding: 0 1rem 0.75rem;
+}
+</style>

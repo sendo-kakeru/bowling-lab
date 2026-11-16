@@ -1,0 +1,18 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import type { SocialIconName } from "../../utils/nav";
+import InstagramIcon from "./InstagramIcon.astro";
+import RssIcon from "./RssIcon.astro";
+
+// SOCIAL_NAV の icon からグリフを選ぶ。ヘッダーとフッターで同じ対応を持たないため
+
+interface Props extends HTMLAttributes<"svg"> {
+	name: SocialIconName;
+}
+
+const { name, ...rest } = Astro.props;
+const ICONS = { instagram: InstagramIcon, rss: RssIcon } as const;
+const Icon = ICONS[name];
+---
+
+<Icon {...rest} />

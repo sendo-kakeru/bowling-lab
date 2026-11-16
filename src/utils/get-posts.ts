@@ -20,6 +20,8 @@ export interface Post {
 	title: string;
 	/** フロントマターの description。省いたときは本文の抜粋。本文に文がなければない */
 	description?: string;
+	/** フロントマターに書いた description だけ（空なら無い）。記事の見出しの下に出す。抜粋は冒頭の段落と同じ文になるので使わない */
+	lead?: string;
 	publishedAt: Date;
 	thumbnail: Thumbnail;
 	/** 見出しが少ない記事では空 */
@@ -74,6 +76,7 @@ async function toPost({
 		description: description ?? (getExcerpt({ html }) || undefined),
 		entry,
 		isDraft,
+		lead: description || undefined,
 		publishedAt,
 		slug,
 		thumbnail: decided,

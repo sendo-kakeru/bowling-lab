@@ -1,5 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { getPageHref, getRestPageStaticPaths, paginate } from "./pagination.ts";
+import {
+	GAP,
+	getFrameItems,
+	getPageHref,
+	getRestPageStaticPaths,
+	paginate,
+} from "./pagination.ts";
 
 function range({ length }: { length: number }): number[] {
 	return Array.from({ length }, (_, i) => i + 1);
@@ -77,5 +83,54 @@ describe("getRestPageStaticPaths", () => {
 		const pages = paginate({ items: range({ length: 3 }), perPage: 20 });
 
 		expect(getRestPageStaticPaths({ pages })).toEqual([]);
+	});
+});
+
+describe("getFrameItems", () => {
+	test.each([
+		{ current: 1, expected: [1], pageCount: 1 },
+		{ current: 4, expected: [1, 2, 3, 4, 5, 6, 7], pageCount: 7 },
+	])(
+		"$pageCount ページまでは全部並べる",
+		({ current, pageCount, expected }) => {
+			expect(getFrameItems({ current, pageCount })).toEqual(expected);
+		},
+	);
+
+	test.each([
+		{ current: 1, expected: [1, 2, 3, 4, 5, GAP, 12] },
+		{ current: 4, expected: [1, 2, 3, 4, 5, GAP, 12] },
+		{ current: 5, expected: [1, GAP, 4, 5, 6, GAP, 12] },
+		{ current: 6, expected: [1, GAP, 5, 6, 7, GAP, 12] },
+		{ current: 8, expected: [1, GAP, 7, 8, 9, GAP, 12] },
+		{ current: 9, expected: [1, GAP, 8, 9, 10, 11, 12] },
+		{ current: 12, expected: [1, GAP, 8, 9, 10, 11, 12] },
+	])("12 ページの $current ページ目", ({ current, expected }) => {
+		const items = getFrameItems({ current, pageCount: 12 });
+		expect(items).toEqual(expected);
+		expect(items).toContain(current);
+	});
+
+	test("どのページでも 7 マスで、最初と最後と今のページを含み、番号は昇順で GAP は 2 ページ以上を省く", () => {
+		for (const pageCount of [8, 9, 12, 30]) {
+			for (let current = 1; current <= pageCount; current++) {
+				const items = getFrameItems({ current, pageCount });
+				expect(items).toHaveLength(7);
+				expect(items.at(0)).toBe(1);
+				expect(items.at(-1)).toBe(pageCount);
+				expect(items).toContain(current);
+				items.forEach((item, index) => {
+					if (item !== GAP) return;
+					const before = items[index - 1];
+					const after = items[index + 1];
+					if (typeof before !== "number" || typeof after !== "number") {
+						throw new Error(`GAP の両隣が番号でない: ${items.join(",")}`);
+					}
+					expect(after - before).toBeGreaterThan(2);
+				});
+				const numbers = items.filter((item) => item !== GAP);
+				expect(numbers).toEqual([...numbers].sort((a, b) => a - b));
+			}
+		}
 	});
 });

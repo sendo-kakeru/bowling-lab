@@ -1,0 +1,75 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import type { Post } from "../../utils/get-posts";
+import PostCard from "../PostCard.astro";
+import SectionHead from "./SectionHead.astro";
+
+/*
+  ホームの新しい記事（POSTS）
+*/
+
+interface Props extends HTMLAttributes<"section"> {
+	/** 新しい順 */
+	posts: Post[];
+}
+
+const { posts, class: className, ...rest } = Astro.props;
+---
+
+<section
+	{...rest}
+	aria-labelledby="latest-posts-title"
+	class:list={["latest-posts", className]}
+>
+	<SectionHead
+		moreHref={posts.length > 0 ? "/posts" : undefined}
+		moreLabel="記事をすべて見る"
+		title="POSTS"
+		titleId="latest-posts-title"
+	/>
+
+	{posts.length > 0 ? (
+		<ol class="list">
+			{posts.map((post) => (
+				<li>
+					<PostCard headingLevel={3} layout="tile" post={post} />
+				</li>
+			))}
+		</ol>
+	) : (
+		<p class="empty">まだ記事はありません。</p>
+	)}
+</section>
+
+<style>
+.latest-posts {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	row-gap: 1rem;
+}
+
+.list {
+	display: grid;
+	row-gap: 0.75rem;
+	padding: 0;
+	list-style: none;
+}
+
+/* タイトルの行数が違っても、同じ段のカードの高さを揃える */
+.list > li {
+	display: grid;
+}
+
+.empty {
+	color: var(--color-ink-900);
+	font-size: var(--font-size-14);
+	line-height: 1.7;
+}
+
+@media (width >= 768px) {
+	.list {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 1.5rem;
+	}
+}
+</style>

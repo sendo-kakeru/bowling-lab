@@ -1,11 +1,6 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import { getPageHref } from "../utils/pagination";
-
-/*
-  一覧のページ送り（前へ、今のページ / 全ページ数、次へ）。
-  1 ページしかないときは何も出さない
-*/
+import { GAP, getFrameItems, getPageHref } from "../utils/pagination";
 
 interface Props extends HTMLAttributes<"nav"> {
 	/** 1 ページ目のパス。例: "/posts" */
@@ -15,8 +10,16 @@ interface Props extends HTMLAttributes<"nav"> {
 	pageCount: number;
 }
 
-const { basePath, current, pageCount, class: className, ...rest } = Astro.props;
+const {
+	basePath,
+	current,
+	pageCount,
+	class: className,
+	"aria-label": ariaLabel = "ページ送り",
+	...rest
+} = Astro.props;
 
+const items = getFrameItems({ current, pageCount });
 const prevHref =
 	current > 1 ? getPageHref({ basePath, page: current - 1 }) : undefined;
 const nextHref =
@@ -25,51 +28,207 @@ const nextHref =
 		: undefined;
 ---
 
-{pageCount > 1 && (
-	<nav {...rest} aria-label="ページ送り" class:list={["pagination", className]}>
-		{prevHref ? (
-			<a href={prevHref} rel="prev">
-				前へ
-			</a>
-		) : (
-			<span aria-hidden="true" />
+{/* 前後の移動の名前は、見た目の PREV / NEXT FRAME を含める（音声操作で呼べるように） */
+items.length > 1 && (
+	<nav {...rest} aria-label={ariaLabel} class:list={["pagination", className]}>
+		<a
+			aria-disabled={prevHref ? undefined : "true"}
+			class="step"
+			href={prevHref}
+			rel={prevHref ? "prev" : undefined}
+			role={prevHref ? undefined : "link"}
+		>
+			<span aria-hidden="true">←</span>
+			<span class="step-label sr-only">PREV FRAME</span>
+			<span class="sr-only">（前のページ）</span>
+		</a>
+		{items.map((item) =>
+			item === GAP ? (
+				<span aria-hidden="true" class="gap">
+					…
+				</span>
+			) : item === current ? (
+				<span aria-current="page" class="frame">
+					{item}
+					<span class="sr-only">ページ目</span>
+				</span>
+			) : (
+				<a class="frame" href={getPageHref({ basePath, page: item })}>
+					{item}
+					<span class="sr-only">ページ目</span>
+				</a>
+			),
 		)}
-		<span>
-			<span class="sr-only">ページ</span>
-			{current} / {pageCount}
-		</span>
-		{nextHref ? (
-			<a href={nextHref} rel="next">
-				次へ
-			</a>
-		) : (
-			<span aria-hidden="true" />
-		)}
+		<a
+			aria-disabled={nextHref ? undefined : "true"}
+			class="step"
+			href={nextHref}
+			rel={nextHref ? "next" : undefined}
+			role={nextHref ? undefined : "link"}
+		>
+			<span class="step-label sr-only">NEXT FRAME</span>
+			<span class="sr-only">（次のページ）</span>
+			<span aria-hidden="true">→</span>
+		</a>
 	</nav>
 )}
 
 <style>
+/* 外側から見た幅は持たない。中央に置くなどは呼び出し側で決める */
 .pagination {
-	display: grid;
-	grid-template-columns: 1fr auto 1fr;
-	align-items: center;
-	column-gap: 1rem;
+	display: inline-grid;
+	grid-auto-flow: column;
+	/* 枠を 1 本の線でつなぐ。隣と重なる左の線は消す */
+	--pagination-border: 1px solid var(--color-wood-400);
+
+	font-family: var(--font-display);
+	font-weight: 700;
+	line-height: 1;
+}
+
+.pagination > * {
+	border: var(--pagination-border);
+	background: var(--color-card);
+	color: var(--color-ink-900);
+	text-decoration: none;
+}
+
+.pagination > * + * {
+	border-left: 0;
+}
+
+/* 隣の枠にフォーカスリングが隠れないように */
+.pagination > :focus-visible {
+	position: relative;
+	z-index: 1;
 }
 
 .pagination > :first-child {
-	justify-self: start;
+	border-radius: var(--radius-6) 0 0 var(--radius-6);
 }
 
 .pagination > :last-child {
-	justify-self: end;
+	border-radius: 0 var(--radius-6) var(--radius-6) 0;
 }
 
-.sr-only {
+/* 前後の移動。スマホでは矢印だけにして 1 行に収める（PREV / NEXT FRAME は読み上げには残す） */
+.step {
+	/* .sr-only の文字の基準 */
+	position: relative;
+	display: inline-grid;
+	grid-auto-flow: column;
+	place-content: center;
+	column-gap: 0.5rem;
+	/* スマホは矢印だけなので 32px。番号の 36px のマス 7 つと合わせて、375px のレーンの内側（319px）に収める */
+	min-width: 2rem;
+	font-size: var(--font-size-14);
+	letter-spacing: 0.12em;
+}
+
+.step[aria-disabled="true"] {
+	color: var(--color-ink-600);
+}
+
+@media (width >= 768px) {
+	.step {
+		min-width: 2.75rem;
+		padding: 0 1rem;
+	}
+
+	/* スマホでは .sr-only で見た目だけ隠し、md から見せる（Tailwind CSS の md:not-sr-only と同じ） */
+	.step-label {
+		position: static;
+		width: auto;
+		height: auto;
+		margin: 0;
+		overflow: visible;
+		clip-path: none;
+		white-space: normal;
+	}
+}
+
+/* 番号と「…」は同じ大きさのマスに並べ、下に寄せて文字の並びをそろえる。右上にスコアの小窓を描く */
+.frame,
+.gap {
+	--frame-window: var(--color-wood-200);
+
+	position: relative;
+	display: grid;
+	place-items: end center;
+	/* スマホは 36px（矢印のマスの説明を参照） */
+	width: 2.25rem;
+	height: 2.25rem;
+	padding-bottom: 0.25rem;
+}
+
+@media (width >= 768px) {
+	.frame,
+	.gap {
+		width: 3rem;
+		height: 3rem;
+	}
+
+	.frame::before,
+	.gap::before {
+		width: 1rem;
+		height: 1rem;
+	}
+}
+
+.frame {
+	font-size: var(--font-size-17);
+}
+
+@media (width >= 768px) {
+	.frame {
+		font-size: var(--font-size-20);
+	}
+}
+
+.frame::before,
+.gap::before {
 	position: absolute;
-	width: 1px;
-	height: 1px;
-	overflow: hidden;
-	clip-path: inset(50%);
-	white-space: nowrap;
+	top: 0;
+	right: 0;
+	width: 0.75rem;
+	height: 0.75rem;
+	border-bottom: 1px solid var(--frame-window);
+	border-left: 1px solid var(--frame-window);
+	content: "";
+}
+
+.frame[aria-current="page"] {
+	--frame-window: var(--color-navy-550);
+
+	background: var(--color-navy-900);
+	color: var(--color-on-navy);
+}
+
+.gap {
+	color: var(--color-ink-600);
+	font-size: var(--font-size-16);
+}
+
+/* タッチ端末でホバーが残らないように。動きを減らす設定ではリセット（base.css）が止める */
+@media (hover: hover) {
+	a[href] {
+		transition: background-color 0.15s;
+	}
+
+	a[href]:hover {
+		background: var(--color-chip);
+	}
+}
+
+/* 強制カラーモードでは背景が消えるので、今のページを枠の太さで示す */
+@media (forced-colors: active) {
+	.frame[aria-current="page"] {
+		outline: 2px solid CanvasText;
+		outline-offset: -3px;
+	}
+
+	.step[aria-disabled="true"] {
+		color: GrayText;
+	}
 }
 </style>

@@ -67,3 +67,37 @@ export function getRestPageStaticPaths<T>({
 			props: { page },
 		}));
 }
+
+/**
+ * 一度に並べる番号の数（GAP を含む）。最初と最後、今のページと前後 1 つずつ、省いた場所 2 つで 7。
+ * 数を変えずに並べるので、ページを移っても矢印の位置が動かない
+ */
+const MAX_FRAMES = 7;
+
+/** 省いた番号の場所 */
+export const GAP = "gap";
+
+/**
+ * ページ送りに並べる番号。MAX_FRAMES を超えるときは最初と最後のページ、今のページと前後 1 つずつを残し、
+ * 間を GAP で省く。例: [1, 2, 3, 4, 5, GAP, 12]、[1, GAP, 5, 6, 7, GAP, 12]、[1, GAP, 8, 9, 10, 11, 12]
+ */
+export function getFrameItems({
+	current,
+	pageCount,
+}: {
+	current: number;
+	pageCount: number;
+}): (number | typeof GAP)[] {
+	if (pageCount <= MAX_FRAMES) return range({ from: 1, to: pageCount });
+	// 端に近いときは、省く場所を 1 つにしてその分の番号を並べる
+	const edge = MAX_FRAMES - 2;
+	if (current < edge) return [...range({ from: 1, to: edge }), GAP, pageCount];
+	if (current > pageCount - edge + 1) {
+		return [1, GAP, ...range({ from: pageCount - edge + 1, to: pageCount })];
+	}
+	return [1, GAP, current - 1, current, current + 1, GAP, pageCount];
+}
+
+function range({ from, to }: { from: number; to: number }): number[] {
+	return Array.from({ length: to - from + 1 }, (_, i) => from + i);
+}

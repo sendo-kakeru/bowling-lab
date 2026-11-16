@@ -1,83 +1,148 @@
 ---
+import Breadcrumb from "../components/Breadcrumb.astro";
+import Card from "../components/Card.astro";
 import { INSTAGRAM_URL } from "../consts";
 import Base from "../layouts/Base.astro";
 ---
 
 <Base title="プライバシーポリシー">
-	<h1>プライバシーポリシー</h1>
-	<div class="prose">
-		<p>
-			Sendo Bowling
-			Lab（以下「本サイト」）での、読者の情報の扱いを次のとおり定めます。
-		</p>
+	<div class="privacy-page">
+		<Breadcrumb
+			items={[{ href: "/", label: "HOME" }, { label: "PRIVACY POLICY" }]}
+		/>
 
-		<h2>アクセス解析ツールについて</h2>
-		<p>
-			本サイトは、Google が提供するアクセス解析ツール「Google
-			アナリティクス」を利用しています。Google アナリティクスは Cookie
-			を使い、見たページ、滞在時間、ブラウザや端末の種類、おおよその地域などの情報を集めます。集める情報に、名前やメールアドレスのような個人を特定できる情報は含まれません。
-		</p>
-		<p>
-			集めた情報は、どの記事が読まれているかを知り、サイトを良くするために使います。情報は
-			Google が管理し、Google
-			のプライバシーポリシーに従って扱われます。詳しくは「<a
-				href="https://policies.google.com/technologies/partner-sites?hl=ja"
-				>Google のサービスを使用するサイトやアプリから収集した情報の Google
-				による使用</a
-			>」を見てください。
-		</p>
-		<p>
-			ブラウザの Cookie を無効にするか、<a
-				href="https://tools.google.com/dlpage/gaoptout?hl=ja"
-				>Google アナリティクス オプトアウト アドオン</a
-			>を使うと、情報の収集を止められます。
-		</p>
+		<h1 class="text-page-title">PRIVACY POLICY</h1>
 
-		<h2>Google Search Console について</h2>
-		<p>
-			本サイトは、Google 検索での表示のされ方を確かめるため、Google Search
-			Console を利用しています。Search Console
-			でわかるのは、検索結果に出た回数、クリックされた回数、検索に使われた語句などの集計です。本サイトが読者の情報を
-			Search Console に送ることはありません。
-		</p>
+		<Card as="article" class="privacy" raised>
+			<div class="privacy-body prose text-body">
+				<p>
+					Sendo Bowling
+					Lab（以下「本サイト」）での、読者の情報の扱いを次のとおり定めます。
+				</p>
 
-		<h2>広告について</h2>
-		<p>
-			本サイトでは、Google AdSense
-			などの第三者配信の広告サービスを利用することがあります。広告配信事業者は、読者の興味に合った広告を出すため、Cookie
-			を使って本サイトや他のサイトへのアクセス情報を集めることがあります。Google
-			は広告 Cookie
-			を使うことで、本サイトや他のサイトへのアクセス情報にもとづいて広告を配信します。
-		</p>
-		<p>
-			パーソナライズ広告は{" "}
-			<a href="https://myadcenter.google.com/">Google のマイ アド センター</a
-			>で無効にできます。第三者配信事業者の Cookie は{" "}
-			<a href="https://optout.aboutads.info/">aboutads.info</a>{" "}
-			で無効にできます。Google が広告で Cookie をどう使うかは「<a
-				href="https://policies.google.com/technologies/ads?hl=ja"
-				>広告</a
-			>」を見てください。
-		</p>
+				<h2>アクセス解析ツールについて</h2>
+				<p>
+					本サイトは、Google が提供するアクセス解析ツール「Google
+					アナリティクス」を利用しています。Google アナリティクスは Cookie
+					を使い、見たページ、滞在時間、ブラウザや端末の種類、おおよその地域などの情報を集めます。集める情報に、名前やメールアドレスのような個人を特定できる情報は含まれません。
+				</p>
+				<p>
+					集めた情報は、どの記事が読まれているかを知り、サイトを良くするために使います。情報は
+					Google が管理し、Google
+					のプライバシーポリシーに従って扱われます。詳しくは「<a
+						href="https://policies.google.com/technologies/partner-sites?hl=ja"
+						>Google のサービスを使用するサイトやアプリから収集した情報の Google
+						による使用</a
+					>」を見てください。
+				</p>
+				<p>
+					ブラウザの Cookie を無効にするか、<a
+						href="https://tools.google.com/dlpage/gaoptout?hl=ja"
+						>Google アナリティクス オプトアウト アドオン</a
+					>を使うと、情報の収集を止められます。
+				</p>
 
-		<h2>Cookie を無効にするには</h2>
-		<p>
-			ブラウザの設定で Cookie
-			を無効にできます。無効にしても、本サイトの記事はこれまでどおり読めます。
-		</p>
+				<h2>Google Search Console について</h2>
+				<p>
+					本サイトは、Google 検索での表示のされ方を確かめるため、Google Search
+					Console を利用しています。Search Console
+					でわかるのは、検索結果に出た回数、クリックされた回数、検索に使われた語句などの集計です。本サイトが読者の情報を
+					Search Console に送ることはありません。
+				</p>
 
-		<h2>このポリシーの変更</h2>
-		<p>
-			使うサービスや法令が変わったときは、このページを改めます。改めた内容は、このページに載せた時点から効力を持ちます。
-		</p>
+				<h2>広告について</h2>
+				<p>
+					本サイトでは、Google AdSense
+					などの第三者配信の広告サービスを利用することがあります。広告配信事業者は、読者の興味に合った広告を出すため、Cookie
+					を使って本サイトや他のサイトへのアクセス情報を集めることがあります。Google
+					は広告 Cookie
+					を使うことで、本サイトや他のサイトへのアクセス情報にもとづいて広告を配信します。
+				</p>
+				<p>
+					パーソナライズ広告は{" "}
+					<a href="https://myadcenter.google.com/"
+						>Google のマイ アド センター</a
+					>で無効にできます。第三者配信事業者の Cookie は{" "}
+					<a href="https://optout.aboutads.info/">aboutads.info</a>{" "}
+					で無効にできます。Google が広告で Cookie をどう使うかは「<a
+						href="https://policies.google.com/technologies/ads?hl=ja"
+						>広告</a
+					>」を見てください。
+				</p>
 
-		<h2>お問い合わせ</h2>
-		<p>
-			このポリシーについてのお問い合わせは、<a href={INSTAGRAM_URL}
-				>Instagram（@sendo_bowling）</a
-			>の DM までお願いします。
-		</p>
+				<h2>Cookie を無効にするには</h2>
+				<p>
+					ブラウザの設定で Cookie
+					を無効にできます。無効にしても、本サイトの記事はこれまでどおり読めます。
+				</p>
 
-		<p>制定日 <time datetime="2026-11-13">2026年11月13日</time></p>
+				<h2>このポリシーの変更</h2>
+				<p>
+					使うサービスや法令が変わったときは、このページを改めます。改めた内容は、このページに載せた時点から効力を持ちます。
+				</p>
+
+				<h2>お問い合わせ</h2>
+				<p>
+					このポリシーについてのお問い合わせは、<a href={INSTAGRAM_URL}
+						>Instagram（@sendo_bowling）</a
+					>の DM までお願いします。
+				</p>
+
+				<p class="enacted">
+					制定日 <time datetime="2026-11-13">2026年11月13日</time>
+				</p>
+			</div>
+		</Card>
 	</div>
 </Base>
+
+<style>
+/* パンくずとカードを本文の幅（+ カードの内余白）の列にそろえて中央に置く */
+.privacy-page {
+	--privacy-padding-inline: 1.25rem;
+
+	display: grid;
+	grid-template-columns: minmax(
+			0,
+			calc(var(--layout-content-width) + 2 * var(--privacy-padding-inline))
+		);
+	justify-content: center;
+	row-gap: 0.75rem;
+}
+
+/* About と同じく、見出しから少し離す */
+.privacy {
+	margin-top: 0.5rem;
+}
+
+.privacy-body {
+	padding: 1.5rem var(--privacy-padding-inline) 1.75rem;
+}
+
+.enacted {
+	text-align: end;
+}
+
+@media (width >= 768px) {
+	.privacy-page {
+		--privacy-padding-inline: 2.25rem;
+
+		row-gap: 1rem;
+	}
+
+	.privacy-body {
+		padding-top: 2.75rem;
+		padding-bottom: 3rem;
+	}
+}
+
+@media (width >= 1024px) {
+	.privacy-page {
+		--privacy-padding-inline: 3rem;
+	}
+
+	.privacy-body {
+		padding-top: 3rem;
+	}
+}
+</style>
