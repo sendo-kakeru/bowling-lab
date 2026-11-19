@@ -1,5 +1,8 @@
 export const SITE_TITLE = "Sendo Bowling Lab";
 
+/** ホーム画面のアイコンの下に出す名前。長いと端末が省略する */
+export const SITE_SHORT_TITLE = "Bowling Lab";
+
 export const SITE_TAGLINE = "ボウリングの雑記";
 
 export const SITE_LANG = "ja";
