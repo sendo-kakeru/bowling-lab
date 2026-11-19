@@ -25,4 +25,7 @@ export const LIST_PER_PAGE = 20;
 /** 画像と動画を配信するドメイン（R2）。設計は docs/design/media.md */
 export const MEDIA_ORIGIN = "https://bowling-media.sendo.page";
 
+/** Google タグマネージャーのコンテナ ID */
+export const GTM_ID = "GTM-M6JTXKNV";
+
 export const INSTAGRAM_URL = "https://www.instagram.com/sendo_bowling/";

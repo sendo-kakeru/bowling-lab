@@ -1,6 +1,7 @@
 ---
 import { Font } from "astro:assets";
 import {
+	GTM_ID,
 	SITE_LANG,
 	SITE_SHORT_TITLE,
 	SITE_TAGLINE,
@@ -43,6 +44,11 @@ const canonicalUrl = noindex
 	? undefined
 	: new URL(Astro.url.pathname, Astro.site);
 const ogImageUrl = new URL(ogImage.path, Astro.site);
+
+/* タグマネージャーの管理画面が出すスニペットのまま。<script> に直書きすると Biome が改行を崩すので文字列で持つ */
+const GTAG_INIT = `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());`;
 ---
 
 <!doctype html>
@@ -52,6 +58,17 @@ const ogImageUrl = new URL(ogImage.path, Astro.site);
 		<style is:inline set:html={layerOrder}></style>
 		<meta charset="utf-8">
 		<meta content="width=device-width,initial-scale=1" name="viewport">
+		<!-- Google タグマネージャー。開発中のアクセスを計測に混ぜないよう、本番ビルドだけで出す -->
+		{import.meta.env.PROD && (
+			<>
+				<script
+					async
+					is:inline
+					src={`https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`}
+				/>
+				<script is:inline set:html={GTAG_INIT} />
+			</>
+		)}
 		<Font cssVariable="--font-body" preload />
 		<Font cssVariable="--font-display" />
 		<!-- Noto Sans JP は可変フォント（太さ 400〜700 を 1 つのファイルで扱う）。理由は astro.config.mjs の fonts を参照 -->
