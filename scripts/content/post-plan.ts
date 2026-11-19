@@ -1,4 +1,5 @@
 import { formatIsoDate } from "../../src/lib/date.ts";
+import { DRAFT_PREFIX, RESERVED_SLUG } from "../../src/lib/post.ts";
 
 /*
   記事を作るコマンドの判断の部分。ファイル名と中身を決めるだけで、書き込みはしない
@@ -21,10 +22,11 @@ export function planNewPost({
 	/** 0 以上 max 未満の整数。node:crypto の randomInt を渡す */
 	randomInt: (max: number) => number;
 }): { slug: string; source: string } {
-	// page は /posts/page/2 のページ送りとぶつかるので、parsePostSlug が受け付けない
 	const taken = new Set([
-		"page",
-		...existingSlugs.map((slug) => slug.replace(/^_/, "")),
+		RESERVED_SLUG,
+		...existingSlugs.map((slug) =>
+			slug.startsWith(DRAFT_PREFIX) ? slug.slice(DRAFT_PREFIX.length) : slug,
+		),
 	]);
 	let name: string;
 	do {
@@ -33,5 +35,5 @@ export function planNewPost({
 		).join("");
 	} while (taken.has(name));
 	const source = `---\ntitle: ""\npublishedAt: ${formatIsoDate({ date })}\n---\n\n`;
-	return { slug: `_${name}`, source };
+	return { slug: `${DRAFT_PREFIX}${name}`, source };
 }
