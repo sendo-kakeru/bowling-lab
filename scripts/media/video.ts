@@ -54,11 +54,12 @@ export function isHdr({ probe }: { probe: Probe }): boolean {
 }
 
 /**
- * 長辺 1920px（フル HD）に収め、60fps を超えるものは 60fps にする。動画は配信時に変換しないので、閲覧者に届く重さはここでしか減らせない。
- * 小さい動画は拡大せず、60fps 以下は変えない。縦横比を保って偶数に丸めると画素の縦横比（SAR）が 1:1 からずれるので、1:1 に戻す
+ * 長辺 1920px（フル HD）に収める。動画は配信時に変換しないので、閲覧者に届く重さはここでしか減らせない。
+ * 小さい動画は拡大しない。フォームの動きを見せるため、フレームレートは変えない。
+ * 縦横比を保って偶数に丸めると画素の縦横比（SAR）が 1:1 からずれるので、1:1 に戻す
  */
 const SCALE_FILTER =
-	"scale=w='min(1920,iw)':h='min(1920,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2,setsar=1,fps=fps='min(60,source_fps)'";
+	"scale=w='min(1920,iw)':h='min(1920,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2,setsar=1";
 
 /**
  * HDR を SDR（BT.709）に変換する。Homebrew の ffmpeg には zscale も libplacebo もないので、

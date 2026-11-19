@@ -92,11 +92,10 @@ describe("videoFilterArgs", () => {
 	}
 
 	test.each([false, true])(
-		"HDR=%s でも長辺 1920px への縮小と 60fps の上限をかける",
+		"HDR=%s でも長辺 1920px に縮小し、フレームレートは変えない",
 		(hdr) => {
-			expect(filterOf({ hdr })).toMatch(
-				/^scale=.*min\(1920,iw\).*setsar=1.*min\(60,source_fps\)/,
-			);
+			expect(filterOf({ hdr })).toMatch(/^scale=.*min\(1920,iw\).*setsar=1/);
+			expect(filterOf({ hdr })).not.toMatch(/\bfps=/);
 		},
 	);
 
