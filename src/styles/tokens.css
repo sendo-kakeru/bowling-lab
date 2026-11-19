@@ -50,9 +50,6 @@
 	--color-shadow: rgb(60 35 10);
 	--color-approach: #e6c99c; /* フッターの地 */
 
-	--color-callout-point: #eef1f7;
-	--color-callout-caution: #fbeceb;
-
 	/* フォーカスリング。赤は使わない */
 	--color-focus: var(--color-navy-900);
 	--color-focus-on-navy: var(--color-lane-light);
@@ -72,9 +69,7 @@
 	--font-size-28: 1.75rem;
 	--font-size-40: 2.5rem;
 	--font-size-44: 2.75rem;
-	--font-size-46: 2.875rem;
 	--font-size-56: 3.5rem;
-	--font-size-76: 4.75rem;
 	--font-size-96: 6rem;
 	--font-size-140: 8.75rem; /* 404 の大きな数字だけ */
 
