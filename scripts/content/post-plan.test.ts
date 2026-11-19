@@ -26,7 +26,17 @@ describe("planNewPost", () => {
 
 		expect(post).toEqual({
 			slug: "_k3f9",
-			source: '---\ntitle: ""\npublishedAt: 2026-11-16\n---\n\n',
+			source: [
+				"---",
+				'title: ""',
+				"publishedAt: 2026-11-16",
+				"# 以下は省略可",
+				"# description: 概要文",
+				"# thumbnail: media:2026/example/photo.jpg",
+				"---",
+				"",
+				"",
+			].join("\n"),
 		});
 		expect(parsePostSlug({ filePath: `${post.slug}.md` })).toEqual({
 			isDraft: true,

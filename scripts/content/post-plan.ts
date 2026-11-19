@@ -9,7 +9,17 @@ const SLUG_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
 const SLUG_LENGTH = 4;
 
 /**
+ * 省略可能な項目 PostFrontmatterSchema
+ */
+const OPTIONAL_FIELD_HINTS = [
+	"# 以下は省略可",
+	"# description: 概要文",
+	"# thumbnail: media:2026/example/photo.jpg",
+];
+
+/**
  * `pnpm post`。`_` + ランダム 4 文字の下書きを、title が空で publishedAt が今日（日本時間）のフロントマターで作る。
+ * 省略できる項目（description、thumbnail）はコメントで書き方を添える。
  * `_` を外して公開したときにぶつからないよう、`_` なしの同じ名前も使用済みとみなす
  */
 export function planNewPost({
@@ -34,6 +44,14 @@ export function planNewPost({
 			SLUG_CHARS.charAt(randomInt(SLUG_CHARS.length)),
 		).join("");
 	} while (taken.has(name));
-	const source = `---\ntitle: ""\npublishedAt: ${formatIsoDate({ date })}\n---\n\n`;
+	const source = [
+		"---",
+		'title: ""',
+		`publishedAt: ${formatIsoDate({ date })}`,
+		...OPTIONAL_FIELD_HINTS,
+		"---",
+		"",
+		"",
+	].join("\n");
 	return { slug: `${DRAFT_PREFIX}${name}`, source };
 }
