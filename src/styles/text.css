@@ -37,7 +37,7 @@
 		line-height: 1.6;
 	}
 
-	/* 一覧と固定ページの大見出し（h1。ALL POSTS、MEMO、ABOUT など）。上の 8px はパンくずとの間 */
+	/* 一覧と固定ページの大見出し（h1。POSTS、MEMOS、ABOUT など）。上の 8px はパンくずとの間 */
 	.text-page-title {
 		padding-top: 0.5rem;
 		color: var(--color-navy-900);
