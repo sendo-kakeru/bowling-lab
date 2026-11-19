@@ -319,8 +319,8 @@ export function getPhaseDuration({
 /** 結果の札。欄の中身はスコア表の 1 投目と同じ（ストライクの印、倒した本数、G） */
 interface ResultView {
 	box: "strike" | "count" | "gutter";
-	/** 倒した本数 */
-	count: number;
+	/** 欄の文字。ストライクの印は CSS で描くので空 */
+	boxText: string;
 	/** 欄の横の文字。本数だけのときは欄の数字で足りるので無い */
 	text: "STRIKE" | "GUTTER" | undefined;
 }
@@ -331,23 +331,23 @@ interface DeckView {
 	falls: readonly PinFall[];
 	/** result のあいだだけ */
 	result: ResultView | undefined;
-	/** ボタンの見える文字と、名前に足す説明 */
-	button: { text: "PLAY" | "AGAIN"; hint: string };
+	/** ボタンの見える文字と、それに説明を続けた名前 */
+	button: { text: "PLAY" | "AGAIN"; label: string };
 	/** 読み上げる文。result のあいだだけ */
 	speech: string;
 }
 
 const BUTTONS = {
-	again: { hint: "（もう一度投げる）", text: "AGAIN" },
-	play: { hint: "（ボールを投げる）", text: "PLAY" },
+	again: { label: "AGAIN（もう一度投げる）", text: "AGAIN" },
+	play: { label: "PLAY（ボールを投げる）", text: "PLAY" },
 } as const;
 
 function toResultView({ shot }: { shot: Shot }): ResultView {
 	const count = shot.falls.length;
 	if (shot.standing.length === 0)
-		return { box: "strike", count, text: "STRIKE" };
-	if (count === 0) return { box: "gutter", count, text: "GUTTER" };
-	return { box: "count", count, text: undefined };
+		return { box: "strike", boxText: "", text: "STRIKE" };
+	if (count === 0) return { box: "gutter", boxText: "G", text: "GUTTER" };
+	return { box: "count", boxText: String(count), text: undefined };
 }
 
 function toSpeech({ shot }: { shot: Shot }): string {

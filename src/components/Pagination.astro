@@ -10,14 +10,7 @@ interface Props extends HTMLAttributes<"nav"> {
 	pageCount: number;
 }
 
-const {
-	basePath,
-	current,
-	pageCount,
-	class: className,
-	"aria-label": ariaLabel = "ページ送り",
-	...rest
-} = Astro.props;
+const { basePath, current, pageCount, class: className, ...rest } = Astro.props;
 
 const items = getFrameItems({ current, pageCount });
 const prevHref =
@@ -30,7 +23,7 @@ const nextHref =
 
 {/* 前後の移動の名前は、見た目の PREV / NEXT FRAME を含める（音声操作で呼べるように） */
 items.length > 1 && (
-	<nav {...rest} aria-label={ariaLabel} class:list={["pagination", className]}>
+	<nav {...rest} aria-label="ページ送り" class:list={["pagination", className]}>
 		<a
 			aria-disabled={prevHref ? undefined : "true"}
 			class="step"
@@ -166,12 +159,6 @@ items.length > 1 && (
 	.gap {
 		width: 3rem;
 		height: 3rem;
-	}
-
-	.frame::before,
-	.gap::before {
-		width: 1rem;
-		height: 1rem;
 	}
 }
 

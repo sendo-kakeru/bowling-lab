@@ -18,5 +18,5 @@ const { page } = Astro.props;
 	description={`メモ一覧 ${page.page} ページ目`}
 	title={`メモ一覧（${page.page} ページ目）`}
 >
-	<MemoList current={page.page} memos={page.items} pageCount={page.pageCount} />
+	<MemoList page={page} />
 </Base>
