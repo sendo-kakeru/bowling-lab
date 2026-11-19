@@ -4,8 +4,9 @@ import { basename, dirname, extname, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import type { Loader, LoaderContext } from "astro/loaders";
 import { MEMO_DIR } from "../consts.ts";
+import { errorMessage } from "../lib/error.ts";
 import { resolvePostedAt } from "../lib/memo-schema.ts";
-import { MemoParseError, parseMemo } from "../lib/parse-memo.ts";
+import { parseMemo, withMemoFilePath } from "../lib/parse-memo.ts";
 
 /*
   メモのコンテンツローダー。1 ファイル = 1 メモで、id はファイル名（拡張子なし）。
@@ -38,17 +39,10 @@ async function syncMemo({
 	const id = memoId({ path });
 	const source = await readFile(path, "utf-8");
 	const filePath = relative(root, path);
-	let notes: ReturnType<typeof resolvePostedAt>;
-	try {
-		notes = resolvePostedAt({ notes: parseMemo({ source }) });
-	} catch (error) {
-		if (error instanceof MemoParseError) {
-			throw new Error(`${filePath}:${error.line} ${error.message}`, {
-				cause: error,
-			});
-		}
-		throw error;
-	}
+	const notes = withMemoFilePath({
+		filePath,
+		parse: () => resolvePostedAt({ notes: parseMemo({ source }) }),
+	});
 
 	if (notes.length === 0) {
 		store.delete(id);
@@ -87,8 +81,7 @@ export function memoLoader(): Loader {
 					if (!watcher) throw error;
 					// 開発サーバーは落とさず、誤りを store に入れて getMemos() に投げさせる。
 					// ログだけだと、保存しても反映されないようにしか見えないため
-					const message =
-						error instanceof Error ? error.message : String(error);
+					const message = errorMessage({ error });
 					logger.error(message);
 					store.set({
 						data: { error: message },

@@ -2,6 +2,7 @@ import { randomInt } from "node:crypto";
 import { mkdir, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { POST_DIR } from "../../src/consts.ts";
+import { errorMessage } from "../../src/lib/error.ts";
 import { ROOT } from "../root.ts";
 import { planNewPost } from "./post-plan.ts";
 
@@ -19,6 +20,6 @@ try {
 	await writeFile(path.join(ROOT, target), source, { flag: "wx" });
 	console.log(target);
 } catch (error) {
-	console.error(error instanceof Error ? error.message : String(error));
+	console.error(errorMessage({ error }));
 	process.exitCode = 1;
 }

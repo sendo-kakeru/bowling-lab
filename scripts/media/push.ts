@@ -2,6 +2,7 @@ import { access, mkdir, mkdtemp, rename, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
+import { errorMessage } from "../../src/lib/error.ts";
 import { ROOT } from "../root.ts";
 import { processImageItem } from "./image.ts";
 import {
@@ -218,8 +219,4 @@ function printDryRun({ result }: { result: ProcessedItem }): void {
 		console.log(`  ${file.key}  (${file.contentType})\n    ${file.path}`);
 	}
 	console.log(`  manifest: ${JSON.stringify(result.entry)}`);
-}
-
-function errorMessage({ error }: { error: unknown }): string {
-	return error instanceof Error ? error.message : String(error);
 }

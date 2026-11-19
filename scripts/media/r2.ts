@@ -2,6 +2,7 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import * as v from "valibot";
+import { isEnoentError } from "../../src/lib/error.ts";
 import type { UploadFile } from "./inbox.ts";
 
 const EnvSchema = v.object({
@@ -21,8 +22,7 @@ export function createR2Uploader({
 		process.loadEnvFile(envPath);
 	} catch (error) {
 		// .env がなくても、環境変数で渡されていれば動かせる
-		if (!(error instanceof Error && "code" in error && error.code === "ENOENT"))
-			throw error;
+		if (!isEnoentError({ error })) throw error;
 	}
 	const result = v.safeParse(EnvSchema, process.env);
 	if (!result.success) {
