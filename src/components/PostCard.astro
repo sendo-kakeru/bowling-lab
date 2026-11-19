@@ -33,8 +33,9 @@ const {
 } = Astro.props;
 
 const Heading = `h${headingLevel}` as const;
-const thumbnailUrl = await getThumbnailUrl({
+const thumbnailUrl = getThumbnailUrl({
 	crop: "card",
+	slug: post.slug,
 	thumbnail: post.thumbnail,
 });
 const { width, height } = THUMBNAIL_CROPS.card;
