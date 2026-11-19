@@ -27,7 +27,12 @@ const headerImage =
 		: undefined;
 ---
 
-<Base description={post.description} title={post.title}>
+<Base
+	article={{ publishedAt: post.publishedAt }}
+	description={post.description}
+	ogImage={{ alt: post.title, path: `/og/posts/${post.slug}.png` }}
+	title={post.title}
+>
 	<div class="post-page">
 		<Breadcrumb
 			items={[
