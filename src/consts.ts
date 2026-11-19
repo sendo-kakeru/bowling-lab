@@ -26,6 +26,6 @@ export const LIST_PER_PAGE = 20;
 export const MEDIA_ORIGIN = "https://bowling-media.sendo.page";
 
 /** Google タグマネージャーのコンテナ ID */
-export const GTM_ID = "GTM-M6JTXKNV";
+export const GTM_ID = "GTM-HK7JGLGTDM";
 
 export const INSTAGRAM_URL = "https://www.instagram.com/sendo_bowling/";
