@@ -1,9 +1,9 @@
 import { randomInt } from "node:crypto";
 import { mkdir, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { POST_DIR, planNewPost } from "./post-plan.ts";
-
-const ROOT = path.resolve(import.meta.dirname, "../..");
+import { POST_DIR } from "../../src/consts.ts";
+import { ROOT } from "../root.ts";
+import { planNewPost } from "./post-plan.ts";
 
 try {
 	await mkdir(path.join(ROOT, POST_DIR), { recursive: true });

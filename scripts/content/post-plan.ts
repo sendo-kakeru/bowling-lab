@@ -4,8 +4,6 @@ import { formatIsoDate } from "../../src/lib/date.ts";
   記事を作るコマンドの判断の部分。ファイル名と中身を決めるだけで、書き込みはしない
 */
 
-export const POST_DIR = "src/content/posts";
-
 const SLUG_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
 const SLUG_LENGTH = 4;
 

@@ -2,6 +2,7 @@ import { access, mkdir, mkdtemp, rename, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
+import { ROOT } from "../root.ts";
 import { processImageItem } from "./image.ts";
 import {
 	type InboxItem,
@@ -22,7 +23,6 @@ import { ensureFfmpeg, processVideoItem } from "./video.ts";
 
 const UPLOAD_CONCURRENCY = 4;
 
-const ROOT = path.resolve(import.meta.dirname, "../..");
 const INBOX_DIR = path.join(ROOT, "media/inbox");
 const UPLOADED_DIR = path.join(ROOT, "media/uploaded");
 const MANIFEST_PATH = path.join(ROOT, "src/data/media-manifest.json");

@@ -3,6 +3,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { basename, dirname, extname, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import type { Loader, LoaderContext } from "astro/loaders";
+import { MEMO_DIR } from "../consts.ts";
 import { resolvePostedAt } from "../lib/memo-schema.ts";
 import { MemoParseError, parseMemo } from "../lib/parse-memo.ts";
 
@@ -11,8 +12,6 @@ import { MemoParseError, parseMemo } from "../lib/parse-memo.ts";
   標準の glob ローダーは 1 ファイルに本文を 1 つしか持てないので、書き込みごとに分けるために作っている。
   検証はここで行い、誤りはファイル名と行番号つきで投げる
 */
-
-const MEMO_DIR = "src/content/memos";
 
 function memoId({ path }: { path: string }): string {
 	return basename(path, ".md");
