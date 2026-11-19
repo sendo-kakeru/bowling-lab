@@ -29,7 +29,7 @@ Consult these guides before working on related tasks:
 
 Read these before working on content or media:
 
-- [docs/design/content.md](docs/design/content.md): posts, memos, pages, commands, sample data, task breakdown
+- [docs/design/content.md](docs/design/content.md): posts, memos, pages, commands, task breakdown
 - [docs/design/media.md](docs/design/media.md): image and video processing, storage on R2, delivery
 
 The development workflow (who does what, where rules go) is in [docs/ai-development.md](docs/ai-development.md).
