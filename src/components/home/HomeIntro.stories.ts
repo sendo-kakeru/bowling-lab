@@ -1,9 +1,5 @@
-import type { AstroRenderer } from "@storybook-astro/framework";
-import type {
-	ComponentAnnotations,
-	StoryAnnotations,
-} from "storybook/internal/types";
 import { withPageLayout } from "../../../.storybook/decorators";
+import type { Meta, Story } from "../../../.storybook/types";
 import HomeIntro from "./HomeIntro.astro";
 
 const meta = {
@@ -13,9 +9,8 @@ const meta = {
 	parameters: { layout: "fullscreen" },
 	tags: ["autodocs"],
 	title: "Home/HomeIntro",
-} satisfies ComponentAnnotations<AstroRenderer>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryAnnotations<AstroRenderer>;
 
 export const Default: Story = {};

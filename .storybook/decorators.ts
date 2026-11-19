@@ -7,3 +7,7 @@ export const withPageLayout: DecoratorFunction<AstroRenderer> = () => ({
 	component: PageLayout,
 	props: {},
 });
+
+/** カードと同じ色の部品を、板目の上に置く */
+export const withLane: DecoratorFunction<AstroRenderer> = (Story) =>
+	`<div class="story-lane">${Story()}</div>`;
