@@ -1,10 +1,10 @@
-import { formatIsoDate, formatTime } from "../../src/utils/date.ts";
-import { formatMemoHeading } from "../../src/utils/memo-heading.ts";
+import { formatIsoDate, formatTime } from "../../src/lib/date.ts";
+import { formatMemoHeading } from "../../src/lib/memo-heading.ts";
 import {
 	MemoParseError,
 	type ParsedMemoNote,
 	parseMemoSections,
-} from "../../src/utils/parse-memo.ts";
+} from "../../src/lib/parse-memo.ts";
 
 /*
   メモを作るコマンドの判断の部分。どのファイルに何を書くかを決めるだけで、読み書きはしない

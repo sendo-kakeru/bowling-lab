@@ -1,4 +1,4 @@
-import type { TocItem } from "../../src/utils/post";
+import type { TocItem } from "../../src/lib/post";
 
 /* ストーリーで使う目次。h2 と h3 を混ぜる */
 

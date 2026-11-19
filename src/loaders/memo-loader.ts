@@ -3,8 +3,8 @@ import { readdir, readFile } from "node:fs/promises";
 import { basename, dirname, extname, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import type { Loader, LoaderContext } from "astro/loaders";
-import { resolvePostedAt } from "../utils/memo-schema.ts";
-import { MemoParseError, parseMemo } from "../utils/parse-memo.ts";
+import { resolvePostedAt } from "../lib/memo-schema.ts";
+import { MemoParseError, parseMemo } from "../lib/parse-memo.ts";
 
 /*
   メモのコンテンツローダー。1 ファイル = 1 メモで、id はファイル名（拡張子なし）。

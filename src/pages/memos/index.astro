@@ -2,8 +2,8 @@
 import MemoList from "../../components/MemoList.astro";
 import { LIST_PER_PAGE } from "../../consts";
 import Base from "../../layouts/Base.astro";
-import { getMemos } from "../../utils/get-memos";
-import { paginate } from "../../utils/pagination";
+import { getMemos } from "../../lib/get-memos";
+import { paginate } from "../../lib/pagination";
 
 const [page] = paginate({ items: await getMemos(), perPage: LIST_PER_PAGE });
 ---

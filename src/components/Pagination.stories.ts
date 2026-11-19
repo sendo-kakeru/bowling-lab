@@ -5,7 +5,7 @@ import type {
 } from "storybook/internal/types";
 import Pagination from "./Pagination.astro";
 
-/* 番号の並べ方は src/utils/pagination.ts が決める。ここは props だけ渡す */
+/* 番号の並べ方は src/lib/pagination.ts が決める。ここは props だけ渡す */
 
 const meta = {
 	args: { basePath: "/posts", pageCount: 12 },

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { MediaManifest } from "../../src/utils/media-manifest.ts";
+import type { MediaManifest } from "../../src/lib/media-manifest.ts";
 import { addEntries, planItems } from "./manifest.ts";
 
 const CAT = {
