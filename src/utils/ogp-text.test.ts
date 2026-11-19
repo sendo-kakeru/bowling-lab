@@ -3,8 +3,8 @@ import { TITLE_STEPS } from "./ogp.ts";
 import { fitText, type Measure } from "./ogp-text.ts";
 
 /**
- * 和文と全角は 1em、それ以外は 0.5em の幅とみなす。幅 1040px の行に和文が 84px で 12 字、68px で 15 字、52px で 20 字入る。
- * 52px の 4 行目はボールの左端の手前（x=969）までの 889px で、17 字入る
+ * 和文と全角は 1em、それ以外は 0.5em の幅とみなす。幅 1040px の行に和文が 96px で 10 字、76px で 13 字、60px で 17 字入る。
+ * 60px の 4 行目はボールの左端の手前（x=934）までの 854px で、14 字入る
  */
 const measure: Measure = ({ text, fontSize }) =>
 	[...text].reduce(
@@ -23,56 +23,56 @@ function fitTitle({ title }: { title: string }) {
 const kana = ({ length }: { length: number }): string => "あ".repeat(length);
 
 describe("記事のタイトル", () => {
-	test("1 行に収まる短いタイトルは 84px", () => {
+	test("1 行に収まる短いタイトルは 96px", () => {
 		expect(fitTitle({ title: "10番ピンが残る理由" })).toEqual({
-			fontSize: 84,
-			lineHeight: 112,
+			fontSize: 96,
+			lineHeight: 124,
 			lines: ["10番ピンが残る理由"],
 		});
 	});
 
-	test("84px で 1 行に収まらなければ 68px", () => {
-		expect(fitTitle({ title: kana({ length: 13 }) })).toEqual({
-			fontSize: 68,
-			lineHeight: 96,
-			lines: [kana({ length: 13 })],
+	test("96px で 1 行に収まらなければ 76px", () => {
+		expect(fitTitle({ title: kana({ length: 11 }) })).toEqual({
+			fontSize: 76,
+			lineHeight: 104,
+			lines: [kana({ length: 11 })],
 		});
 	});
 
-	test("68px でちょうど 2 行なら 68px のまま", () => {
-		expect(fitTitle({ title: kana({ length: 30 }) })).toEqual({
-			fontSize: 68,
-			lineHeight: 96,
-			lines: [kana({ length: 15 }), kana({ length: 15 })],
+	test("76px でちょうど 2 行なら 76px のまま", () => {
+		expect(fitTitle({ title: kana({ length: 26 }) })).toEqual({
+			fontSize: 76,
+			lineHeight: 104,
+			lines: [kana({ length: 13 }), kana({ length: 13 })],
 		});
 	});
 
-	test("68px で 3 行になるなら 52px に下げる", () => {
-		expect(fitTitle({ title: kana({ length: 31 }) })).toEqual({
-			fontSize: 52,
-			lineHeight: 80,
-			lines: [kana({ length: 20 }), kana({ length: 11 })],
+	test("76px で 3 行になるなら 60px に下げる", () => {
+		expect(fitTitle({ title: kana({ length: 27 }) })).toEqual({
+			fontSize: 60,
+			lineHeight: 86,
+			lines: [kana({ length: 17 }), kana({ length: 10 })],
 		});
 	});
 
-	test("52px の 4 行目はボールの手前までの幅で組む", () => {
-		expect(fitTitle({ title: kana({ length: 77 }) }).lines).toEqual([
-			kana({ length: 20 }),
-			kana({ length: 20 }),
-			kana({ length: 20 }),
+	test("60px の 4 行目はボールの手前までの幅で組む", () => {
+		expect(fitTitle({ title: kana({ length: 65 }) }).lines).toEqual([
 			kana({ length: 17 }),
+			kana({ length: 17 }),
+			kana({ length: 17 }),
+			kana({ length: 14 }),
 		]);
 	});
 
-	test("52px で 4 行を超えるなら、4 行目の末尾を「…」で省略する", () => {
-		expect(fitTitle({ title: kana({ length: 78 }) })).toEqual({
-			fontSize: 52,
-			lineHeight: 80,
+	test("60px で 4 行を超えるなら、4 行目の末尾を「…」で省略する", () => {
+		expect(fitTitle({ title: kana({ length: 66 }) })).toEqual({
+			fontSize: 60,
+			lineHeight: 86,
 			lines: [
-				kana({ length: 20 }),
-				kana({ length: 20 }),
-				kana({ length: 20 }),
-				`${kana({ length: 16 })}…`,
+				kana({ length: 17 }),
+				kana({ length: 17 }),
+				kana({ length: 17 }),
+				`${kana({ length: 13 })}…`,
 			],
 		});
 	});
@@ -87,14 +87,14 @@ describe("記事のタイトル", () => {
 			title: "Storm Phaze II と Hyroad Pearl を 3 ゲームずつ投げ比べた",
 		});
 		expect(lines).toEqual([
-			"Storm Phaze II と Hyroad Pearl",
-			"を 3 ゲームずつ投げ比べた",
+			"Storm Phaze II と Hyroad Pearl を",
+			"3 ゲームずつ投げ比べた",
 		]);
 	});
 
 	test("開きかっこは行末に置かない", () => {
-		const { lines } = fitTitle({ title: `${kana({ length: 14 })}「あ」` });
-		expect(lines).toEqual([kana({ length: 14 }), "「あ」"]);
+		const { lines } = fitTitle({ title: `${kana({ length: 11 })}「あ」` });
+		expect(lines).toEqual([kana({ length: 11 }), "「あ」"]);
 	});
 
 	test("全角の空白は和文の 1 字として残す", () => {
@@ -103,12 +103,12 @@ describe("記事のタイトル", () => {
 	});
 
 	test("句読点と閉じかっこは行頭に置かない", () => {
-		const { lines } = fitTitle({ title: `${kana({ length: 15 })}」。のこり` });
-		expect(lines).toEqual([kana({ length: 14 }), "あ」。のこり"]);
+		const { lines } = fitTitle({ title: `${kana({ length: 13 })}」。のこり` });
+		expect(lines).toEqual([kana({ length: 12 }), "あ」。のこり"]);
 	});
 
 	test("1 語で 1 行を超える英数字は字の途中で分ける", () => {
 		const { lines } = fitTitle({ title: "a".repeat(41) });
-		expect(lines).toEqual(["a".repeat(30), "a".repeat(11)]);
+		expect(lines).toEqual(["a".repeat(27), "a".repeat(14)]);
 	});
 });

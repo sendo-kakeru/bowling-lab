@@ -85,18 +85,18 @@ function titleStep({
 }
 
 export const TITLE_STEPS = [
-	titleStep({ fontSize: 84, lineHeight: 112, maxLines: 1 }),
-	titleStep({ fontSize: 68, lineHeight: 96, maxLines: 2 }),
-	titleStep({ fontSize: 52, lineHeight: 80, maxLines: 4 }),
+	titleStep({ fontSize: 96, lineHeight: 124, maxLines: 1 }),
+	titleStep({ fontSize: 76, lineHeight: 104, maxLines: 2 }),
+	titleStep({ fontSize: 60, lineHeight: 86, maxLines: 4 }),
 ] as const satisfies readonly [TextStep, ...TextStep[]];
 
 const SITE_BALL = { cx: 1010, cy: 315, r: 230 } as const;
 const SITE_LEFT = 90;
 const TAGLINE_WIDTH = SITE_BALL.cx - SITE_BALL.r - SITE_LEFT;
 const TAGLINE_STEPS = [
-	{ fontSize: 34, lineHeight: 48, lineWidths: [TAGLINE_WIDTH] },
-	{ fontSize: 28, lineHeight: 40, lineWidths: [TAGLINE_WIDTH] },
-	{ fontSize: 28, lineHeight: 40, lineWidths: [TAGLINE_WIDTH, TAGLINE_WIDTH] },
+	{ fontSize: 44, lineHeight: 60, lineWidths: [TAGLINE_WIDTH] },
+	{ fontSize: 36, lineHeight: 50, lineWidths: [TAGLINE_WIDTH] },
+	{ fontSize: 36, lineHeight: 50, lineWidths: [TAGLINE_WIDTH, TAGLINE_WIDTH] },
 ] as const satisfies readonly [TextStep, ...TextStep[]];
 
 interface Node {
@@ -268,12 +268,12 @@ export async function renderPostOgp({
 		textFont: FONTS.title,
 	});
 	const nameBlock = textBlock({
-		fitted: singleLine({ fontSize: 30, text: siteName }),
+		fitted: singleLine({ fontSize: 36, text: siteName }),
 		textFont: FONTS.siteName,
 	});
 	const dateBlock = textBlock({
 		fitted: singleLine({
-			fontSize: 28,
+			fontSize: 32,
 			text: formatDotDate({ date: publishedAt }),
 		}),
 		style: { color: COLORS.date },
@@ -322,8 +322,8 @@ function splitSiteName({ name }: { name: string }): string[] {
 export async function renderSiteOgp(): Promise<Uint8Array<ArrayBuffer>> {
 	const nameBlock = textBlock({
 		fitted: {
-			fontSize: 84,
-			lineHeight: 88,
+			fontSize: 112,
+			lineHeight: 112,
 			lines: splitSiteName({ name: siteName }),
 		},
 		textFont: FONTS.siteName,
