@@ -1,0 +1,20 @@
+---
+import ErrorPage from "../components/ErrorPage.astro";
+import Base from "../layouts/Base.astro";
+
+/*
+  静的アセットだけを配信しているので、配信側がエラー時にこのページを返すことはない。
+  サーバーで処理する仕組み（Worker のコードや SSR）を入れたときに、エラーの応答として使う。
+*/
+---
+
+<Base
+	description="サーバーでエラーが発生しました。"
+	noindex
+	title="サーバーエラー"
+>
+	<ErrorPage code="500" label="SERVER ERROR">
+		<Fragment slot="lead">サーバーで<wbr>エラーが発生しました</Fragment>
+		<Fragment slot="note"> 時間をおいて、もう一度お試しください。 </Fragment>
+	</ErrorPage>
+</Base>
