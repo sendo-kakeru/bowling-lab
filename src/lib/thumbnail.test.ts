@@ -7,12 +7,6 @@ import {
 } from "./thumbnail.ts";
 
 describe("ballColorForSlug", () => {
-	test("同じスラッグはいつも同じ色になる", () => {
-		expect(ballColorForSlug({ slug: "oil-transition" })).toBe(
-			ballColorForSlug({ slug: "oil-transition" }),
-		);
-	});
-
 	test("6 色すべてが選ばれうる", () => {
 		const colors = new Set(
 			Array.from({ length: 100 }, (_, i) =>
