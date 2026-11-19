@@ -1,3 +1,5 @@
+import { mixHex } from "./svg.ts";
+
 /*
   ボウリングボールの絵。既定のサムネイルと OGP 画像（#48）で使う。
   色は絵の色として扱い、トークンにはしない（CSS からは使わない）。紺はトークンの紺では暗すぎるので明るめにしている
@@ -5,7 +7,7 @@
 
 /** キーの順が記事に色を割り当てる順（thumbnail.ts の ballColorForSlug）。並べ替えると既存の記事の色が変わる */
 // biome-ignore assist/source/useSortedKeys: キーの順に意味があるため
-export const BALL_COLORS = {
+const BALL_COLORS = {
 	navy: "#2c406a",
 	rust: "#b5502f",
 	green: "#2f6b57",
@@ -18,28 +20,6 @@ export type BallColorName = keyof typeof BALL_COLORS;
 
 export const BALL_COLOR_NAMES = Object.keys(BALL_COLORS) as BallColorName[];
 
-/** `#rrggbb` の色に別の色を ratio の割合で混ぜる */
-export function mixHex({
-	base,
-	other,
-	ratio,
-}: {
-	base: string;
-	other: string;
-	ratio: number;
-}): string {
-	const channels = (hex: string): number[] =>
-		[1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16));
-	const others = channels(other);
-	return `#${channels(base)
-		.map((c, i) =>
-			Math.round(c + ((others[i] ?? c) - c) * ratio)
-				.toString(16)
-				.padStart(2, "0"),
-		)
-		.join("")}`;
-}
-
 /** 指穴。ボールの中心からの位置と半径を、ボールの半径に対する比で持つ */
 const HOLES = [
 	{ dx: -0.22, dy: -0.28, r: 0.085 },
@@ -50,19 +30,6 @@ const HOLES = [
 /** 座標の浮動小数の誤差（35.840000000000003 など）を SVG に出さない */
 function round({ value }: { value: number }): number {
 	return Math.round(value * 100) / 100;
-}
-
-/** SVG の断片を、それだけで開ける `<svg>` の文書にする（配信するファイルや data URI の画像） */
-export function svgDocument({
-	width,
-	height,
-	content,
-}: {
-	width: number;
-	height: number;
-	content: string;
-}): string {
-	return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${content}</svg>`;
 }
 
 /**

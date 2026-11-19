@@ -1,15 +1,14 @@
 import { describe, expect, test } from "vitest";
 import {
-	decideThumbnail,
 	imageUrl,
 	parseMediaRef,
 	toEyecatchImage,
 	toImageAttributes,
-	toThumbnailImage,
 	toVideoAttributes,
 	videoUrl,
 } from "./media.ts";
 import type { MediaManifest } from "./media-manifest.ts";
+import { decideThumbnail, toThumbnailImage } from "./thumbnail.ts";
 
 const ORIGIN = "https://bowling-media.sendo.page";
 

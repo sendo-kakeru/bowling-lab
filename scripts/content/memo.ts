@@ -1,22 +1,22 @@
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
+import { MEMO_DIR } from "../../src/consts.ts";
+import { errorMessage } from "../../src/lib/error.ts";
+import { ROOT } from "../root.ts";
 import {
-	MEMO_DIR,
 	type MemoChange,
 	type MemoFile,
 	planAddNote,
 	planNewMemo,
 } from "./memo-plan.ts";
 
-const ROOT = path.resolve(import.meta.dirname, "../..");
-
 const memoPath = ({ id }: { id: string }): string => `${MEMO_DIR}/${id}.md`;
 
 try {
 	await main();
 } catch (error) {
-	console.error(error instanceof Error ? error.message : String(error));
+	console.error(errorMessage({ error }));
 	process.exitCode = 1;
 }
 

@@ -1,4 +1,4 @@
-import { mixHex } from "./ball-svg.ts";
+import { mixHex } from "./svg.ts";
 import { TOKEN_COLORS } from "./token-colors.ts";
 
 /*

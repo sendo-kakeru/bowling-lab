@@ -30,7 +30,7 @@ export const LEGAL_NAV = [
 
 const TRAILING_SLASH = /\/$/;
 
-function trimPath(pathname: string): string {
+function trimPath({ pathname }: { pathname: string }): string {
 	return pathname.replace(TRAILING_SLASH, "") || "/";
 }
 
@@ -42,8 +42,8 @@ function navCurrent({
 	url: string;
 	pathname: string;
 }): NavLink["current"] {
-	const path = trimPath(url);
-	const currentPath = trimPath(pathname);
+	const path = trimPath({ pathname: url });
+	const currentPath = trimPath({ pathname });
 	if (path === currentPath) return "page";
 	if (path !== "/" && currentPath.startsWith(`${path}/`)) return "true";
 	return undefined;

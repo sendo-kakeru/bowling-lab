@@ -23,6 +23,26 @@ export class MemoParseError extends Error {
 	}
 }
 
+/** parse が投げた MemoParseError を、ファイルのパスと行番号を頭に付けた Error にして投げ直す */
+export function withMemoFilePath<T>({
+	filePath,
+	parse,
+}: {
+	filePath: string;
+	parse: () => T;
+}): T {
+	try {
+		return parse();
+	} catch (error) {
+		if (error instanceof MemoParseError) {
+			throw new Error(`${filePath}:${error.line} ${error.message}`, {
+				cause: error,
+			});
+		}
+		throw error;
+	}
+}
+
 // 日付で始まる h2 は区切りの打ち間違いとみなす。黙って前の書き込みの本文に混ざるのを防ぐ
 const MISTYPED_HEADING_PATTERN = /^## +\d{4}-/;
 

@@ -1,11 +1,12 @@
 import satori, { type Font } from "satori";
 import sharp from "sharp";
 import { SITE_TAGLINE, SITE_TITLE } from "../consts.ts";
-import { type BallColorName, ballSvg, svgDocument } from "./ball-svg.ts";
+import { type BallColorName, ballSvg } from "./ball-svg.ts";
 import { formatDotDate } from "./date.ts";
 import { createMeasure, satoriFonts, type TextFont } from "./ogp-fonts.ts";
 import { type FittedText, fitText, type TextStep } from "./ogp-text.ts";
 import { pinSvg } from "./pin-svg.ts";
+import { svgDocument } from "./svg.ts";
 import { TOKEN_COLORS } from "./token-colors.ts";
 
 /*
