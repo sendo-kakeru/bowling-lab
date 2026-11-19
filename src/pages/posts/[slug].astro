@@ -5,9 +5,9 @@ import Breadcrumb from "../../components/Breadcrumb.astro";
 import Card from "../../components/Card.astro";
 import TableOfContents from "../../components/post/TableOfContents.astro";
 import Base from "../../layouts/Base.astro";
-import { formatDotDate, formatIsoDate } from "../../utils/date";
-import { getPosts } from "../../utils/get-posts";
-import { toImageAttributes } from "../../utils/media";
+import { formatDotDate, formatIsoDate } from "../../lib/date";
+import { getPosts } from "../../lib/get-posts";
+import { toImageAttributes } from "../../lib/media";
 
 export const getStaticPaths = (async () => {
 	const posts = await getPosts();

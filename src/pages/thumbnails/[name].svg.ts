@@ -1,6 +1,6 @@
 import type { APIRoute, GetStaticPaths } from "astro";
-import { BALL_COLOR_NAMES, type BallColorName } from "../../utils/ball-svg";
-import { ballThumbnailName, ballThumbnailSvg } from "../../utils/thumbnail";
+import { BALL_COLOR_NAMES, type BallColorName } from "../../lib/ball-svg";
+import { ballThumbnailName, ballThumbnailSvg } from "../../lib/thumbnail";
 
 export const getStaticPaths = (() =>
 	BALL_COLOR_NAMES.map((color) => ({

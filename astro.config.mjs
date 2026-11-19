@@ -3,10 +3,10 @@
 import { satteri } from "@astrojs/markdown-satteri";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig, fontProviders } from "astro/config";
-import { embedPlugin } from "./src/utils/embed.ts";
-import { getMediaManifest } from "./src/utils/media-manifest.ts";
-import { createMediaPlugin } from "./src/utils/media-plugin.ts";
-import { tablePlugin } from "./src/utils/table-plugin.ts";
+import { embedPlugin } from "./src/lib/embed.ts";
+import { getMediaManifest } from "./src/lib/media-manifest.ts";
+import { createMediaPlugin } from "./src/lib/media-plugin.ts";
+import { tablePlugin } from "./src/lib/table-plugin.ts";
 
 // https://astro.build/config
 export default defineConfig({

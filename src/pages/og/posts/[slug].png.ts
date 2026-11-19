@@ -1,7 +1,7 @@
 import type { APIRoute, GetStaticPaths, InferGetStaticPropsType } from "astro";
-import { getPosts } from "../../../utils/get-posts";
-import { renderPostOgp } from "../../../utils/ogp";
-import { ballColorForSlug } from "../../../utils/thumbnail";
+import { getPosts } from "../../../lib/get-posts";
+import { renderPostOgp } from "../../../lib/ogp";
+import { ballColorForSlug } from "../../../lib/thumbnail";
 
 export const getStaticPaths = (async () => {
 	const posts = await getPosts();

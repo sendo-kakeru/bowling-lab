@@ -1,7 +1,7 @@
 import type { Hash } from "node:crypto";
 import { glob, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { MediaManifest } from "../../src/utils/media-manifest.ts";
+import type { MediaManifest } from "../../src/lib/media-manifest.ts";
 
 export type ImageFormat = "jpeg" | "png";
 

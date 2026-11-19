@@ -2,7 +2,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import {
 	type MediaManifest,
 	parseMediaManifest,
-} from "../../src/utils/media-manifest.ts";
+} from "../../src/lib/media-manifest.ts";
 
 export async function readManifest({
 	filePath,

@@ -211,7 +211,7 @@
 		background: var(--color-ink-900);
 	}
 
-	/* 表は本文の幅いっぱいに広げ、超えたら枠（src/utils/table-plugin.ts）の中で横にスクロールさせる */
+	/* 表は本文の幅いっぱいに広げ、超えたら枠（src/lib/table-plugin.ts）の中で横にスクロールさせる */
 	.prose .table-scroll {
 		overflow-x: auto;
 	}
@@ -255,7 +255,7 @@
 			center / 100% 100% no-repeat;
 	}
 
-	/* URL だけの行から作った埋め込み（src/utils/embed.ts）。比率を保つ枠に iframe を広げる */
+	/* URL だけの行から作った埋め込み（src/lib/embed.ts）。比率を保つ枠に iframe を広げる */
 	.prose .embed {
 		display: grid;
 		overflow: hidden;
