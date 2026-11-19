@@ -5,7 +5,7 @@
 
 /** キーの順が記事に色を割り当てる順（thumbnail.ts の ballColorForSlug）。並べ替えると既存の記事の色が変わる */
 // biome-ignore assist/source/useSortedKeys: キーの順に意味があるため
-export const BALL_COLORS = {
+const BALL_COLORS = {
 	navy: "#2c406a",
 	rust: "#b5502f",
 	green: "#2f6b57",
