@@ -130,21 +130,17 @@ describe("toImageAttributes", () => {
 });
 
 describe("toEyecatchImage", () => {
-	test("768px 以上は 5:2、未満は 16:9 に切り抜き、それぞれの表示幅の sizes を付ける", () => {
-		const { img, sources } = toEyecatchImage({
+	test("wide は 5:2、narrow は 16:9 に切り抜き、src と寸法はいちばん大きな候補", () => {
+		const { narrow, wide } = toEyecatchImage({
 			image: { height: 1600, key: "images/a.jpg", width: 2400 },
 		});
 
-		expect(sources).toHaveLength(1);
-		const [wide] = sources;
 		expect(wide).toMatchObject({
 			height: 845,
-			media: "(width >= 768px)",
-			sizes:
-				"(width >= 1280px) 1056px, (width >= 1024px) calc(100vw - 200px), calc(100vw - 170px)",
+			src: url("width=2112,height=845,fit=cover"),
 			width: 2112,
 		});
-		expect(candidates({ srcset: wide?.srcset ?? "" })).toEqual([
+		expect(candidates({ srcset: wide.srcset })).toEqual([
 			"width=640,height=256,fit=cover 640w",
 			"width=840,height=336,fit=cover 840w",
 			"width=1056,height=422,fit=cover 1056w",
@@ -153,13 +149,12 @@ describe("toEyecatchImage", () => {
 			"width=2112,height=845,fit=cover 2112w",
 		]);
 
-		expect(img).toMatchObject({
+		expect(narrow).toMatchObject({
 			height: 810,
-			sizes: "calc(91.41vw - 24px)",
-			src: url("width=360,height=203,fit=cover"),
+			src: url("width=1440,height=810,fit=cover"),
 			width: 1440,
 		});
-		expect(candidates({ srcset: img.srcset })).toEqual([
+		expect(candidates({ srcset: narrow.srcset })).toEqual([
 			"width=360,height=203,fit=cover 360w",
 			"width=720,height=405,fit=cover 720w",
 			"width=1080,height=608,fit=cover 1080w",
@@ -169,26 +164,34 @@ describe("toEyecatchImage", () => {
 
 	test("マスターから切り出せるいちばん大きな切り抜きで頭打ちにする", () => {
 		// 横長すぎて、高さ 400px からは 5:2 で幅 1000px までしか切り出せない
-		const { sources } = toEyecatchImage({
+		const { wide } = toEyecatchImage({
 			image: { height: 400, key: "images/a.jpg", width: 2400 },
 		});
 
-		expect(candidates({ srcset: sources[0]?.srcset ?? "" })).toEqual([
+		expect(candidates({ srcset: wide.srcset })).toEqual([
 			"width=640,height=256,fit=cover 640w",
 			"width=840,height=336,fit=cover 840w",
 			"width=1000,height=400,fit=cover 1000w",
 		]);
-		expect(sources[0]).toMatchObject({ height: 400, width: 1000 });
+		expect(wide).toMatchObject({
+			height: 400,
+			src: url("width=1000,height=400,fit=cover"),
+			width: 1000,
+		});
 	});
 });
 
 describe("toThumbnailImage", () => {
-	test("2.2:1 の切り抜きを 224 / 352 / 528 / 768 で出し、src はいちばん大きな候補", () => {
-		const { src, srcset } = toThumbnailImage({
+	test("2.2:1 の切り抜きを 224 / 352 / 528 / 768 で出し、src と寸法はいちばん大きな候補", () => {
+		const { srcset, ...rest } = toThumbnailImage({
 			image: { height: 1600, key: "images/a.jpg", width: 2400 },
 		});
 
-		expect(src).toBe(url("width=768,height=349,fit=cover"));
+		expect(rest).toEqual({
+			height: 349,
+			src: url("width=768,height=349,fit=cover"),
+			width: 768,
+		});
 		expect(candidates({ srcset })).toEqual([
 			"width=224,height=102,fit=cover 224w",
 			"width=352,height=160,fit=cover 352w",

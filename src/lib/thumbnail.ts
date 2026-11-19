@@ -4,7 +4,12 @@ import {
 	ballSvg,
 	svgDocument,
 } from "./ball-svg.ts";
-import { THUMBNAIL_CROP, type Thumbnail, toThumbnailImage } from "./media.ts";
+import {
+	type CroppedImage,
+	THUMBNAIL_SIZE,
+	type Thumbnail,
+	toThumbnailImage,
+} from "./media.ts";
 import { TOKEN_COLORS } from "./token-colors.ts";
 
 const FNV_OFFSET_BASIS = 0x811c9dc5;
@@ -36,7 +41,7 @@ export function ballThumbnailName({ color }: { color: BallColorName }): string {
  * Storybook は静的エンドポイントを配信しないので、.storybook/main.ts もこれで同じ URL に出す
  */
 export function ballThumbnailSvg({ color }: { color: BallColorName }): string {
-	const { width, height } = THUMBNAIL_CROP;
+	const { width, height } = THUMBNAIL_SIZE;
 	const ball = ballSvg({
 		color,
 		cx: width / 2,
@@ -51,7 +56,7 @@ export function ballThumbnailSvg({ color }: { color: BallColorName }): string {
 }
 
 /**
- * サムネイルの src と srcset。メディアは変換配信の URL（絶対）、既定の画像は記事の色のボールの SVG のサイト内の相対 URL で、srcset はない
+ * サムネイルの画像。メディアは変換配信の URL（絶対）、既定の画像は記事の色のボールの SVG のサイト内の相対 URL で、srcset はない
  */
 export function getThumbnailImage({
 	thumbnail,
@@ -59,10 +64,13 @@ export function getThumbnailImage({
 }: {
 	thumbnail: Thumbnail;
 	slug: string;
-}): { src: string; srcset?: string } {
+}): Omit<CroppedImage, "srcset"> & { srcset?: string } {
 	if (thumbnail.source === "default") {
 		const color = ballColorForSlug({ slug });
-		return { src: `/thumbnails/${ballThumbnailName({ color })}.svg` };
+		return {
+			...THUMBNAIL_SIZE,
+			src: `/thumbnails/${ballThumbnailName({ color })}.svg`,
+		};
 	}
 	return toThumbnailImage({ image: thumbnail.image });
 }

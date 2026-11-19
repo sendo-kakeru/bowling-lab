@@ -79,6 +79,16 @@ interface Aspect {
 	height: number;
 }
 
+function cropHeight({
+	aspect,
+	width,
+}: {
+	aspect: Aspect;
+	width: number;
+}): number {
+	return Math.round((width * aspect.height) / aspect.width);
+}
+
 interface CropCandidate {
 	url: string;
 	width: number;
@@ -102,7 +112,7 @@ function cropCandidates({
 		Math.min(width, (height * aspect.width) / aspect.height),
 	);
 	return capWidths({ max, widths }).map((w) => {
-		const h = Math.round((w * aspect.height) / aspect.width);
+		const h = cropHeight({ aspect, width: w });
 		return { height: h, url: imageUrl({ height: h, key, width: w }), width: w };
 	});
 }
@@ -251,107 +261,88 @@ export function decideThumbnail({
 	return { image: toStillImage({ entry }), source: "body" };
 }
 
+/** 切り抜きの縦横比と幅の候補。表示幅（sizes）は、表示する側の CSS の隣に書く */
 interface CropRule {
 	aspect: Aspect;
-	sizes: string;
 	widths: readonly number[];
 }
 
 /**
- * 記事冒頭の画像（アイキャッチ）の切り抜き。768px 以上は 5:2、未満は 16:9（src/pages/posts/[slug].astro の CSS）。
- * sizes は同じファイルの CSS から求めた表示幅で、少し大きめに見積もる。
- * Safari は sizes の min() / max() を読めず全体を 100vw として扱うので、calc() とメディア条件だけで書く。
- * 幅の候補は、各ブレークポイントの 1x / 2x の表示幅（768px で 598、1024px で 824、1280px 以上で 1056、スマホで 319〜677）を少し上回るように選んだ
+ * 縦横比で切り抜いた画像。src はいちばん大きな候補で、srcset を読まない環境でもぼけない。
+ * width / height もいちばん大きな候補の寸法。CSS で幅を決めるので、縦横比を伝えるためだけに使う
  */
-const EYECATCH_CROPS = {
-	img: {
-		aspect: { height: 9, width: 16 },
-		sizes: "calc(91.41vw - 24px)",
-		widths: [360, 720, 1080, 1440],
-	},
-	sources: [
-		{
-			aspect: { height: 2, width: 5 },
-			media: "(width >= 768px)",
-			sizes:
-				"(width >= 1280px) 1056px, (width >= 1024px) calc(100vw - 200px), calc(100vw - 170px)",
-			widths: [640, 840, 1056, 1280, 1680, 2112],
-		},
-	],
-} as const satisfies {
-	img: CropRule;
-	sources: readonly (CropRule & { media: string })[];
-};
-
-interface ResponsiveImage {
+export interface CroppedImage {
 	src: string;
 	srcset: string;
-	sizes: string;
-	/** いちばん大きな候補の寸法。CSS で幅を決めるので、縦横比を伝えるためだけに使う */
 	width: number;
 	height: number;
 }
 
-type ResponsiveSource = Omit<ResponsiveImage, "src"> & { media: string };
-
-function toResponsiveImage({
+function toCroppedImage({
 	image,
-	rule: { aspect, sizes, widths },
+	rule: { aspect, widths },
 }: {
 	image: StillImage;
 	rule: CropRule;
-}): ResponsiveImage {
+}): CroppedImage {
 	const candidates = cropCandidates({ aspect, image, widths });
-	const [smallest] = candidates;
 	const largest = candidates.at(-1);
-	if (smallest === undefined || largest === undefined) {
-		throw new Error("切り抜きの候補がない");
-	}
+	if (largest === undefined) throw new Error("切り抜きの候補がない");
 	return {
 		height: largest.height,
-		sizes,
-		src: smallest.url,
+		src: largest.url,
 		srcset: toSrcset({ candidates }),
 		width: largest.width,
 	};
 }
 
-/** アイキャッチの `<picture>` の中身。どの `<source>` の media にも当たらなければ img の切り抜き */
-export function toEyecatchImage({ image }: { image: StillImage }): {
-	img: ResponsiveImage;
-	sources: ResponsiveSource[];
-} {
+/**
+ * 記事冒頭の画像（アイキャッチ）の切り抜き。768px 以上は wide（5:2）、未満は narrow（16:9）。
+ * 幅の候補は、各ブレークポイントの 1x / 2x の表示幅（768px で 598、1024px で 824、1280px 以上で 1056、スマホで 319〜677）を少し上回るように選んだ。
+ * 表示幅は src/pages/posts/[slug].astro の CSS
+ */
+const EYECATCH_CROPS = {
+	narrow: { aspect: { height: 9, width: 16 }, widths: [360, 720, 1080, 1440] },
+	wide: {
+		aspect: { height: 2, width: 5 },
+		widths: [640, 840, 1056, 1280, 1680, 2112],
+	},
+} as const satisfies Record<string, CropRule>;
+
+export type EyecatchImage = Record<keyof typeof EYECATCH_CROPS, CroppedImage>;
+
+export function toEyecatchImage({
+	image,
+}: {
+	image: StillImage;
+}): EyecatchImage {
 	return {
-		img: toResponsiveImage({ image, rule: EYECATCH_CROPS.img }),
-		sources: EYECATCH_CROPS.sources.map((rule) => {
-			const { src: _, ...source } = toResponsiveImage({ image, rule });
-			return { ...source, media: rule.media };
-		}),
+		narrow: toCroppedImage({ image, rule: EYECATCH_CROPS.narrow }),
+		wide: toCroppedImage({ image, rule: EYECATCH_CROPS.wide }),
 	};
 }
 
 /**
- * 記事カードのサムネイルの切り抜き（約 2.2:1）。width / height はいちばん大きな候補で、ホームのタイルのいちばん広い枠（約 375 × 160px）の 2 倍。
- * 枠ごとの表示幅は PostCard.astro の sizes。224 はスマホの 96px 角の枠（object-fit: cover で 96 × 2.2 ≒ 212px 幅の切り抜きが要る）用
+ * 記事カードのサムネイルの切り抜き（2.2:1）。いちばん大きな候補は、ホームのタイルのいちばん広い枠（約 375 × 160px）の 2 倍。
+ * 224 はスマホの 96px 角の枠（object-fit: cover で 96 × 2.2 ≒ 212px 幅の切り抜きが要る）用。枠ごとの表示幅は PostCard.astro の sizes
  */
-export const THUMBNAIL_CROP = {
-	height: 349,
-	width: 768,
+const THUMBNAIL_CROP = {
+	aspect: { height: 5, width: 11 },
 	widths: [224, 352, 528, 768],
-} as const;
+} as const satisfies CropRule;
 
-/** サムネイルの src と srcset。src はいちばん大きな候補 */
-export function toThumbnailImage({ image }: { image: StillImage }): {
-	src: string;
-	srcset: string;
-} {
-	const { width, height, widths } = THUMBNAIL_CROP;
-	const candidates = cropCandidates({
-		aspect: { height, width },
-		image,
-		widths,
-	});
-	const largest = candidates.at(-1);
-	if (largest === undefined) throw new Error("切り抜きの候補がない");
-	return { src: largest.url, srcset: toSrcset({ candidates }) };
+const THUMBNAIL_WIDTH = Math.max(...THUMBNAIL_CROP.widths);
+
+/** サムネイルの寸法（いちばん大きな候補）。既定の画像（ボールの SVG）もこの大きさにする */
+export const THUMBNAIL_SIZE = {
+	height: cropHeight({ aspect: THUMBNAIL_CROP.aspect, width: THUMBNAIL_WIDTH }),
+	width: THUMBNAIL_WIDTH,
+};
+
+export function toThumbnailImage({
+	image,
+}: {
+	image: StillImage;
+}): CroppedImage {
+	return toCroppedImage({ image, rule: THUMBNAIL_CROP });
 }

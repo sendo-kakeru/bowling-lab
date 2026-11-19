@@ -2,7 +2,6 @@
 import type { HTMLAttributes } from "astro/types";
 import { formatDotDate, formatIsoDate } from "../lib/date";
 import type { Post } from "../lib/get-posts";
-import { THUMBNAIL_CROP } from "../lib/media";
 import { getThumbnailImage } from "../lib/thumbnail";
 import Card from "./Card.astro";
 
@@ -33,11 +32,10 @@ const {
 } = Astro.props;
 
 const Heading = `h${headingLevel}` as const;
-const { src, srcset } = getThumbnailImage({
+const { src, srcset, width, height } = getThumbnailImage({
 	slug: post.slug,
 	thumbnail: post.thumbnail,
 });
-const { width, height } = THUMBNAIL_CROP;
 /**
  * 画像の枠ごとに要る切り抜きの幅（下の CSS）。object-fit: cover で高さに合わせて切るので、
  * 枠の幅と「枠の高さ × 2.2」の大きいほう。スマホの 96px 角は 212px、一覧の 200 × 120px は 264px、
