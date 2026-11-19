@@ -3,7 +3,6 @@ import {
 	decideThumbnail,
 	imageUrl,
 	parseMediaRef,
-	srcsetWidths,
 	toImageAttributes,
 	toVideoAttributes,
 	videoUrl,
@@ -75,24 +74,34 @@ describe("parseMediaRef", () => {
 	});
 });
 
-describe("srcsetWidths", () => {
-	test("マスターがすべての候補より大きければ、候補をそのまま出す", () => {
-		expect(srcsetWidths({ width: 2400 })).toEqual([
-			192, 480, 760, 1136, 1520, 2272,
+const url = (options: string): string =>
+	`${ORIGIN}/cdn-cgi/image/${options},format=auto/images/a.jpg`;
+
+/** srcset の候補を「変換のオプション 幅の記述子」の形にする */
+function candidates({ srcset }: { srcset: string }): string[] {
+	return srcset.split(", ").map((candidate) => {
+		const [, options] = /\/cdn-cgi\/image\/([^/]+),format=auto\//.exec(
+			candidate,
+		) ?? [undefined, ""];
+		return `${options} ${candidate.split(" ").at(-1)}`;
+	});
+}
+
+describe("toImageAttributes", () => {
+	test("本文の幅の候補は 480 / 760 / 1136 / 1520", () => {
+		const { srcset } = toImageAttributes({
+			image: { height: 1600, key: "images/a.jpg", width: 2400 },
+		});
+
+		expect(candidates({ srcset: String(srcset) })).toEqual([
+			"width=480 480w",
+			"width=760 760w",
+			"width=1136 1136w",
+			"width=1520 1520w",
 		]);
 	});
 
 	test("マスターを超える候補は、マスターの幅にまとめる", () => {
-		expect(srcsetWidths({ width: 1000 })).toEqual([192, 480, 760, 1000]);
-	});
-
-	test("どの候補より小さいマスターは、その幅だけ", () => {
-		expect(srcsetWidths({ width: 150 })).toEqual([150]);
-	});
-});
-
-describe("toImageAttributes", () => {
-	test("src は本文の表示幅で、srcset に含まれる", () => {
 		const attributes = toImageAttributes({
 			image: { height: 427, key: "images/a.jpg", width: 640 },
 		});
@@ -102,15 +111,18 @@ describe("toImageAttributes", () => {
 			height: 427,
 			loading: "lazy",
 			sizes: "(width >= 760px) 760px, 100vw",
-			src: `${ORIGIN}/cdn-cgi/image/width=640,format=auto/images/a.jpg`,
-			srcset: [192, 480, 640]
-				.map(
-					(w) =>
-						`${ORIGIN}/cdn-cgi/image/width=${w},format=auto/images/a.jpg ${w}w`,
-				)
-				.join(", "),
+			src: url("width=640"),
+			srcset: `${url("width=480")} 480w, ${url("width=640")} 640w`,
 			width: 640,
 		});
+	});
+
+	test("どの候補より小さいマスターは、その幅だけ", () => {
+		const { srcset } = toImageAttributes({
+			image: { height: 100, key: "images/a.jpg", width: 150 },
+		});
+
+		expect(candidates({ srcset: String(srcset) })).toEqual(["width=150 150w"]);
 	});
 });
 

@@ -60,14 +60,29 @@ export function videoUrl({ key }: { key: string }): string {
 /** 本文の表示幅（--layout-content-width）。CSS ピクセル */
 const CONTENT_WIDTH = 760;
 
-const SRCSET_WIDTHS = [192, 480, 760, 1136, 1520, 2272] as const;
+/** 本文の画像の srcset の幅。1520 は本文の表示幅の 2 倍 */
+const BODY_WIDTHS = [480, 760, 1136, 1520] as const;
 
 /**
- * srcset に出す幅。候補をマスターの幅で頭打ちにして重複を除く。
+ * 候補の幅を上限で頭打ちにして重複を除く。
  * 超える候補を捨てるだけだと、幅 1000px のマスターが 760px までしか配信されないため
  */
-export function srcsetWidths({ width }: { width: number }): number[] {
-	return [...new Set(SRCSET_WIDTHS.map((w) => Math.min(w, width)))];
+function capWidths({
+	widths,
+	max,
+}: {
+	widths: readonly number[];
+	max: number;
+}): number[] {
+	return [...new Set(widths.map((w) => Math.min(w, max)))];
+}
+
+function toSrcset({
+	candidates,
+}: {
+	candidates: readonly { url: string; width: number }[];
+}): string {
+	return candidates.map(({ url, width }) => `${url} ${width}w`).join(", ");
 }
 
 /** 静止画として出すもの。動画ならポスター画像に動画の寸法を付ける */
@@ -103,9 +118,12 @@ export function toImageAttributes({
 		loading,
 		sizes: `(width >= ${CONTENT_WIDTH}px) ${CONTENT_WIDTH}px, 100vw`,
 		src: imageUrl({ key, width: Math.min(CONTENT_WIDTH, width) }),
-		srcset: srcsetWidths({ width })
-			.map((w) => `${imageUrl({ key, width: w })} ${w}w`)
-			.join(", "),
+		srcset: toSrcset({
+			candidates: capWidths({ max: width, widths: BODY_WIDTHS }).map((w) => ({
+				url: imageUrl({ key, width: w }),
+				width: w,
+			})),
+		}),
 		width,
 	};
 }

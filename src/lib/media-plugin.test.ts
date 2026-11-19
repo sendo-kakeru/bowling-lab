@@ -46,7 +46,7 @@ describe("createMediaPlugin", () => {
 
 		const url = (width: number): string =>
 			`${ORIGIN}/cdn-cgi/image/width=${width},format=auto/images/2026/kyoto/cat.a1b2c3.jpg`;
-		const srcset = [192, 480, 760, 1136, 1520, 2272]
+		const srcset = [480, 760, 1136, 1520]
 			.map((width) => `${url(width)} ${width}w`)
 			.join(", ");
 		expect(html).toContain(
