@@ -5,6 +5,7 @@ import { type BallColorName, ballSvg, svgDocument } from "./ball-svg.ts";
 import { formatDotDate } from "./date.ts";
 import { createMeasure, satoriFonts, type TextFont } from "./ogp-fonts.ts";
 import { type FittedText, fitText, type TextStep } from "./ogp-text.ts";
+import { pinSvg } from "./pin-svg.ts";
 import { TOKEN_COLORS } from "./token-colors.ts";
 
 /*
@@ -90,8 +91,14 @@ export const TITLE_STEPS = [
 	titleStep({ fontSize: 60, lineHeight: 86, maxLines: 4 }),
 ] as const satisfies readonly [TextStep, ...TextStep[]];
 
-const SITE_BALL = { cx: 1010, cy: 315, r: 230 } as const;
+/** 共通の画像の絵。奥から順に描く */
+const SITE_PINS = [
+	{ cx: 1085, height: 330, id: "back", top: 150 },
+	{ cx: 995, height: 310, id: "front", top: 175 },
+] as const;
+const SITE_BALL = { cx: 850, cy: 410, r: 165 } as const;
 const SITE_LEFT = 90;
+/** タグラインはボールの左端より左に収める */
 const TAGLINE_WIDTH = SITE_BALL.cx - SITE_BALL.r - SITE_LEFT;
 const TAGLINE_STEPS = [
 	{ fontSize: 44, lineHeight: 60, lineWidths: [TAGLINE_WIDTH] },
@@ -174,34 +181,28 @@ function singleLine({
 	return { fontSize, lineHeight: Math.round(fontSize * 1.25), lines: [text] };
 }
 
-/** ボールの SVG を data URI の画像にして置く。画面の外にはみ出した分は切れる */
-function ball({
-	cx,
-	cy,
-	r,
-	color,
+/**
+ * SVG の断片を data URI の画像にして、(left, top) から width×height の範囲に置く。断片はその範囲の左上を原点に書く。
+ * 画面の外にはみ出した分は切れる
+ */
+function picture({
+	content,
+	left = 0,
+	top = 0,
+	width = WIDTH,
+	height = HEIGHT,
 }: {
-	cx: number;
-	cy: number;
-	r: number;
-	color: BallColorName;
+	content: string;
+	left?: number;
+	top?: number;
+	width?: number;
+	height?: number;
 }): Node {
-	const size = r * 2;
-	const svg = svgDocument({
-		content: ballSvg({ color, cx: r, cy: r, r }),
-		height: size,
-		width: size,
-	});
+	const svg = svgDocument({ content, height, width });
 	return {
 		props: {
 			src: `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`,
-			style: {
-				height: size,
-				left: cx - r,
-				position: "absolute",
-				top: cy - r,
-				width: size,
-			},
+			style: { height, left, position: "absolute", top, width },
 		},
 		type: "img",
 	};
@@ -281,6 +282,18 @@ export async function renderPostOgp({
 	});
 	const root = canvas({
 		children: [
+			picture({
+				content: ballSvg({
+					color,
+					cx: POST_BALL.r,
+					cy: POST_BALL.r,
+					r: POST_BALL.r,
+				}),
+				height: POST_BALL.r * 2,
+				left: POST_BALL.cx - POST_BALL.r,
+				top: POST_BALL.cy - POST_BALL.r,
+				width: POST_BALL.r * 2,
+			}),
 			titleBlock.node,
 			div({
 				style: {
@@ -305,7 +318,6 @@ export async function renderPostOgp({
 					width: 780,
 				},
 			}),
-			ball({ color, ...POST_BALL }),
 		],
 	});
 	return renderPng({ blocks: [titleBlock, nameBlock, dateBlock], root });
@@ -339,6 +351,11 @@ export async function renderSiteOgp(): Promise<Uint8Array<ArrayBuffer>> {
 	});
 	const root = canvas({
 		children: [
+			picture({
+				content:
+					SITE_PINS.map((pin) => pinSvg(pin)).join("") +
+					ballSvg({ color: "navy", ...SITE_BALL }),
+			}),
 			div({
 				children: [nameBlock.node, taglineBlock.node],
 				style: {
@@ -350,7 +367,6 @@ export async function renderSiteOgp(): Promise<Uint8Array<ArrayBuffer>> {
 					top: 0,
 				},
 			}),
-			ball({ color: "navy", ...SITE_BALL }),
 		],
 	});
 	return renderPng({ blocks: [nameBlock, taglineBlock], root });
