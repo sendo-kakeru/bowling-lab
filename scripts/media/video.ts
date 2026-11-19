@@ -54,12 +54,20 @@ export function isHdr({ probe }: { probe: Probe }): boolean {
 }
 
 /**
- * HDR を SDR（BT.709）に変換する。Homebrew の ffmpeg には zscale も libplacebo もないので、
- * macOS の VideoToolbox（scale_vt）で変換する。回転はソフトウェアで済ませてから GPU に渡す
+ * 長辺 1920px（フル HD）に収める。本文の表示幅は最大 760px なので、高精細な画面の全画面再生でも足りる。
+ * 動画は配信時に変換しないので、閲覧者に届く重さはここでしか減らせない。小さい動画は拡大しない
  */
-const HDR_TO_SDR_ARGS = [
-	"-vf",
-	"format=p010le,hwupload,scale_vt=color_matrix=bt709:color_primaries=bt709:color_transfer=bt709,hwdownload,format=p010le",
+const SCALE_FILTER =
+	"scale=w='min(1920,iw)':h='min(1920,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2";
+
+/**
+ * HDR を SDR（BT.709）に変換する。Homebrew の ffmpeg には zscale も libplacebo もないので、
+ * macOS の VideoToolbox（scale_vt）で変換する。回転と縮小はソフトウェアで済ませてから GPU に渡す
+ */
+const HDR_TO_SDR_FILTER =
+	"format=p010le,hwupload,scale_vt=color_matrix=bt709:color_primaries=bt709:color_transfer=bt709,hwdownload,format=p010le";
+
+const BT709_TAG_ARGS = [
 	"-color_primaries",
 	"bt709",
 	"-color_trc",
@@ -119,7 +127,9 @@ export async function processVideoItem({
 			"23",
 			"-preset",
 			"medium",
-			...(hdr ? HDR_TO_SDR_ARGS : []),
+			"-vf",
+			hdr ? `${SCALE_FILTER},${HDR_TO_SDR_FILTER}` : SCALE_FILTER,
+			...(hdr ? BT709_TAG_ARGS : []),
 			"-pix_fmt",
 			"yuv420p",
 			"-c:a",
