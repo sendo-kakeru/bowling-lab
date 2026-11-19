@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { MAIN_NAV, withCurrent } from "./nav";
+import { describe, expect, test } from "vitest";
+import { MAIN_NAV, withCurrent } from "./nav.ts";
 
 function currentOf({ url, path }: { url: string; path: string }) {
 	const [link] = withCurrent({
@@ -10,7 +10,7 @@ function currentOf({ url, path }: { url: string; path: string }) {
 }
 
 describe("withCurrent", () => {
-	it.each([
+	test.each([
 		{ path: "/posts", url: "/posts" },
 		{ path: "/posts/", url: "/posts" },
 		{ path: "/posts", url: "/posts/" },
@@ -20,14 +20,14 @@ describe("withCurrent", () => {
 		expect(currentOf({ path, url })).toBe("page");
 	});
 
-	it.each([
+	test.each([
 		{ path: "/posts/hello", url: "/posts" },
 		{ path: "/posts/hello", url: "/posts/" },
 	])("$path で $url は親の区分", ({ url, path }) => {
 		expect(currentOf({ path, url })).toBe("true");
 	});
 
-	it.each([
+	test.each([
 		{ path: "/posts", url: "/", why: "ホームは親の区分にならない" },
 		{
 			path: "/posts",
@@ -38,7 +38,7 @@ describe("withCurrent", () => {
 		expect(currentOf({ path, url })).toBeUndefined();
 	});
 
-	it("記事の詳細では Posts だけが親の区分になる", () => {
+	test("記事の詳細では Posts だけが親の区分になる", () => {
 		const links = withCurrent({
 			links: MAIN_NAV,
 			page: new URL("https://example.com/posts/hello"),
