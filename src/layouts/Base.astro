@@ -1,6 +1,11 @@
 ---
 import { Font } from "astro:assets";
-import { SITE_LANG, SITE_TAGLINE, SITE_TITLE } from "../consts";
+import {
+	SITE_LANG,
+	SITE_SHORT_TITLE,
+	SITE_TAGLINE,
+	SITE_TITLE,
+} from "../consts";
 import layerOrder from "../styles/layers.css?raw";
 import PageLayout from "./PageLayout.astro";
 import "../styles/tokens.css";
@@ -42,8 +47,14 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 			href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400..700&display=swap"
 			rel="stylesheet"
 		>
+		<!-- favicon 一式は RealFaviconGenerator で書き出したもの。絵は見出しと同じストライクの印 -->
+		<link href="/favicon-96x96.png" rel="icon" sizes="96x96" type="image/png">
+		<!-- ico に sizes を付けないと、Chrome が svg より ico を選ぶことがある -->
+		<link href="/favicon.ico" rel="icon" sizes="32x32">
 		<link href="/favicon.svg" rel="icon" type="image/svg+xml">
-		<link href="/favicon.ico" rel="icon">
+		<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180">
+		<meta content={SITE_SHORT_TITLE} name="apple-mobile-web-app-title">
+		<link href="/site.webmanifest" rel="manifest">
 		<link href="/sitemap-index.xml" rel="sitemap">
 		<link href={canonicalUrl} rel="canonical">
 		<link
