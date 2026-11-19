@@ -2,7 +2,6 @@ import { type CollectionEntry, getCollection } from "astro:content";
 import { readFile } from "node:fs/promises";
 import * as v from "valibot";
 import { errorMessage } from "./error";
-import { decideThumbnail, type Thumbnail } from "./media";
 import { getMediaManifest } from "./media-manifest";
 import {
 	comparePosts,
@@ -14,6 +13,7 @@ import {
 	readPublishedAtSource,
 	type TocItem,
 } from "./post";
+import { decideThumbnail, type Thumbnail } from "./thumbnail";
 
 export interface Post {
 	slug: PostSlug;

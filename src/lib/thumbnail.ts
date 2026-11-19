@@ -1,12 +1,94 @@
+import { fromMarkdown } from "mdast-util-from-markdown";
 import { BALL_COLOR_NAMES, type BallColorName, ballSvg } from "./ball-svg.ts";
 import {
 	type CroppedImage,
-	THUMBNAIL_SIZE,
-	type Thumbnail,
-	toThumbnailImage,
+	type CropRule,
+	cropHeight,
+	getMediaEntry,
+	parseMediaRef,
+	type StillImage,
+	toCroppedImage,
+	toStillImage,
 } from "./media.ts";
+import type { MediaManifest } from "./media-manifest.ts";
 import { svgDocument } from "./svg.ts";
 import { TOKEN_COLORS } from "./token-colors.ts";
+
+interface MarkdownNode {
+	type: string;
+	url?: string;
+	children?: readonly MarkdownNode[];
+}
+
+/** 本文で最初の `media:` の画像の論理パス */
+function findFirstMediaPath({
+	node,
+}: {
+	node: MarkdownNode;
+}): string | undefined {
+	if (node.type === "image" && node.url !== undefined) {
+		return parseMediaRef({ url: node.url });
+	}
+	for (const child of node.children ?? []) {
+		const path = findFirstMediaPath({ node: child });
+		if (path !== undefined) return path;
+	}
+	return undefined;
+}
+
+export type Thumbnail =
+	| { source: "frontmatter" | "body"; image: StillImage }
+	| { source: "default" };
+
+/** サムネイルを決める。フロントマター、本文の最初の画像、既定の画像の順 */
+export function decideThumbnail({
+	thumbnail,
+	markdown,
+	manifest,
+}: {
+	/** フロントマターの thumbnail の論理パス */
+	thumbnail?: string;
+	markdown: string;
+	manifest: MediaManifest;
+}): Thumbnail {
+	if (thumbnail !== undefined) {
+		const entry = getMediaEntry({
+			manifest,
+			path: thumbnail,
+			ref: `thumbnail の media:${thumbnail}`,
+		});
+		return { image: toStillImage({ entry }), source: "frontmatter" };
+	}
+	const path = findFirstMediaPath({ node: fromMarkdown(markdown) });
+	if (path === undefined) return { source: "default" };
+	const entry = getMediaEntry({ manifest, path, ref: `media:${path}` });
+	return { image: toStillImage({ entry }), source: "body" };
+}
+
+/**
+ * 記事カードのサムネイルの切り抜き（2.2:1）。いちばん大きな候補は、ホームのタイルのいちばん広い枠（約 375 × 160px）の 2 倍。
+ * 224 はスマホの 96px 角の枠（object-fit: cover で 96 × 2.2 ≒ 212px 幅の切り抜きが要る）用。枠ごとの表示幅は PostCard.astro の sizes
+ */
+const THUMBNAIL_CROP = {
+	aspect: { height: 5, width: 11 },
+	widths: [224, 352, 528, 768],
+} as const satisfies CropRule;
+
+const THUMBNAIL_WIDTH = Math.max(...THUMBNAIL_CROP.widths);
+
+/** サムネイルの寸法（いちばん大きな候補）。既定の画像（ボールの SVG）もこの大きさにする */
+const THUMBNAIL_SIZE = {
+	height: cropHeight({ aspect: THUMBNAIL_CROP.aspect, width: THUMBNAIL_WIDTH }),
+	width: THUMBNAIL_WIDTH,
+};
+
+export function toThumbnailImage({
+	image,
+}: {
+	image: StillImage;
+}): CroppedImage {
+	return toCroppedImage({ image, rule: THUMBNAIL_CROP });
+}
 
 const FNV_OFFSET_BASIS = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;
