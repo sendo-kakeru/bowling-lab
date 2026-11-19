@@ -3,7 +3,9 @@ import { render } from "astro:content";
 import type { GetStaticPaths } from "astro";
 import Breadcrumb from "../../components/Breadcrumb.astro";
 import Card from "../../components/Card.astro";
+import JsonLd from "../../components/JsonLd.astro";
 import TableOfContents from "../../components/post/TableOfContents.astro";
+import { SITE_AUTHOR } from "../../consts";
 import Base from "../../layouts/Base.astro";
 import { formatDotDate, formatIsoDate } from "../../lib/date";
 import { getPosts } from "../../lib/get-posts";
@@ -25,14 +27,31 @@ const headerImage =
 	post.thumbnail.source === "frontmatter"
 		? toImageAttributes({ image: post.thumbnail.image, loading: "eager" })
 		: undefined;
+const ogImagePath = `/og/posts/${post.slug}.png`;
+const url = new URL(Astro.url.pathname, Astro.site).href;
+const blogPosting = {
+	"@type": "BlogPosting",
+	author: {
+		"@type": "Person",
+		name: SITE_AUTHOR,
+		url: new URL("/about", Astro.site).href,
+	},
+	datePublished: formatIsoDate({ date: post.publishedAt }),
+	description: post.description,
+	headline: post.title,
+	image: new URL(ogImagePath, Astro.site).href,
+	mainEntityOfPage: url,
+	url,
+};
 ---
 
 <Base
 	article={{ publishedAt: post.publishedAt }}
 	description={post.description}
-	ogImage={{ alt: post.title, path: `/og/posts/${post.slug}.png` }}
+	ogImage={{ alt: post.title, path: ogImagePath }}
 	title={post.title}
 >
+	<JsonLd data={blogPosting} />
 	<div class="post-page">
 		<Breadcrumb
 			items={[
