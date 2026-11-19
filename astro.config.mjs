@@ -6,7 +6,23 @@ import { defineConfig, fontProviders } from "astro/config";
 import { embedPlugin } from "./src/lib/embed.ts";
 import { getMediaManifest } from "./src/lib/media-manifest.ts";
 import { createMediaPlugin } from "./src/lib/media-plugin.ts";
+import { sourceDigest } from "./src/lib/source-digest.ts";
 import { tablePlugin } from "./src/lib/table-plugin.ts";
+
+/**
+ * Astro は設定を文字列にした値が前回と違うときだけ、描画済みの記事のキャッシュ（node_modules/.astro）を捨てる。
+ * プラグインの関数は文字列にならないので、ソースのハッシュを載せて、出力を変えるコードの変更で記事を描画し直させる。
+ * satteri は知らないキーを読まない
+ * @template {object} P
+ * @param {{ plugin: P; path: string }} args
+ * @returns {P & { sourceDigest: string }}
+ */
+function withSourceDigest({ plugin, path }) {
+	return {
+		...plugin,
+		sourceDigest: sourceDigest({ entry: new URL(path, import.meta.url) }),
+	};
+}
 
 // https://astro.build/config
 export default defineConfig({
@@ -32,8 +48,19 @@ export default defineConfig({
 	integrations: [sitemap()],
 	markdown: {
 		processor: satteri({
-			hastPlugins: [embedPlugin, tablePlugin],
-			mdastPlugins: [createMediaPlugin({ manifest: getMediaManifest() })],
+			hastPlugins: [
+				withSourceDigest({ path: "./src/lib/embed.ts", plugin: embedPlugin }),
+				withSourceDigest({
+					path: "./src/lib/table-plugin.ts",
+					plugin: tablePlugin,
+				}),
+			],
+			mdastPlugins: [
+				withSourceDigest({
+					path: "./src/lib/media-plugin.ts",
+					plugin: createMediaPlugin({ manifest: getMediaManifest() }),
+				}),
+			],
 		}),
 		// コードは色を付けず、prose.css の明るい地と本文の色で出す（Shiki は style 属性で地の色を上書きする）
 		syntaxHighlight: false,
