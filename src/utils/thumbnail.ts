@@ -1,14 +1,29 @@
-import { type BallColorName, ballColorForSlug } from "./ball";
+import { type BallColorName, ballColorForSlug, ballSvg } from "./ball.ts";
 import {
 	imageUrl,
 	THUMBNAIL_CROPS,
 	type Thumbnail,
 	type ThumbnailCrop,
-} from "./media";
+} from "./media.ts";
 
 /** 既定のサムネイルのファイル名（拡張子なし）。src/pages/thumbnails/[name].svg.ts が作る */
 export function ballThumbnailName({ color }: { color: BallColorName }): string {
 	return `ball-${color}`;
+}
+
+/**
+ * 既定のサムネイルの SVG。カードの切り抜きと同じ大きさにし、object-fit: cover でどの枠に切り抜かれてもボールが欠けないよう中央に置く。
+ * Storybook は静的エンドポイントを配信しないので、.storybook/main.ts もこれで同じ URL に出す
+ */
+export function ballThumbnailSvg({ color }: { color: BallColorName }): string {
+	const { width, height } = THUMBNAIL_CROPS.card;
+	const ball = ballSvg({
+		color,
+		cx: width / 2,
+		cy: height / 2,
+		r: height * 0.4,
+	});
+	return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="#efe4d0"/>${ball}</svg>`;
 }
 
 /**
