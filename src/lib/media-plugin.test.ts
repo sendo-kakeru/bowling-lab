@@ -12,6 +12,12 @@ const MANIFEST: MediaManifest = {
 		type: "image",
 		width: 2400,
 	},
+	["2026/京都/がっこう.jpg".normalize("NFC")]: {
+		height: 1600,
+		key: "images/2026/kyoto/school.a1b2c3.jpg",
+		type: "image",
+		width: 2400,
+	},
 	"2026/kyoto/walk.mov": {
 		duration: 12.4,
 		height: 1080,
@@ -40,11 +46,11 @@ describe("createMediaPlugin", () => {
 
 		const url = (width: number): string =>
 			`${ORIGIN}/cdn-cgi/image/width=${width},format=auto/images/2026/kyoto/cat.a1b2c3.jpg`;
-		const srcset = [192, 480, 760, 1136, 1520, 2272]
+		const srcset = [480, 760, 1136, 1520]
 			.map((width) => `${url(width)} ${width}w`)
 			.join(", ");
 		expect(html).toContain(
-			`<img alt="レーンの猫" decoding="async" height="1600" loading="lazy" sizes="(width >= 760px) 760px, 100vw" src="${url(760)}" srcset="${srcset}" width="2400">`,
+			`<img alt="レーンの猫" decoding="async" height="1600" loading="lazy" sizes="(width >= 760px) 760px, 100vw" src="${url(760)}" srcset="${srcset}" style="--media-ratio: 1.5" width="2400">`,
 		);
 	});
 
@@ -54,8 +60,16 @@ describe("createMediaPlugin", () => {
 		});
 
 		expect(html).toContain(
-			`<video aria-label="散歩" controls height="1080" playsinline poster="${ORIGIN}/cdn-cgi/image/width=1520,format=auto/images/2026/kyoto/walk.d4e5f6.poster.jpg" preload="metadata" src="${ORIGIN}/videos/2026/kyoto/walk.d4e5f6.mp4" width="1920"></video>`,
+			`<video aria-label="散歩" controls height="1080" playsinline poster="${ORIGIN}/cdn-cgi/image/width=1520,format=auto/images/2026/kyoto/walk.d4e5f6.poster.jpg" preload="metadata" src="${ORIGIN}/videos/2026/kyoto/walk.d4e5f6.mp4" style="--media-ratio: 1.7778" width="1920"></video>`,
 		);
+	});
+
+	test("NFD で書いた参照も、NFC のキーで manifest を引く", async () => {
+		const html = await render({
+			markdown: `![](${"media:2026/京都/がっこう.jpg".normalize("NFD")})`,
+		});
+
+		expect(html).toContain("images/2026/kyoto/school.a1b2c3.jpg");
 	});
 
 	test("media: でない画像には手を付けない", async () => {

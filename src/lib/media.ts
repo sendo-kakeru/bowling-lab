@@ -11,12 +11,16 @@ import type {
   astro.config.mjs からも読むので、astro:* は import しない。設計は docs/design/media.md
 */
 
-export const MEDIA_SCHEME = "media:";
+const MEDIA_SCHEME = "media:";
 
-/** `media:2026/a.jpg` から論理パス `2026/a.jpg` を取り出す。`media:` の参照でなければ undefined */
+/**
+ * `media:2026/a.jpg` から論理パス `2026/a.jpg` を取り出す。`media:` の参照でなければ undefined。
+ * manifest のキーの形（NFC）にそろえる。media:push は NFC でキーを書くが、
+ * macOS の Finder からコピーしたパスは濁点が分かれた NFD のことがあり、見た目が同じでも引けない
+ */
 export function parseMediaRef({ url }: { url: string }): string | undefined {
 	return url.startsWith(MEDIA_SCHEME)
-		? url.slice(MEDIA_SCHEME.length)
+		? url.slice(MEDIA_SCHEME.length).normalize("NFC")
 		: undefined;
 }
 
@@ -52,14 +56,73 @@ export function videoUrl({ key }: { key: string }): string {
 /** 本文の表示幅（--layout-content-width）。CSS ピクセル */
 const CONTENT_WIDTH = 760;
 
-const SRCSET_WIDTHS = [192, 480, 760, 1136, 1520, 2272] as const;
+/** 本文の画像の srcset の幅。1520 は本文の表示幅の 2 倍 */
+const BODY_WIDTHS = [480, 760, 1136, 1520] as const;
 
 /**
- * srcset に出す幅。候補をマスターの幅で頭打ちにして重複を除く。
+ * 候補の幅を上限で頭打ちにして重複を除く。
  * 超える候補を捨てるだけだと、幅 1000px のマスターが 760px までしか配信されないため
  */
-export function srcsetWidths({ width }: { width: number }): number[] {
-	return [...new Set(SRCSET_WIDTHS.map((w) => Math.min(w, width)))];
+function capWidths({
+	widths,
+	max,
+}: {
+	widths: readonly number[];
+	max: number;
+}): number[] {
+	return [...new Set(widths.map((w) => Math.min(w, max)))];
+}
+
+/** 切り抜きの縦横比 */
+interface Aspect {
+	width: number;
+	height: number;
+}
+
+function cropHeight({
+	aspect,
+	width,
+}: {
+	aspect: Aspect;
+	width: number;
+}): number {
+	return Math.round((width * aspect.height) / aspect.width);
+}
+
+interface CropCandidate {
+	url: string;
+	width: number;
+	height: number;
+}
+
+/**
+ * 縦横比で切り抜いた候補。fit=cover はマスターより大きい切り抜きを求めると拡大するので、
+ * マスターから切り出せるいちばん大きな切り抜きで頭打ちにする
+ */
+function cropCandidates({
+	image: { key, width, height },
+	aspect,
+	widths,
+}: {
+	image: StillImage;
+	aspect: Aspect;
+	widths: readonly number[];
+}): CropCandidate[] {
+	const max = Math.floor(
+		Math.min(width, (height * aspect.width) / aspect.height),
+	);
+	return capWidths({ max, widths }).map((w) => {
+		const h = cropHeight({ aspect, width: w });
+		return { height: h, url: imageUrl({ height: h, key, width: w }), width: w };
+	});
+}
+
+function toSrcset({
+	candidates,
+}: {
+	candidates: readonly { url: string; width: number }[];
+}): string {
+	return candidates.map(({ url, width }) => `${url} ${width}w`).join(", ");
 }
 
 /** 静止画として出すもの。動画ならポスター画像に動画の寸法を付ける */
@@ -78,26 +141,36 @@ export function toStillImage({ entry }: { entry: MediaEntry }): StillImage {
 	};
 }
 
-/**
- * `<img>` の alt を除いた属性。Markdown の変換と .astro の両方で使う。
- * alt は呼び出し側で付ける。.astro で属性を展開すると、あとから書いた同じ属性は上書きせず重複して出るため
- */
+/** 本文の画像と動画の幅 / 高さ。prose.css が高さを画面の 80% に抑えるのに使う */
+function mediaRatio({
+	width,
+	height,
+}: {
+	width: number;
+	height: number;
+}): number {
+	return Math.round((width / height) * 10000) / 10000;
+}
+
+/** 本文の `<img>` の alt を除いた属性。alt は Markdown の変換で付ける */
 export function toImageAttributes({
 	image: { key, width, height },
-	loading = "lazy",
 }: {
 	image: StillImage;
-	loading?: "lazy" | "eager";
 }): Record<string, string | number> {
 	return {
 		decoding: "async",
 		height,
-		loading,
+		loading: "lazy",
 		sizes: `(width >= ${CONTENT_WIDTH}px) ${CONTENT_WIDTH}px, 100vw`,
 		src: imageUrl({ key, width: Math.min(CONTENT_WIDTH, width) }),
-		srcset: srcsetWidths({ width })
-			.map((w) => `${imageUrl({ key, width: w })} ${w}w`)
-			.join(", "),
+		srcset: toSrcset({
+			candidates: capWidths({ max: width, widths: BODY_WIDTHS }).map((w) => ({
+				url: imageUrl({ key, width: w }),
+				width: w,
+			})),
+		}),
+		style: `--media-ratio: ${mediaRatio({ height, width })}`,
 		width,
 	};
 }
@@ -120,6 +193,7 @@ export function toVideoAttributes({
 		poster: imageUrl({ key: poster, width: Math.min(POSTER_WIDTH, width) }),
 		preload: "metadata",
 		src: videoUrl({ key }),
+		style: `--media-ratio: ${mediaRatio({ height, width })}`,
 		width,
 	};
 }
@@ -187,12 +261,88 @@ export function decideThumbnail({
 	return { image: toStillImage({ entry }), source: "body" };
 }
 
-/**
- * サムネイルの切り抜き。card は記事カードの画像の枠でいちばん大きい、ホームのタイル（約 352 × 160px）の 2 倍。
- * ほかの枠（スマホの 96px 角、一覧の 200 × 120px）は CSS の object-fit: cover で中央を切り出す
- */
-export const THUMBNAIL_CROPS = {
-	card: { height: 320, width: 704 },
-} as const;
+/** 切り抜きの縦横比と幅の候補。表示幅（sizes）は、表示する側の CSS の隣に書く */
+interface CropRule {
+	aspect: Aspect;
+	widths: readonly number[];
+}
 
-export type ThumbnailCrop = keyof typeof THUMBNAIL_CROPS;
+/**
+ * 縦横比で切り抜いた画像。src はいちばん大きな候補で、srcset を読まない環境でもぼけない。
+ * width / height もいちばん大きな候補の寸法。CSS で幅を決めるので、縦横比を伝えるためだけに使う
+ */
+export interface CroppedImage {
+	src: string;
+	srcset: string;
+	width: number;
+	height: number;
+}
+
+function toCroppedImage({
+	image,
+	rule: { aspect, widths },
+}: {
+	image: StillImage;
+	rule: CropRule;
+}): CroppedImage {
+	const candidates = cropCandidates({ aspect, image, widths });
+	const largest = candidates.at(-1);
+	if (largest === undefined) throw new Error("切り抜きの候補がない");
+	return {
+		height: largest.height,
+		src: largest.url,
+		srcset: toSrcset({ candidates }),
+		width: largest.width,
+	};
+}
+
+/**
+ * 記事冒頭の画像（アイキャッチ）の切り抜き。768px 以上は wide（5:2）、未満は narrow（16:9）。
+ * 幅の候補は、各ブレークポイントの 1x / 2x の表示幅（768px で 598、1024px で 824、1280px 以上で 1056、スマホで 319〜677）を少し上回るように選んだ。
+ * 表示幅は src/pages/posts/[slug].astro の CSS
+ */
+const EYECATCH_CROPS = {
+	narrow: { aspect: { height: 9, width: 16 }, widths: [360, 720, 1080, 1440] },
+	wide: {
+		aspect: { height: 2, width: 5 },
+		widths: [640, 840, 1056, 1280, 1680, 2112],
+	},
+} as const satisfies Record<string, CropRule>;
+
+export type EyecatchImage = Record<keyof typeof EYECATCH_CROPS, CroppedImage>;
+
+export function toEyecatchImage({
+	image,
+}: {
+	image: StillImage;
+}): EyecatchImage {
+	return {
+		narrow: toCroppedImage({ image, rule: EYECATCH_CROPS.narrow }),
+		wide: toCroppedImage({ image, rule: EYECATCH_CROPS.wide }),
+	};
+}
+
+/**
+ * 記事カードのサムネイルの切り抜き（2.2:1）。いちばん大きな候補は、ホームのタイルのいちばん広い枠（約 375 × 160px）の 2 倍。
+ * 224 はスマホの 96px 角の枠（object-fit: cover で 96 × 2.2 ≒ 212px 幅の切り抜きが要る）用。枠ごとの表示幅は PostCard.astro の sizes
+ */
+const THUMBNAIL_CROP = {
+	aspect: { height: 5, width: 11 },
+	widths: [224, 352, 528, 768],
+} as const satisfies CropRule;
+
+const THUMBNAIL_WIDTH = Math.max(...THUMBNAIL_CROP.widths);
+
+/** サムネイルの寸法（いちばん大きな候補）。既定の画像（ボールの SVG）もこの大きさにする */
+export const THUMBNAIL_SIZE = {
+	height: cropHeight({ aspect: THUMBNAIL_CROP.aspect, width: THUMBNAIL_WIDTH }),
+	width: THUMBNAIL_WIDTH,
+};
+
+export function toThumbnailImage({
+	image,
+}: {
+	image: StillImage;
+}): CroppedImage {
+	return toCroppedImage({ image, rule: THUMBNAIL_CROP });
+}
