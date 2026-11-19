@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { compareMemos, resolvePostedAt } from "./memo-schema.ts";
-import { MemoParseError, parseMemo } from "./parse-memo.ts";
+import { type MemoParseError, parseMemo } from "./parse-memo.ts";
+import { catchMemoParseError } from "./test-helpers.ts";
 
 /** 見出しの日時の並びから、メモの本文を作って読む */
 function resolve(...postedAts: string[]): ReturnType<typeof resolvePostedAt> {
@@ -10,15 +11,9 @@ function resolve(...postedAts: string[]): ReturnType<typeof resolvePostedAt> {
 	return resolvePostedAt({ notes: parseMemo({ source }) });
 }
 
-/** 投げられた MemoParseError を取り出す */
+/** resolve が投げた MemoParseError を取り出す */
 function catchResolveError(...postedAts: string[]): MemoParseError {
-	try {
-		resolve(...postedAts);
-	} catch (error) {
-		if (error instanceof MemoParseError) return error;
-		throw error;
-	}
-	throw new Error("MemoParseError が投げられなかった");
+	return catchMemoParseError({ run: () => resolve(...postedAts) });
 }
 
 describe("resolvePostedAt", () => {
