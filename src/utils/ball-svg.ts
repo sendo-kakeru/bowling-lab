@@ -48,7 +48,7 @@ const HOLES = [
 ] as const;
 
 /** 座標の浮動小数の誤差（35.840000000000003 など）を SVG に出さない */
-export function round({ value }: { value: number }): number {
+function round({ value }: { value: number }): number {
 	return Math.round(value * 100) / 100;
 }
 

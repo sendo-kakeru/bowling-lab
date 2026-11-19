@@ -1,4 +1,4 @@
-import { mixHex, round } from "./ball-svg.ts";
+import { mixHex } from "./ball-svg.ts";
 import { TOKEN_COLORS } from "./token-colors.ts";
 
 /*
@@ -49,8 +49,8 @@ export function pinSvg({
 	id: string;
 }): string {
 	const k = height / 100;
-	const x = (u: number): number => round({ value: cx + u * k });
-	const y = (v: number): number => round({ value: top + v * k });
+	const x = (u: number): number => cx + u * k;
+	const y = (v: number): number => top + v * k;
 	const point = (u: number, v: number): string => `${x(u)},${y(v)}`;
 	const right = RIGHT_HALF.map(
 		([u1, v1, u2, v2, u3, v3]) =>
@@ -72,12 +72,12 @@ export function pinSvg({
 	const clipId = `pin-${id}-clip`;
 	const stripes = STRIPES.map(
 		([from, to]) =>
-			`<rect x="${x(-30)}" y="${y(from)}" width="${round({ value: 60 * k })}" height="${round({ value: (to - from) * k })}" fill="${PIN_STRIPE}"/>`,
+			`<rect x="${x(-30)}" y="${y(from)}" width="${60 * k}" height="${(to - from) * k}" fill="${PIN_STRIPE}"/>`,
 	).join("");
 	const highlights = HIGHLIGHTS.map(
 		([u1, v1, u2, v2, u3, v3]) =>
 			`M${point(u1, v1)} Q${point(u2, v2)} ${point(u3, v3)}`,
 	).join(" ");
-	const shadowRx = round({ value: 0.22 * height });
-	return `<g><ellipse cx="${cx}" cy="${y(100)}" rx="${shadowRx}" ry="${round({ value: shadowRx * 0.16 })}" fill="${TOKEN_COLORS["ink-600"]}" opacity="0.18"/><defs><linearGradient id="${shadeId}" x1="0" x2="1"><stop offset="0" stop-color="${mixHex({ base: PIN_BODY, other: "#ffffff", ratio: 0.25 })}"/><stop offset="0.45" stop-color="${PIN_BODY}"/><stop offset="1" stop-color="${PIN_SHADE}"/></linearGradient><clipPath id="${clipId}"><path d="${outline}"/></clipPath></defs><path d="${outline}" fill="url(#${shadeId})"/><g clip-path="url(#${clipId})">${stripes}<path d="${highlights}" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="${round({ value: 2.4 * k })}" stroke-linecap="round"/></g></g>`;
+	const shadowRx = 0.22 * height;
+	return `<g><ellipse cx="${cx}" cy="${y(100)}" rx="${shadowRx}" ry="${shadowRx * 0.16}" fill="${TOKEN_COLORS["ink-600"]}" opacity="0.18"/><defs><linearGradient id="${shadeId}" x1="0" x2="1"><stop offset="0" stop-color="${mixHex({ base: PIN_BODY, other: "#ffffff", ratio: 0.25 })}"/><stop offset="0.45" stop-color="${PIN_BODY}"/><stop offset="1" stop-color="${PIN_SHADE}"/></linearGradient><clipPath id="${clipId}"><path d="${outline}"/></clipPath></defs><path d="${outline}" fill="url(#${shadeId})"/><g clip-path="url(#${clipId})">${stripes}<path d="${highlights}" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="${2.4 * k}" stroke-linecap="round"/></g></g>`;
 }
