@@ -103,17 +103,13 @@ function pinStyle({
 	<div class="controls">
 		<p aria-hidden="true" class="result">
 			<span class="box" data-box={view.result?.box} data-pin-deck-box>
-				{view.result?.box === "count"
-					? view.result.count
-					: view.result?.box === "gutter"
-						? "G"
-						: ""}
+				{view.result?.boxText}
 			</span>
 			<span class="result-text" data-pin-deck-result>{view.result?.text}</span>
 		</p>
 		<!-- 名前は見える文字に説明を続けたもの。sr-only の span で足すと、Chrome は間に空白を入れる -->
 		<Button
-			aria-label={`${view.button.text}${view.button.hint}`}
+			aria-label={view.button.label}
 			class="play"
 			data-pin-deck-play
 			variant="secondary"
@@ -224,16 +220,11 @@ function setupPinDeck({ root }: { root: HTMLElement }): void {
 		}
 		if (view.result) {
 			box.dataset.box = view.result.box;
-			box.textContent =
-				view.result.box === "count"
-					? String(view.result.count)
-					: view.result.box === "gutter"
-						? "G"
-						: "";
+			box.textContent = view.result.boxText;
 			resultText.textContent = view.result.text ?? "";
 		}
 		buttonText.textContent = view.button.text;
-		button.setAttribute("aria-label", `${view.button.text}${view.button.hint}`);
+		button.setAttribute("aria-label", view.button.label);
 		status.textContent = view.speech;
 	}
 

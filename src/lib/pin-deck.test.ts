@@ -363,7 +363,7 @@ describe("planBallPath", () => {
 describe("toView", () => {
 	it("idle は PLAY だけで、ピンは立ったまま、札も読み上げもない", () => {
 		expect(toView({ state: INITIAL_STATE })).toEqual({
-			button: { hint: "（ボールを投げる）", text: "PLAY" },
+			button: { label: "PLAY（ボールを投げる）", text: "PLAY" },
 			falls: [],
 			phase: "idle",
 			result: undefined,
@@ -383,22 +383,33 @@ describe("toView", () => {
 
 	it("ストライクは欄にストライクの印、STRIKE、10 本倒れた文", () => {
 		const view = toView({ state: { phase: "result", shot: STRIKE } });
-		expect(view.result).toEqual({ box: "strike", count: 10, text: "STRIKE" });
+		expect(view.result).toEqual({ box: "strike", boxText: "", text: "STRIKE" });
 		expect(view.speech).toBe("ストライク。10 本すべて倒れました");
 		expect(view.falls).toHaveLength(10);
-		expect(view.button).toEqual({ hint: "（もう一度投げる）", text: "AGAIN" });
+		expect(view.button).toEqual({
+			label: "AGAIN（もう一度投げる）",
+			text: "AGAIN",
+		});
 	});
 
 	it("残りがあると欄に倒した本数だけを出し、残ったピンは示さない", () => {
 		const view = toView({ state: { phase: "result", shot: LEAVE } });
-		expect(view.result).toEqual({ box: "count", count: 7, text: undefined });
+		expect(view.result).toEqual({
+			box: "count",
+			boxText: "7",
+			text: undefined,
+		});
 		expect(view.speech).toBe("7 本倒れました");
 		expect(view.falls.map(({ pin }) => pin)).toEqual([1, 2, 3, 5, 6, 8, 9]);
 	});
 
 	it("ガターは欄に G、GUTTER、1 本も倒れなかった文", () => {
 		const view = toView({ state: { phase: "result", shot: GUTTER } });
-		expect(view.result).toEqual({ box: "gutter", count: 0, text: "GUTTER" });
+		expect(view.result).toEqual({
+			box: "gutter",
+			boxText: "G",
+			text: "GUTTER",
+		});
 		expect(view.speech).toBe("ガター。1 本も倒れませんでした");
 		expect(view.falls).toEqual([]);
 	});
