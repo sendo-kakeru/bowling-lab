@@ -5,6 +5,7 @@ import {
 	SITE_SHORT_TITLE,
 	SITE_TAGLINE,
 	SITE_TITLE,
+	THEME_COLOR,
 } from "../consts";
 import layerOrder from "../styles/layers.css?raw";
 import PageLayout from "./PageLayout.astro";
@@ -54,6 +55,7 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 		<link href="/favicon.svg" rel="icon" type="image/svg+xml">
 		<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180">
 		<meta content={SITE_SHORT_TITLE} name="apple-mobile-web-app-title">
+		<meta content={THEME_COLOR} name="theme-color">
 		<link href="/site.webmanifest" rel="manifest">
 		<link href="/sitemap-index.xml" rel="sitemap">
 		<link href={canonicalUrl} rel="canonical">
