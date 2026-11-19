@@ -13,10 +13,18 @@ import type {
 
 export const MEDIA_SCHEME = "media:";
 
+/**
+ * manifest のキーの形（NFC）にそろえる。media:push は NFC でキーを書くが、
+ * macOS の Finder からコピーしたパスは濁点が分かれた NFD のことがあり、見た目が同じでも引けない
+ */
+export function toLogicalPath({ ref }: { ref: string }): string {
+	return ref.normalize("NFC");
+}
+
 /** `media:2026/a.jpg` から論理パス `2026/a.jpg` を取り出す。`media:` の参照でなければ undefined */
 export function parseMediaRef({ url }: { url: string }): string | undefined {
 	return url.startsWith(MEDIA_SCHEME)
-		? url.slice(MEDIA_SCHEME.length)
+		? toLogicalPath({ ref: url.slice(MEDIA_SCHEME.length) })
 		: undefined;
 }
 

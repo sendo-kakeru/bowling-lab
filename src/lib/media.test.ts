@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
 	decideThumbnail,
 	imageUrl,
+	parseMediaRef,
 	srcsetWidths,
 	toImageAttributes,
 	toVideoAttributes,
@@ -58,6 +59,19 @@ describe("配信 URL", () => {
 		expect(videoUrl({ key: "videos/2026/a b.abc123.mp4" })).toBe(
 			`${ORIGIN}/videos/2026/a%20b.abc123.mp4`,
 		);
+	});
+});
+
+describe("parseMediaRef", () => {
+	test("論理パスを NFC にそろえる（Finder からコピーした NFD のパスでも manifest を引ける）", () => {
+		const nfd = "media:2026/京都/がっこう.jpg".normalize("NFD");
+		expect(parseMediaRef({ url: nfd })).toBe(
+			"2026/京都/がっこう.jpg".normalize("NFC"),
+		);
+	});
+
+	test("media: の参照でなければ undefined", () => {
+		expect(parseMediaRef({ url: "https://example.com/a.jpg" })).toBe(undefined);
 	});
 });
 
