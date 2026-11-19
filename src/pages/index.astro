@@ -3,6 +3,8 @@ import HomeIntro from "../components/home/HomeIntro.astro";
 import LatestMemos from "../components/home/LatestMemos.astro";
 import LatestPosts from "../components/home/LatestPosts.astro";
 import PinDeck from "../components/home/PinDeck.astro";
+import JsonLd from "../components/JsonLd.astro";
+import { SITE_TITLE } from "../consts";
 import Base from "../layouts/Base.astro";
 import { getMemos } from "../lib/get-memos";
 import { getPosts } from "../lib/get-posts";
@@ -15,6 +17,13 @@ const latestMemos = (await getMemos()).slice(0, LATEST_MEMO_COUNT);
 ---
 
 <Base>
+	<JsonLd
+		data={{
+			"@type": "WebSite",
+			name: SITE_TITLE,
+			url: new URL("/", Astro.site).href,
+		}}
+	/>
 	<div class="home">
 		<div class="hero">
 			<PinDeck />

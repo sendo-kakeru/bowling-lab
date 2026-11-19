@@ -13,8 +13,8 @@ import { TOKEN_COLORS } from "./token-colors.ts";
   行の分け方は fitText で決め、satori には 1 行ずつ折り返さずに渡す（satori の折り返しに任せると行数を判定できない）
 */
 
-const WIDTH = 1200;
-const HEIGHT = 630;
+export const OGP_WIDTH = 1200;
+export const OGP_HEIGHT = 630;
 
 const COLORS = {
 	/** 地は既定のサムネイルと同じ板目の明るい色。クリームの地では共通の画像の白いピンが溶けて見えにくい */
@@ -190,8 +190,8 @@ function picture({
 	content,
 	left = 0,
 	top = 0,
-	width = WIDTH,
-	height = HEIGHT,
+	width = OGP_WIDTH,
+	height = OGP_HEIGHT,
 }: {
 	content: string;
 	left?: number;
@@ -218,8 +218,8 @@ async function renderPng({
 }): Promise<Uint8Array<ArrayBuffer>> {
 	const svg = await satori(root, {
 		fonts: blocks.flatMap(({ fonts }) => fonts),
-		height: HEIGHT,
-		width: WIDTH,
+		height: OGP_HEIGHT,
+		width: OGP_WIDTH,
 	});
 	return new Uint8Array(await sharp(Buffer.from(svg)).png().toBuffer());
 }
@@ -230,9 +230,9 @@ function canvas({ children }: { children: Node[] }): Node {
 		style: {
 			backgroundColor: COLORS.background,
 			color: COLORS.text,
-			height: HEIGHT,
+			height: OGP_HEIGHT,
 			position: "relative",
-			width: WIDTH,
+			width: OGP_WIDTH,
 		},
 	});
 }
@@ -361,7 +361,7 @@ export async function renderSiteOgp(): Promise<Uint8Array<ArrayBuffer>> {
 				children: [nameBlock.node, taglineBlock.node],
 				style: {
 					flexDirection: "column",
-					height: HEIGHT,
+					height: OGP_HEIGHT,
 					justifyContent: "center",
 					left: SITE_LEFT,
 					position: "absolute",

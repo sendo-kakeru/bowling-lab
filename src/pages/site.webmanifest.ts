@@ -1,5 +1,10 @@
 import type { APIRoute } from "astro";
-import { SITE_LANG, SITE_SHORT_TITLE, SITE_TITLE } from "../consts";
+import {
+	SITE_LANG,
+	SITE_SHORT_TITLE,
+	SITE_TITLE,
+	THEME_COLOR,
+} from "../consts";
 
 /*
   Android でホーム画面に追加したときの名前とアイコン。
@@ -19,5 +24,5 @@ export const GET: APIRoute = () =>
 		name: SITE_TITLE,
 		short_name: SITE_SHORT_TITLE,
 		start_url: "/",
-		theme_color: "#142038",
+		theme_color: THEME_COLOR,
 	});

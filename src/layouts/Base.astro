@@ -5,7 +5,10 @@ import {
 	SITE_SHORT_TITLE,
 	SITE_TAGLINE,
 	SITE_TITLE,
+	THEME_COLOR,
 } from "../consts";
+import { formatIsoDate } from "../lib/date";
+import { OGP_HEIGHT, OGP_WIDTH } from "../lib/ogp";
 import layerOrder from "../styles/layers.css?raw";
 import PageLayout from "./PageLayout.astro";
 import "../styles/tokens.css";
@@ -16,19 +19,30 @@ import "../styles/prose.css";
 
 /*
   全ページ共通の骨組み。<head> とグローバルの CSS を持ち、枠（ヘッダー、レーン、スパット、フッター）は PageLayout に任せる。
-  OGP などの meta は別の issue（meta情報設定）で足す
 */
 
 interface Props {
 	/** ページの題名。省くとサイト名だけにする（ホーム用） */
 	title?: string;
 	description?: string;
+	ogImage?: { path: string; alt: string };
+	article?: { publishedAt: Date };
+	noindex?: boolean;
 }
 
-const { title, description = SITE_TAGLINE } = Astro.props;
+const {
+	title,
+	description = SITE_TAGLINE,
+	ogImage = { alt: `${SITE_TITLE} ${SITE_TAGLINE}`, path: "/og/site.png" },
+	article,
+	noindex = false,
+} = Astro.props;
 
 const pageTitle = title ? `${title} | ${SITE_TITLE}` : SITE_TITLE;
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+const canonicalUrl = noindex
+	? undefined
+	: new URL(Astro.url.pathname, Astro.site);
+const ogImageUrl = new URL(ogImage.path, Astro.site);
 ---
 
 <!doctype html>
@@ -54,9 +68,10 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 		<link href="/favicon.svg" rel="icon" type="image/svg+xml">
 		<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180">
 		<meta content={SITE_SHORT_TITLE} name="apple-mobile-web-app-title">
+		<meta content={THEME_COLOR} name="theme-color">
 		<link href="/site.webmanifest" rel="manifest">
 		<link href="/sitemap-index.xml" rel="sitemap">
-		<link href={canonicalUrl} rel="canonical">
+		{canonicalUrl && <link href={canonicalUrl} rel="canonical">}
 		<link
 			href="/rss.xml"
 			rel="alternate"
@@ -66,6 +81,24 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 		<meta content={Astro.generator} name="generator">
 		<title>{pageTitle}</title>
 		<meta content={description} name="description">
+		{noindex && <meta content="noindex" name="robots">}
+		<meta content={title ?? SITE_TITLE} property="og:title">
+		<meta content={description} property="og:description">
+		{canonicalUrl && <meta content={canonicalUrl} property="og:url">}
+		<meta content={SITE_TITLE} property="og:site_name">
+		<meta content="ja_JP" property="og:locale">
+		<meta content={article ? "article" : "website"} property="og:type">
+		<meta content={ogImageUrl} property="og:image">
+		<meta content={String(OGP_WIDTH)} property="og:image:width">
+		<meta content={String(OGP_HEIGHT)} property="og:image:height">
+		<meta content={ogImage.alt} property="og:image:alt">
+		<meta content="summary_large_image" name="twitter:card">
+		{article && (
+			<meta
+				content={formatIsoDate({ date: article.publishedAt })}
+				property="article:published_time"
+			>
+		)}
 	</head>
 	<body>
 		<PageLayout>

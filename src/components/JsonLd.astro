@@ -1,0 +1,16 @@
+---
+// < を逃がし、文字列の中の </script> でタグが閉じないようにする
+
+interface Props {
+	data: Record<string, unknown>;
+}
+
+const { data } = Astro.props;
+
+const json = JSON.stringify({
+	"@context": "https://schema.org",
+	...data,
+}).replace(/</g, "\\u003c");
+---
+
+<script type="application/ld+json" is:inline set:html={json}></script>
