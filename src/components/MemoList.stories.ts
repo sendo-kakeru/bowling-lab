@@ -4,7 +4,7 @@ import type { Meta, Story } from "../../.storybook/types";
 import MemoList from "./MemoList.astro";
 
 const meta = {
-	args: { current: 2, memos: MEMOS, pageCount: 12 },
+	args: { page: { items: MEMOS, page: 2, pageCount: 12 } },
 	component: MemoList,
 	decorators: [withPageLayout],
 	parameters: { layout: "fullscreen" },
@@ -17,5 +17,5 @@ export default meta;
 export const Default: Story = {};
 
 export const Empty: Story = {
-	args: { current: 1, memos: [], pageCount: 1 },
+	args: { page: { items: [], page: 1, pageCount: 1 } },
 };

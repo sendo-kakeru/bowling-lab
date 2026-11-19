@@ -15,17 +15,18 @@ export default meta;
 /** 一覧のページ */
 export const List: Story = {
 	args: {
-		items: [{ href: "/", label: "HOME" }, { label: "POSTS" }],
+		ancestors: [{ href: "/", label: "HOME" }],
+		current: "POSTS",
 	},
 };
 
 /** 記事のページ。最後の項目（今のページ）は長いと「…」で省く */
 export const LongTitle: Story = {
 	args: {
-		items: [
+		ancestors: [
 			{ href: "/", label: "HOME" },
 			{ href: "/posts", label: "POSTS" },
-			{ label: postWithLongTitle?.title },
 		],
+		current: postWithLongTitle?.title,
 	},
 };
