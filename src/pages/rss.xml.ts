@@ -1,7 +1,7 @@
 import rss from "@astrojs/rss";
 import type { APIRoute } from "astro";
 import { SITE_TAGLINE, SITE_TITLE } from "../consts";
-import { getPosts } from "../utils/get-posts";
+import { getPosts } from "../lib/get-posts";
 
 export const GET: APIRoute = async ({ site }) => {
 	if (!site) throw new Error("astro.config の site が要る");

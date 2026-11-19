@@ -40,7 +40,7 @@ The code is the reference for the look (the design canvas is no longer maintaine
 
 ## Previous site
 
-The site was first built with EmDash in `sendo-kakeru/bowling-lab_old`. Components and utilities may be ported from there (`src/components/`, `src/utils/`), but drop anything EmDash-specific: server rendering, `emdash/ui`, Portable Text, cache hints, and the seed.
+The site was first built with EmDash in `sendo-kakeru/bowling-lab_old`. Components and utilities may be ported from there (`src/components/`, and `src/utils/`, which is `src/lib/` here), but drop anything EmDash-specific: server rendering, `emdash/ui`, Portable Text, cache hints, and the seed.
 
 ## Pull requests
 

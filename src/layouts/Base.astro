@@ -1,6 +1,15 @@
 ---
 import { Font } from "astro:assets";
-import { SITE_LANG, SITE_TAGLINE, SITE_TITLE } from "../consts";
+import {
+	GTM_ID,
+	SITE_LANG,
+	SITE_SHORT_TITLE,
+	SITE_TAGLINE,
+	SITE_TITLE,
+	THEME_COLOR,
+} from "../consts";
+import { formatIsoDate } from "../lib/date";
+import { OGP_HEIGHT, OGP_WIDTH } from "../lib/ogp";
 import layerOrder from "../styles/layers.css?raw";
 import PageLayout from "./PageLayout.astro";
 import "../styles/tokens.css";
@@ -11,19 +20,35 @@ import "../styles/prose.css";
 
 /*
   全ページ共通の骨組み。<head> とグローバルの CSS を持ち、枠（ヘッダー、レーン、スパット、フッター）は PageLayout に任せる。
-  OGP などの meta は別の issue（meta情報設定）で足す
 */
 
 interface Props {
 	/** ページの題名。省くとサイト名だけにする（ホーム用） */
 	title?: string;
 	description?: string;
+	ogImage?: { path: string; alt: string };
+	article?: { publishedAt: Date };
+	noindex?: boolean;
 }
 
-const { title, description = SITE_TAGLINE } = Astro.props;
+const {
+	title,
+	description = SITE_TAGLINE,
+	ogImage = { alt: `${SITE_TITLE} ${SITE_TAGLINE}`, path: "/og/site.png" },
+	article,
+	noindex = false,
+} = Astro.props;
 
 const pageTitle = title ? `${title} | ${SITE_TITLE}` : SITE_TITLE;
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+const canonicalUrl = noindex
+	? undefined
+	: new URL(Astro.url.pathname, Astro.site);
+const ogImageUrl = new URL(ogImage.path, Astro.site);
+
+/* タグマネージャーの管理画面が出すスニペットのまま。<script> に直書きすると Biome が改行を崩すので文字列で持つ */
+const GTAG_INIT = `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());`;
 ---
 
 <!doctype html>
@@ -33,6 +58,17 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 		<style is:inline set:html={layerOrder}></style>
 		<meta charset="utf-8">
 		<meta content="width=device-width,initial-scale=1" name="viewport">
+		<!-- Google タグマネージャー。開発中のアクセスを計測に混ぜないよう、本番ビルドだけで出す -->
+		{import.meta.env.PROD && (
+			<>
+				<script
+					async
+					is:inline
+					src={`https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`}
+				/>
+				<script is:inline set:html={GTAG_INIT} />
+			</>
+		)}
 		<Font cssVariable="--font-body" preload />
 		<Font cssVariable="--font-display" />
 		<!-- Noto Sans JP は可変フォント（太さ 400〜700 を 1 つのファイルで扱う）。理由は astro.config.mjs の fonts を参照 -->
@@ -42,10 +78,17 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 			href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400..700&display=swap"
 			rel="stylesheet"
 		>
+		<!-- favicon 一式は RealFaviconGenerator で書き出したもの。絵は見出しと同じストライクの印 -->
+		<link href="/favicon-96x96.png" rel="icon" sizes="96x96" type="image/png">
+		<!-- ico に sizes を付けないと、Chrome が svg より ico を選ぶことがある -->
+		<link href="/favicon.ico" rel="icon" sizes="32x32">
 		<link href="/favicon.svg" rel="icon" type="image/svg+xml">
-		<link href="/favicon.ico" rel="icon">
+		<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180">
+		<meta content={SITE_SHORT_TITLE} name="apple-mobile-web-app-title">
+		<meta content={THEME_COLOR} name="theme-color">
+		<link href="/site.webmanifest" rel="manifest">
 		<link href="/sitemap-index.xml" rel="sitemap">
-		<link href={canonicalUrl} rel="canonical">
+		{canonicalUrl && <link href={canonicalUrl} rel="canonical">}
 		<link
 			href="/rss.xml"
 			rel="alternate"
@@ -55,6 +98,24 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 		<meta content={Astro.generator} name="generator">
 		<title>{pageTitle}</title>
 		<meta content={description} name="description">
+		{noindex && <meta content="noindex" name="robots">}
+		<meta content={title ?? SITE_TITLE} property="og:title">
+		<meta content={description} property="og:description">
+		{canonicalUrl && <meta content={canonicalUrl} property="og:url">}
+		<meta content={SITE_TITLE} property="og:site_name">
+		<meta content="ja_JP" property="og:locale">
+		<meta content={article ? "article" : "website"} property="og:type">
+		<meta content={ogImageUrl} property="og:image">
+		<meta content={String(OGP_WIDTH)} property="og:image:width">
+		<meta content={String(OGP_HEIGHT)} property="og:image:height">
+		<meta content={ogImage.alt} property="og:image:alt">
+		<meta content="summary_large_image" name="twitter:card">
+		{article && (
+			<meta
+				content={formatIsoDate({ date: article.publishedAt })}
+				property="article:published_time"
+			>
+		)}
 	</head>
 	<body>
 		<PageLayout>
@@ -64,8 +125,8 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 </html>
 
 <style>
-/* レーンの外（ヘッダーとフッターの外、スクロールしすぎたとき）はカーペットの色 */
+/* レーンの外（ガターの外側、スクロールしすぎたとき）は壁の色 */
 :global(body) {
-	background: var(--color-carpet);
+	background: var(--color-wall);
 }
 </style>

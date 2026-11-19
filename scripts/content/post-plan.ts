@@ -1,4 +1,4 @@
-import { formatIsoDate } from "../../src/utils/date.ts";
+import { formatIsoDate } from "../../src/lib/date.ts";
 
 /*
   記事を作るコマンドの判断の部分。ファイル名と中身を決めるだけで、書き込みはしない

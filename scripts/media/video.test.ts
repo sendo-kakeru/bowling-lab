@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { findLocationTags, isHdr } from "./video.ts";
+import { findLocationTags, isHdr, videoFilterArgs } from "./video.ts";
 
 function probeWith({
 	formatTags,
@@ -80,5 +80,34 @@ describe("isHdr", () => {
 		["伝達特性の指定なし", undefined],
 	])("%s は HDR ではない", (_, colorTransfer) => {
 		expect(isHdr({ probe: probeWithTransfer({ colorTransfer }) })).toBe(false);
+	});
+});
+
+describe("videoFilterArgs", () => {
+	function filterOf({ hdr }: { hdr: boolean }): string {
+		const { output } = videoFilterArgs({ hdr });
+		const filter = output[output.indexOf("-vf") + 1];
+		if (filter === undefined) throw new Error("-vf がない");
+		return filter;
+	}
+
+	test.each([false, true])(
+		"HDR=%s でも長辺 1920px に縮小し、フレームレートは変えない",
+		(hdr) => {
+			expect(filterOf({ hdr })).toMatch(/^scale=.*min\(1920,iw\).*setsar=1/);
+			expect(filterOf({ hdr })).not.toMatch(/\bfps=/);
+		},
+	);
+
+	test("HDR は縮小してから GPU に渡し、BT.709 のタグを付ける", () => {
+		const filter = filterOf({ hdr: true });
+		expect(filter.indexOf("scale=")).toBeLessThan(filter.indexOf("hwupload"));
+		expect(videoFilterArgs({ hdr: true }).output).toContain("-colorspace");
+		expect(videoFilterArgs({ hdr: true }).input).toContain("-init_hw_device");
+	});
+
+	test("SDR は GPU を使わない", () => {
+		expect(videoFilterArgs({ hdr: false }).input).toEqual([]);
+		expect(filterOf({ hdr: false })).not.toContain("hwupload");
 	});
 });

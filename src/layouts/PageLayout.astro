@@ -29,8 +29,8 @@ import Spats from "../components/Spats.astro";
 	grid-template-rows: auto 1fr auto;
 	grid-template-columns: minmax(0, 1fr);
 	min-height: 100dvh;
-	/* レーンの外はカーペットの色。<body> の色（Base.astro）が無い Storybook でも同じに見せる */
-	background: var(--color-carpet);
+	/* ガターの外側（広い画面でレーンの左右に見える地）はボウリング場の壁。<body> の色（Base.astro）が無い Storybook でも同じに見せる */
+	background: var(--color-wall);
 }
 
 /* ガター・板・ガターの 3 列 */

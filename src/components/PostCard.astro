@@ -1,9 +1,8 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import { formatDotDate, formatIsoDate } from "../utils/date";
-import type { Post } from "../utils/get-posts";
-import { THUMBNAIL_CROPS } from "../utils/media";
-import { getThumbnailUrl } from "../utils/thumbnail";
+import { formatDotDate, formatIsoDate } from "../lib/date";
+import type { Post } from "../lib/get-posts";
+import { getThumbnailImage } from "../lib/thumbnail";
 import Card from "./Card.astro";
 
 /*
@@ -33,11 +32,21 @@ const {
 } = Astro.props;
 
 const Heading = `h${headingLevel}` as const;
-const thumbnailUrl = await getThumbnailUrl({
-	crop: "card",
+const { src, srcset, width, height } = getThumbnailImage({
+	slug: post.slug,
 	thumbnail: post.thumbnail,
 });
-const { width, height } = THUMBNAIL_CROPS.card;
+/**
+ * 画像の枠ごとに要る切り抜きの幅（下の CSS）。object-fit: cover で高さに合わせて切るので、
+ * 枠の幅と「枠の高さ × 2.2」の大きいほう。スマホの 96px 角は 212px、一覧の 200 × 120px は 264px、
+ * ホームのタイルは高さ 160px で 352px。1024px 以上のタイルの幅は (画面幅 - 236px) / 3
+ * （ガター 40px × 2、レーンの内余白 24px × 2、列の間 24px × 2、カードの内余白 10px × 2）で、
+ * 1292px から 352px を超え、1360px（--layout-page-width）で約 375px に止まる
+ */
+const SIZES = {
+	row: "(width >= 768px) 264px, 212px",
+	tile: "(width >= 1292px) 375px, (width >= 768px) 352px, 212px",
+} as const satisfies Record<NonNullable<Props["layout"]>, string>;
 ---
 
 <Card
@@ -53,7 +62,9 @@ const { width, height } = THUMBNAIL_CROPS.card;
 			fetchpriority={priority ? "high" : undefined}
 			height={height}
 			loading={priority ? "eager" : "lazy"}
-			src={thumbnailUrl}
+			sizes={srcset && SIZES[layout]}
+			src={src}
+			srcset={srcset}
 			width={width}
 		>
 	</div>

@@ -40,6 +40,15 @@ describe("PostFrontmatterSchema", () => {
 		expect(parse({ thumbnail: "/images/lane.jpg" }).success).toBe(false);
 	});
 
+	test("thumbnail の論理パスを NFC にそろえる（manifest のキーは NFC）", () => {
+		const result = parse({
+			thumbnail: "media:2026/京都/がっこう.jpg".normalize("NFD"),
+		});
+		expect(result.success && result.output.thumbnail).toBe(
+			"2026/京都/がっこう.jpg".normalize("NFC"),
+		);
+	});
+
 	test("知らない項目は、項目の名前を出して落ちる", () => {
 		const result = parse({ descripton: "綴りの誤り" });
 

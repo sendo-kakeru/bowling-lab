@@ -1,0 +1,37 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"enabledManagers": ["npm", "mise", "github-actions", "custom.jsonata"],
+	"extends": [
+		"config:recommended",
+		"helpers:disableTypesNodeMajor",
+		"customManagers:biomeVersions"
+	],
+	"internalChecksFilter": "strict",
+	"minimumReleaseAge": "3 days",
+	"osvVulnerabilityAlerts": true,
+	"packageRules": [
+		{
+			"groupName": "astro",
+			"matchPackageNames": ["astro", "@astrojs/*"]
+		},
+		{
+			"groupName": "emdash",
+			"matchPackageNames": ["emdash", "@emdash-cms/*"]
+		},
+		{
+			"groupName": "cloudflare",
+			"matchPackageNames": ["wrangler", "@cloudflare/*"]
+		},
+		{
+			"groupName": "fontsource",
+			"matchPackageNames": ["@fontsource/*"]
+		},
+		{ "groupName": "node", "matchDepNames": ["node"] },
+		{ "groupName": "pnpm", "matchDepNames": ["pnpm"] }
+	],
+	"prConcurrentLimit": 30,
+	"prHourlyLimit": 0,
+	"reviewers": ["sendo-kakeru"],
+	"schedule": ["* * * * 5"],
+	"timezone": "Asia/Tokyo"
+}

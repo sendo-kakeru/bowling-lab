@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { parsePostSlug, readPublishedAtSource } from "../../src/utils/post.ts";
+import { parsePostSlug, readPublishedAtSource } from "../../src/lib/post.ts";
 import { planNewPost } from "./post-plan.ts";
 
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";

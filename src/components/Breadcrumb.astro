@@ -1,5 +1,6 @@
 ---
 import type { HTMLAttributes } from "astro/types";
+import JsonLd from "./JsonLd.astro";
 
 // 最後の項目は今のページで、リンクにせず、長いときは「…」で省略する
 
@@ -17,6 +18,17 @@ const { items, class: className, ...rest } = Astro.props;
 
 const ancestors = items.slice(0, -1);
 const current = items.at(-1);
+
+// Astro.site は Storybook では無いので、ビルドでは site の URL になる Astro.url を基準にする
+const breadcrumbList = {
+	"@type": "BreadcrumbList",
+	itemListElement: items.map(({ label, href }, i) => ({
+		"@type": "ListItem",
+		item: href === undefined ? undefined : new URL(href, Astro.url).href,
+		name: label,
+		position: i + 1,
+	})),
+};
 ---
 
 {current && (
@@ -42,6 +54,7 @@ const current = items.at(-1);
 				</span>
 			</li>
 		</ol>
+		<JsonLd data={breadcrumbList} />
 	</nav>
 )}
 

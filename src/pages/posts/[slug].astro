@@ -3,11 +3,13 @@ import { render } from "astro:content";
 import type { GetStaticPaths } from "astro";
 import Breadcrumb from "../../components/Breadcrumb.astro";
 import Card from "../../components/Card.astro";
+import JsonLd from "../../components/JsonLd.astro";
 import TableOfContents from "../../components/post/TableOfContents.astro";
+import { SITE_AUTHOR } from "../../consts";
 import Base from "../../layouts/Base.astro";
-import { formatDotDate, formatIsoDate } from "../../utils/date";
-import { getPosts } from "../../utils/get-posts";
-import { toImageAttributes } from "../../utils/media";
+import { formatDotDate, formatIsoDate } from "../../lib/date";
+import { getPosts } from "../../lib/get-posts";
+import { type EyecatchImage, toEyecatchImage } from "../../lib/media";
 
 export const getStaticPaths = (async () => {
 	const posts = await getPosts();
@@ -21,13 +23,43 @@ export const getStaticPaths = (async () => {
 const { post, older, newer } = Astro.props;
 const { Content } = await render(post.entry);
 // 本文の最初の画像で代用したときは、同じ画像が 2 回並ぶので冒頭に出さない
-const headerImage =
+const eyecatch =
 	post.thumbnail.source === "frontmatter"
-		? toImageAttributes({ image: post.thumbnail.image, loading: "eager" })
+		? toEyecatchImage({ image: post.thumbnail.image })
 		: undefined;
+/**
+ * アイキャッチの切り抜きごとの表示幅（下の .post-image の CSS）。wide は 768px 以上。少し大きめに見積もる。
+ * Safari は sizes の min() / max() を読めず全体を 100vw として扱うので、calc() とメディア条件だけで書く
+ */
+const EYECATCH_SIZES = {
+	narrow: "calc(91.41vw - 24px)",
+	wide: "(width >= 1280px) 1056px, (width >= 1024px) calc(100vw - 200px), calc(100vw - 170px)",
+} as const satisfies Record<keyof EyecatchImage, string>;
+const ogImagePath = `/og/posts/${post.slug}.png`;
+const url = new URL(Astro.url.pathname, Astro.site).href;
+const blogPosting = {
+	"@type": "BlogPosting",
+	author: {
+		"@type": "Person",
+		name: SITE_AUTHOR,
+		url: new URL("/about", Astro.site).href,
+	},
+	datePublished: formatIsoDate({ date: post.publishedAt }),
+	description: post.description,
+	headline: post.title,
+	image: new URL(ogImagePath, Astro.site).href,
+	mainEntityOfPage: url,
+	url,
+};
 ---
 
-<Base description={post.description} title={post.title}>
+<Base
+	article={{ publishedAt: post.publishedAt }}
+	description={post.description}
+	ogImage={{ alt: post.title, path: ogImagePath }}
+	title={post.title}
+>
+	<JsonLd data={blogPosting} />
 	<div class="post-page">
 		<Breadcrumb
 			items={[
@@ -49,10 +81,27 @@ const headerImage =
 				{post.lead !== undefined && <p class="post-lead">{post.lead}</p>}
 			</header>
 
-			{headerImage && (
-				<div class="post-image">
-					<img {...headerImage} alt="" />
-				</div>
+			{eyecatch && (
+				<picture class="post-image">
+					<source
+						height={eyecatch.wide.height}
+						media="(width >= 768px)"
+						sizes={EYECATCH_SIZES.wide}
+						srcset={eyecatch.wide.srcset}
+						width={eyecatch.wide.width}
+					>
+					<img
+						alt=""
+						decoding="async"
+						fetchpriority="high"
+						height={eyecatch.narrow.height}
+						loading="eager"
+						sizes={EYECATCH_SIZES.narrow}
+						src={eyecatch.narrow.src}
+						srcset={eyecatch.narrow.srcset}
+						width={eyecatch.narrow.width}
+					>
+				</picture>
 			)}
 
 			<div class="post-body">

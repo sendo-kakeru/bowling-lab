@@ -1,5 +1,5 @@
-import type { Post } from "../../src/utils/get-posts";
-import { parsePostSlug } from "../../src/utils/post";
+import type { Post } from "../../src/lib/get-posts";
+import { parsePostSlug } from "../../src/lib/post";
 
 /*
   ストーリーで使う記事。サムネイルは既定の画像にする
