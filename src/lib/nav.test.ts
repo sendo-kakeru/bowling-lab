@@ -1,7 +1,13 @@
 import { describe, expect, test } from "vitest";
-import { MAIN_NAV, withCurrent } from "./nav.ts";
+import { MAIN_NAV, type NavLink, withCurrent } from "./nav.ts";
 
-function currentOf({ url, path }: { url: string; path: string }) {
+function currentOf({
+	url,
+	path,
+}: {
+	url: string;
+	path: string;
+}): NavLink["current"] {
 	const [link] = withCurrent({
 		links: [{ label: "Link", url }],
 		page: new URL(path, "https://example.com"),

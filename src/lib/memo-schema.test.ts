@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { compareMemos, resolvePostedAt } from "./memo-schema.ts";
+import { compareMemos, type Memo, resolvePostedAt } from "./memo-schema.ts";
 import { type MemoParseError, parseMemo } from "./parse-memo.ts";
 import { catchMemoParseError } from "./test-helpers.ts";
 
@@ -71,11 +71,11 @@ describe("resolvePostedAt", () => {
 });
 
 describe("compareMemos", () => {
-	const toNote = (postedAt: string) => ({
+	const toNote = (postedAt: string): Memo["notes"][number] => ({
 		html: "",
 		postedAt: new Date(postedAt),
 	});
-	const memo = (id: string, first: string, ...rest: string[]) => ({
+	const memo = (id: string, first: string, ...rest: string[]): Memo => ({
 		id,
 		notes: [toNote(first), ...rest.map(toNote)] satisfies [
 			unknown,
