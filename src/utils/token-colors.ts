@@ -3,7 +3,6 @@
  * キーは tokens.css の `--color-<キー>` で、値が同じことを token-colors.test.ts で確かめる
  */
 export const TOKEN_COLORS = {
-	card: "#fbf6ec",
 	"ink-600": "#6b5440",
 	"navy-900": "#142038",
 	"wood-100": "#efe4d0",

@@ -17,10 +17,9 @@ const WIDTH = 1200;
 const HEIGHT = 630;
 
 const COLORS = {
-	background: TOKEN_COLORS.card,
+	/** 地は既定のサムネイルと同じ板目の明るい色。クリームの地では共通の画像の白いピンが溶けて見えにくい */
+	background: TOKEN_COLORS["wood-100"],
 	date: TOKEN_COLORS["ink-600"],
-	/** 共通の画像の地。白いピンがクリームの地に溶けないように、既定のサムネイルと同じ板目の色にする */
-	siteBackground: TOKEN_COLORS["wood-100"],
 	text: TOKEN_COLORS["navy-900"],
 } as const;
 
@@ -225,17 +224,11 @@ async function renderPng({
 	return new Uint8Array(await sharp(Buffer.from(svg)).png().toBuffer());
 }
 
-function canvas({
-	children,
-	background = COLORS.background,
-}: {
-	children: Node[];
-	background?: string;
-}): Node {
+function canvas({ children }: { children: Node[] }): Node {
 	return div({
 		children,
 		style: {
-			backgroundColor: background,
+			backgroundColor: COLORS.background,
 			color: COLORS.text,
 			height: HEIGHT,
 			position: "relative",
@@ -358,7 +351,6 @@ export async function renderSiteOgp(): Promise<Uint8Array<ArrayBuffer>> {
 		textFont: FONTS.tagline,
 	});
 	const root = canvas({
-		background: COLORS.siteBackground,
 		children: [
 			picture({
 				content:
