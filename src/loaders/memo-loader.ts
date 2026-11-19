@@ -14,13 +14,13 @@ import { MemoParseError, parseMemo } from "../lib/parse-memo.ts";
 
 const MEMO_DIR = "src/content/memos";
 
+function memoId({ path }: { path: string }): string {
+	return basename(path, ".md");
+}
+
 // Markdown の変換は見出しに必ず id を付ける。一覧では複数のメモが並び、同じ文言の見出しで id が重なるので外す。
 // コードの中の `<h2 id="">` はエスケープ済み（&lt;）なので当たらない
 const HEADING_ID_PATTERN = /(<h[1-6]\b[^>]*?)\s+id="[^"]*"/g;
-
-function removeHeadingIds({ html }: { html: string }): string {
-	return html.replace(HEADING_ID_PATTERN, "$1");
-}
 
 // renderMarkdown は渡した文字列の先頭のフロントマターを読み取って捨てる。
 // 書き込みが区切り線（---）で始まると、次の --- までが消えるので、空のフロントマターを先に付ける
@@ -36,7 +36,7 @@ async function syncMemo({
 	path: string;
 	root: string;
 }): Promise<void> {
-	const id = basename(path, ".md");
+	const id = memoId({ path });
 	const source = await readFile(path, "utf-8");
 	const filePath = relative(root, path);
 	let notes: ReturnType<typeof resolvePostedAt>;
@@ -62,7 +62,7 @@ async function syncMemo({
 			const { html } = await renderMarkdown(`${EMPTY_FRONTMATTER}${markdown}`, {
 				fileURL,
 			});
-			return { html: removeHeadingIds({ html }), postedAt };
+			return { html: html.replace(HEADING_ID_PATTERN, "$1"), postedAt };
 		}),
 	);
 	// digest は渡さない。同じ digest だと store.set が何もしないので、ローダーの処理を変えても古い HTML が残る
@@ -94,7 +94,7 @@ export function memoLoader(): Loader {
 					store.set({
 						data: { error: message },
 						filePath: relative(root, path),
-						id: basename(path, ".md"),
+						id: memoId({ path }),
 					});
 				}
 			};
@@ -107,7 +107,7 @@ export function memoLoader(): Loader {
 				watcher.on("add", onChange);
 				watcher.on("change", onChange);
 				watcher.on("unlink", (path) => {
-					if (isMemoPath({ path })) store.delete(basename(path, ".md"));
+					if (isMemoPath({ path })) store.delete(memoId({ path }));
 				});
 			}
 
@@ -118,7 +118,7 @@ export function memoLoader(): Loader {
 				: [];
 			const staleIds = new Set(store.keys());
 			for (const path of files) {
-				staleIds.delete(basename(path, ".md"));
+				staleIds.delete(memoId({ path }));
 				await sync({ path });
 			}
 			for (const id of staleIds) {

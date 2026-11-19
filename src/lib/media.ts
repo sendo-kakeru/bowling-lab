@@ -204,7 +204,8 @@ interface MarkdownNode {
 	children?: readonly MarkdownNode[];
 }
 
-function findFirstMediaPathIn({
+/** 本文で最初の `media:` の画像の論理パス */
+function findFirstMediaPath({
 	node,
 }: {
 	node: MarkdownNode;
@@ -213,19 +214,10 @@ function findFirstMediaPathIn({
 		return parseMediaRef({ url: node.url });
 	}
 	for (const child of node.children ?? []) {
-		const path = findFirstMediaPathIn({ node: child });
+		const path = findFirstMediaPath({ node: child });
 		if (path !== undefined) return path;
 	}
 	return undefined;
-}
-
-/** 本文で最初の `media:` の画像の論理パス */
-function findFirstMediaPath({
-	markdown,
-}: {
-	markdown: string;
-}): string | undefined {
-	return findFirstMediaPathIn({ node: fromMarkdown(markdown) });
 }
 
 export type Thumbnail =
@@ -252,7 +244,7 @@ export function decideThumbnail({
 		}
 		return { image: toStillImage({ entry }), source: "frontmatter" };
 	}
-	const path = findFirstMediaPath({ markdown });
+	const path = findFirstMediaPath({ node: fromMarkdown(markdown) });
 	if (path === undefined) return { source: "default" };
 	const entry = manifest[path];
 	if (!entry) {
