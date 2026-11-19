@@ -1,0 +1,16 @@
+# Workers の静的アセットが読む応答ヘッダー。書かないパスは既定（max-age=0, must-revalidate と ETag）で、デプロイがすぐ反映される
+
+# ファイル名にハッシュが入り、中身が変わると URL も変わるので、長く持たせてよい
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# URL は同じまま中身が変わる（記事の題名を直すと OGP 画像も変わる）ので、1 日に留める
+/og/*
+  Cache-Control: public, max-age=86400
+
+/thumbnails/*
+  Cache-Control: public, max-age=86400
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
