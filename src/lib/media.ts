@@ -11,7 +11,7 @@ import type {
   astro.config.mjs からも読むので、astro:* は import しない。設計は docs/design/media.md
 */
 
-const MEDIA_SCHEME = "media:";
+export const MEDIA_SCHEME = "media:";
 
 /**
  * `media:2026/a.jpg` から論理パス `2026/a.jpg` を取り出す。`media:` の参照でなければ undefined。
