@@ -6,8 +6,7 @@ import { formatIsoDate, formatTime } from "./date.ts";
 */
 
 /** 見出しの行。1 つ目のグループが日時（`2026-11-06 21:14`）。行末の空白はエディタが残しがちなので許す */
-export const MEMO_HEADING_PATTERN =
-	/^## (\d{4}-\d{2}-\d{2} \d{2}:\d{2})[ \t]*$/;
+const MEMO_HEADING_PATTERN = /^## (\d{4}-\d{2}-\d{2} \d{2}:\d{2})[ \t]*$/;
 
 /** 日本時間の日時から見出しの行を作る。例: `## 2026-11-06 21:14` */
 export function formatMemoHeading({ date }: { date: Date }): string {

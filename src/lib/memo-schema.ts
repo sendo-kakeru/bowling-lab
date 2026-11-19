@@ -75,10 +75,7 @@ export type Memo = v.InferOutput<typeof MemoSchema>;
  * 先頭の書き込みの日時の新しい順。続きを足しても順番は変わらない。
  * 同じ日時なら id の降順（同じ分に作った `-2` つきのファイルを、後の作成として前に出す）
  */
-export function compareMemos(
-	a: Pick<Memo, "id" | "notes">,
-	b: Pick<Memo, "id" | "notes">,
-): number {
+export function compareMemos(a: Memo, b: Memo): number {
 	const byDate = b.notes[0].postedAt.getTime() - a.notes[0].postedAt.getTime();
 	if (byDate !== 0) return byDate;
 	if (a.id === b.id) return 0;

@@ -1,4 +1,3 @@
-import { fromMarkdown } from "mdast-util-from-markdown";
 import { MEDIA_ORIGIN } from "../consts.ts";
 import type {
 	MediaEntry,
@@ -11,7 +10,7 @@ import type {
   astro.config.mjs からも読むので、astro:* は import しない。設計は docs/design/media.md
 */
 
-const MEDIA_SCHEME = "media:";
+export const MEDIA_SCHEME = "media:";
 
 /**
  * `media:2026/a.jpg` から論理パス `2026/a.jpg` を取り出す。`media:` の参照でなければ undefined。
@@ -22,6 +21,21 @@ export function parseMediaRef({ url }: { url: string }): string | undefined {
 	return url.startsWith(MEDIA_SCHEME)
 		? url.slice(MEDIA_SCHEME.length).normalize("NFC")
 		: undefined;
+}
+
+/** manifest から論理パスの項目を引く。なければ ref（どの参照か）を添えて投げる */
+export function getMediaEntry({
+	manifest,
+	path,
+	ref,
+}: {
+	manifest: MediaManifest;
+	path: string;
+	ref: string;
+}): MediaEntry {
+	const entry = manifest[path];
+	if (!entry) throw new Error(`${ref} が media-manifest.json にない`);
+	return entry;
 }
 
 /**
@@ -79,7 +93,7 @@ interface Aspect {
 	height: number;
 }
 
-function cropHeight({
+export function cropHeight({
 	aspect,
 	width,
 }: {
@@ -126,7 +140,7 @@ function toSrcset({
 }
 
 /** 静止画として出すもの。動画ならポスター画像に動画の寸法を付ける */
-interface StillImage {
+export interface StillImage {
 	key: string;
 	width: number;
 	height: number;
@@ -198,71 +212,8 @@ export function toVideoAttributes({
 	};
 }
 
-interface MarkdownNode {
-	type: string;
-	url?: string;
-	children?: readonly MarkdownNode[];
-}
-
-function findFirstMediaPathIn({
-	node,
-}: {
-	node: MarkdownNode;
-}): string | undefined {
-	if (node.type === "image" && node.url !== undefined) {
-		return parseMediaRef({ url: node.url });
-	}
-	for (const child of node.children ?? []) {
-		const path = findFirstMediaPathIn({ node: child });
-		if (path !== undefined) return path;
-	}
-	return undefined;
-}
-
-/** 本文で最初の `media:` の画像の論理パス */
-function findFirstMediaPath({
-	markdown,
-}: {
-	markdown: string;
-}): string | undefined {
-	return findFirstMediaPathIn({ node: fromMarkdown(markdown) });
-}
-
-export type Thumbnail =
-	| { source: "frontmatter" | "body"; image: StillImage }
-	| { source: "default" };
-
-/** サムネイルを決める。フロントマター、本文の最初の画像、既定の画像の順 */
-export function decideThumbnail({
-	thumbnail,
-	markdown,
-	manifest,
-}: {
-	/** フロントマターの thumbnail の論理パス */
-	thumbnail?: string;
-	markdown: string;
-	manifest: MediaManifest;
-}): Thumbnail {
-	if (thumbnail !== undefined) {
-		const entry = manifest[thumbnail];
-		if (!entry) {
-			throw new Error(
-				`thumbnail の media:${thumbnail} が media-manifest.json にない`,
-			);
-		}
-		return { image: toStillImage({ entry }), source: "frontmatter" };
-	}
-	const path = findFirstMediaPath({ markdown });
-	if (path === undefined) return { source: "default" };
-	const entry = manifest[path];
-	if (!entry) {
-		throw new Error(`media:${path} が media-manifest.json にない`);
-	}
-	return { image: toStillImage({ entry }), source: "body" };
-}
-
 /** 切り抜きの縦横比と幅の候補。表示幅（sizes）は、表示する側の CSS の隣に書く */
-interface CropRule {
+export interface CropRule {
 	aspect: Aspect;
 	widths: readonly number[];
 }
@@ -278,7 +229,7 @@ export interface CroppedImage {
 	height: number;
 }
 
-function toCroppedImage({
+export function toCroppedImage({
 	image,
 	rule: { aspect, widths },
 }: {
@@ -320,29 +271,4 @@ export function toEyecatchImage({
 		narrow: toCroppedImage({ image, rule: EYECATCH_CROPS.narrow }),
 		wide: toCroppedImage({ image, rule: EYECATCH_CROPS.wide }),
 	};
-}
-
-/**
- * 記事カードのサムネイルの切り抜き（2.2:1）。いちばん大きな候補は、ホームのタイルのいちばん広い枠（約 375 × 160px）の 2 倍。
- * 224 はスマホの 96px 角の枠（object-fit: cover で 96 × 2.2 ≒ 212px 幅の切り抜きが要る）用。枠ごとの表示幅は PostCard.astro の sizes
- */
-const THUMBNAIL_CROP = {
-	aspect: { height: 5, width: 11 },
-	widths: [224, 352, 528, 768],
-} as const satisfies CropRule;
-
-const THUMBNAIL_WIDTH = Math.max(...THUMBNAIL_CROP.widths);
-
-/** サムネイルの寸法（いちばん大きな候補）。既定の画像（ボールの SVG）もこの大きさにする */
-export const THUMBNAIL_SIZE = {
-	height: cropHeight({ aspect: THUMBNAIL_CROP.aspect, width: THUMBNAIL_WIDTH }),
-	width: THUMBNAIL_WIDTH,
-};
-
-export function toThumbnailImage({
-	image,
-}: {
-	image: StillImage;
-}): CroppedImage {
-	return toCroppedImage({ image, rule: THUMBNAIL_CROP });
 }

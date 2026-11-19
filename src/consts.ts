@@ -22,6 +22,10 @@ export const SITE_TIME_ZONE = "Asia/Tokyo";
 /** 記事とメモの一覧で、1 ページに出す件数 */
 export const LIST_PER_PAGE = 20;
 
+/** 記事とメモの md を置くディレクトリ。リポジトリのルートからの相対パス */
+export const POST_DIR = "src/content/posts";
+export const MEMO_DIR = "src/content/memos";
+
 /** 画像と動画を配信するドメイン（R2）。設計は docs/design/media.md */
 export const MEDIA_ORIGIN = "https://bowling-media.sendo.page";
 

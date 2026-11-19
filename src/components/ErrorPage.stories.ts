@@ -1,18 +1,13 @@
-import type { AstroRenderer } from "@storybook-astro/framework";
-import type {
-	ComponentAnnotations,
-	StoryAnnotations,
-} from "storybook/internal/types";
+import type { Meta, Story } from "../../.storybook/types";
 import ErrorPage from "./ErrorPage.astro";
 
 const meta = {
 	component: ErrorPage,
 	tags: ["autodocs"],
 	title: "Components/ErrorPage",
-} satisfies ComponentAnnotations<AstroRenderer>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryAnnotations<AstroRenderer>;
 
 export const NotFound: Story = {
 	args: {

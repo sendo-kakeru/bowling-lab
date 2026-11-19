@@ -53,12 +53,13 @@ function drawLane({ length }: { length: number }): {
 	pinX: number;
 	path: string;
 } {
-	const x = (ratio: number): number => Math.round(length * ratio);
-	const ballX = x(0.75);
+	const x = ({ ratio }: { ratio: number }): number =>
+		Math.round(length * ratio);
+	const ballX = x({ ratio: 0.75 });
 	return {
-		arrowX: x(0.3),
+		arrowX: x({ ratio: 0.3 }),
 		ballX,
-		path: `M 20 62 C ${x(0.4)} 122, ${x(0.48)} 136, ${x(0.62)} 139 L ${ballX - 12} 139`,
+		path: `M 20 62 C ${x({ ratio: 0.4 })} 122, ${x({ ratio: 0.48 })} 136, ${x({ ratio: 0.62 })} 139 L ${ballX - 12} 139`,
 		pinX: length - 60,
 	};
 }

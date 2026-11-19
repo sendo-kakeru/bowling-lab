@@ -1,5 +1,6 @@
 import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
+import { POST_DIR } from "./consts";
 import { memoLoader } from "./loaders/memo-loader";
 
 // コレクションには schema を渡さない。検証と型付けは取得関数（Valibot）で行う。
@@ -7,7 +8,7 @@ import { memoLoader } from "./loaders/memo-loader";
 
 const posts = defineCollection({
 	loader: glob({
-		base: "./src/content/posts",
+		base: POST_DIR,
 		// 既定の id は小文字にするなど手を加えるので、ファイル名（スラッグ）とずれる
 		generateId: ({ entry }) => entry.replace(/\.md$/, ""),
 		pattern: "*.md",

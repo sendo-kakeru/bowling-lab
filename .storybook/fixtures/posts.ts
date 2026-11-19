@@ -3,7 +3,7 @@ import { parsePostSlug } from "../../src/lib/post";
 
 /*
   ストーリーで使う記事。サムネイルは既定の画像にする
-  （media-manifest.json の鍵は仮のもので、R2 に画像がないため）
+  （架空の記事なので、R2 にも media-manifest.json にも画像がないため）
 */
 
 function post({

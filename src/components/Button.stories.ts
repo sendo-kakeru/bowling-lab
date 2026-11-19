@@ -1,18 +1,13 @@
-import type { AstroRenderer } from "@storybook-astro/framework";
-import type {
-	ComponentAnnotations,
-	StoryAnnotations,
-} from "storybook/internal/types";
+import type { Meta, Story } from "../../.storybook/types";
 import Button from "./Button.astro";
 
 const meta = {
 	component: Button,
 	tags: ["autodocs"],
 	title: "Components/Button",
-} satisfies ComponentAnnotations<AstroRenderer>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryAnnotations<AstroRenderer>;
 
 const VARIANTS = ["primary", "secondary", "outline"] as const;
 

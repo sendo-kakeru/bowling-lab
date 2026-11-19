@@ -62,11 +62,11 @@ const blogPosting = {
 	<JsonLd data={blogPosting} />
 	<div class="post-page">
 		<Breadcrumb
-			items={[
+			ancestors={[
 				{ href: "/", label: "HOME" },
 				{ href: "/posts", label: "POSTS" },
-				{ label: post.title },
 			]}
+			current={post.title}
 		/>
 
 		<Card as="article" class="post" raised>

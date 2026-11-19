@@ -55,12 +55,12 @@
   - 横長の写真は幅 2400px、縦長の写真は 1800×2400px になり、どちらも上の条件を満たす
   - 値は旧リポジトリ（`sendo-kakeru/bowling-lab_old`）の CSS から算出した。見た目を作り直すときに見直す
 - 保存形式: 写真は JPEG（品質 90 前後）、スクリーンショットは PNG のまま。最終的な圧縮と AVIF / WebP への変換は Transformations が行う
-- HEIC: sharp のプリビルド版は非対応。CLI が `.heic` を見つけたら `sips -s format jpeg` で先に変換する
+- HEIC: sharp のプリビルド版は非対応。CLI が `.heic` を見つけたら `sips -s format tiff` で先に変換する。可逆の TIFF を挟み、非可逆の圧縮を sharp の 1 回だけにするため
 
 ### 配信（Image Transformations）
 
 - `format=auto` で AVIF / WebP を出し分ける
-- `srcset` の幅の候補と `sizes` は、表示する場所ごとに決める（切り抜きと幅の候補は `src/lib/media.ts`。`sizes` は表示する側の CSS の隣で、アイキャッチは `src/pages/posts/[slug].astro`、カードは `PostCard.astro`）
+- `srcset` の幅の候補と `sizes` は、表示する場所ごとに決める（切り抜きと幅の候補は `src/lib/media.ts`、サムネイルの切り抜きは `src/lib/thumbnail.ts`。`sizes` は表示する側の CSS の隣で、アイキャッチは `src/pages/posts/[slug].astro`、カードは `PostCard.astro`）
 
   | 場所 | 切り抜き | 幅の候補 | `sizes` |
   | --- | --- | --- | --- |
@@ -197,7 +197,7 @@ manifest の役割:
 
 ## バケットができるまで
 
-- manifest は手書きの仮データにする。URL の組み立てと HTML の出力までを確かめ、画像と動画そのものは表示されない
+- manifest は空（`{}`）のまま。URL の組み立てと HTML の出力は単体テストで確かめる
 - `media:push` は `--dry-run` で、R2 に上げる直前まで（画像の正規化、動画の書き出し、位置情報が消えていること、キーと manifest の内容）を確かめる。アップロード部分は、バケットができるまで実際には動かしていない状態になる
 
 ## あとで必要になりそうなこと

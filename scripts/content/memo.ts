@@ -1,22 +1,22 @@
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
+import { MEMO_DIR } from "../../src/consts.ts";
+import { errorMessage } from "../../src/lib/error.ts";
+import { ROOT } from "../root.ts";
 import {
-	MEMO_DIR,
 	type MemoChange,
 	type MemoFile,
 	planAddNote,
 	planNewMemo,
 } from "./memo-plan.ts";
 
-const ROOT = path.resolve(import.meta.dirname, "../..");
-
 const memoPath = ({ id }: { id: string }): string => `${MEMO_DIR}/${id}.md`;
 
 try {
 	await main();
 } catch (error) {
-	console.error(error instanceof Error ? error.message : String(error));
+	console.error(errorMessage({ error }));
 	process.exitCode = 1;
 }
 
@@ -38,7 +38,7 @@ async function main(): Promise<void> {
 
 /** ローダーと同じく、ドットで始まるファイルは読まない */
 async function readMemos(): Promise<MemoFile[]> {
-	// 仮データを消すとディレクトリごとなくなる（git は空のディレクトリを持たない）
+	// メモが 1 件もないとディレクトリごとない（git は空のディレクトリを持たない）
 	await mkdir(path.join(ROOT, MEMO_DIR), { recursive: true });
 	const files = (await readdir(path.join(ROOT, MEMO_DIR))).filter(
 		(file) => file.endsWith(".md") && !file.startsWith("."),

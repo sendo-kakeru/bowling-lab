@@ -1,8 +1,4 @@
-import type { AstroRenderer } from "@storybook-astro/framework";
-import type {
-	ComponentAnnotations,
-	StoryAnnotations,
-} from "storybook/internal/types";
+import type { Meta, Story } from "../../.storybook/types";
 import Card from "./Card.astro";
 
 /* 中の余白は呼び出し側で決めるので、ストーリーでは p に余白を付けたものを入れる */
@@ -17,10 +13,9 @@ const meta = {
 	component: Card,
 	tags: ["autodocs"],
 	title: "Components/Card",
-} satisfies ComponentAnnotations<AstroRenderer>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryAnnotations<AstroRenderer>;
 
 export const Default: Story = {};
 

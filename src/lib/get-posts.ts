@@ -1,7 +1,7 @@
 import { type CollectionEntry, getCollection } from "astro:content";
 import { readFile } from "node:fs/promises";
 import * as v from "valibot";
-import { decideThumbnail, type Thumbnail } from "./media";
+import { errorMessage } from "./error";
 import { getMediaManifest } from "./media-manifest";
 import {
 	comparePosts,
@@ -13,6 +13,7 @@ import {
 	readPublishedAtSource,
 	type TocItem,
 } from "./post";
+import { decideThumbnail, type Thumbnail } from "./thumbnail";
 
 export interface Post {
 	slug: PostSlug;
@@ -68,8 +69,9 @@ async function toPost({
 			thumbnail,
 		});
 	} catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
-		throw new Error(`${filePath}: ${message}`, { cause: error });
+		throw new Error(`${filePath}: ${errorMessage({ error })}`, {
+			cause: error,
+		});
 	}
 
 	return {

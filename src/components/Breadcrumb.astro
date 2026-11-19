@@ -2,61 +2,52 @@
 import type { HTMLAttributes } from "astro/types";
 import JsonLd from "./JsonLd.astro";
 
-// 最後の項目は今のページで、リンクにせず、長いときは「…」で省略する
-
-interface BreadcrumbItem {
-	label: string;
-	/** 最後の項目（今のページ）では使わない */
-	href?: string;
-}
+// 今のページ（current）はリンクにせず、長いときは「…」で省略する
 
 interface Props extends HTMLAttributes<"nav"> {
-	items: BreadcrumbItem[];
+	/** 今のページより上の階層。上から順に */
+	ancestors: { label: string; href: string }[];
+	/** 今のページの名前 */
+	current: string;
 }
 
-const { items, class: className, ...rest } = Astro.props;
-
-const ancestors = items.slice(0, -1);
-const current = items.at(-1);
+const { ancestors, current, class: className, ...rest } = Astro.props;
 
 // Astro.site は Storybook では無いので、ビルドでは site の URL になる Astro.url を基準にする
 const breadcrumbList = {
 	"@type": "BreadcrumbList",
-	itemListElement: items.map(({ label, href }, i) => ({
-		"@type": "ListItem",
-		item: href === undefined ? undefined : new URL(href, Astro.url).href,
-		name: label,
-		position: i + 1,
-	})),
+	itemListElement: [
+		...ancestors.map(({ label, href }, i) => ({
+			"@type": "ListItem",
+			item: new URL(href, Astro.url).href,
+			name: label,
+			position: i + 1,
+		})),
+		{ "@type": "ListItem", name: current, position: ancestors.length + 1 },
+	],
 };
 ---
 
-{current && (
-	<nav aria-label="パンくずリスト" {...rest} class:list={[className]}>
-		<ol class="list">
-			{ancestors.map((item) => (
-				<li class="item">
-					{item.href !== undefined ? (
-						<a class="crumb text-label" href={item.href}>
-							{item.label}
-						</a>
-					) : (
-						<span class="crumb text-label">{item.label}</span>
-					)}
-				</li>
-			))}
-			<li class="item" data-current>
-				<span aria-current="page" class="current">
-					{current.label}
-				</span>
-				<span aria-hidden="true" class="current-sizer">
-					{current.label}
-				</span>
+<nav aria-label="パンくずリスト" {...rest} class:list={[className]}>
+	<ol class="list">
+		{ancestors.map((item) => (
+			<li class="item">
+				<a class="crumb text-label" href={item.href}>
+					{item.label}
+				</a>
 			</li>
-		</ol>
-		<JsonLd data={breadcrumbList} />
-	</nav>
-)}
+		))}
+		<li class="item" data-current>
+			<span aria-current="page" class="current">
+				{current}
+			</span>
+			<span aria-hidden="true" class="current-sizer">
+				{current}
+			</span>
+		</li>
+	</ol>
+	<JsonLd data={breadcrumbList} />
+</nav>
 
 <style>
 /* 列全体を 1 枚の札にして、札の幅は中身の長さまでにする */

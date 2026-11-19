@@ -11,7 +11,8 @@ import Base from "../layouts/Base.astro";
 >
 	<div class="privacy-page">
 		<Breadcrumb
-			items={[{ href: "/", label: "HOME" }, { label: "PRIVACY POLICY" }]}
+			ancestors={[{ href: "/", label: "HOME" }]}
+			current="PRIVACY POLICY"
 		/>
 
 		<h1 class="text-page-title">PRIVACY POLICY</h1>

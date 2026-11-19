@@ -1,12 +1,21 @@
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test } from "vitest";
 import { sourceDigest } from "./source-digest.ts";
+
+const dirs: string[] = [];
+
+afterEach(() => {
+	for (const dir of dirs.splice(0)) {
+		rmSync(dir, { force: true, recursive: true });
+	}
+});
 
 function writeSources({ files }: { files: Record<string, string> }): URL {
 	const dir = mkdtempSync(join(tmpdir(), "source-digest-"));
+	dirs.push(dir);
 	for (const [name, text] of Object.entries(files)) {
 		writeFileSync(join(dir, name), text);
 	}

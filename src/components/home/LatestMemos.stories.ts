@@ -1,10 +1,6 @@
-import type { AstroRenderer } from "@storybook-astro/framework";
-import type {
-	ComponentAnnotations,
-	StoryAnnotations,
-} from "storybook/internal/types";
 import { withPageLayout } from "../../../.storybook/decorators";
 import { MEMO_ONE_REPLY, MEMOS } from "../../../.storybook/fixtures/memos";
+import type { Meta, Story } from "../../../.storybook/types";
 import LatestMemos from "./LatestMemos.astro";
 
 const meta = {
@@ -14,10 +10,9 @@ const meta = {
 	parameters: { layout: "fullscreen" },
 	tags: ["autodocs"],
 	title: "Home/LatestMemos",
-} satisfies ComponentAnnotations<AstroRenderer>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryAnnotations<AstroRenderer>;
 
 /** ホームに出す新しい 2 件 */
 export const Default: Story = {};

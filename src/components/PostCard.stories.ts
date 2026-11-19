@@ -1,9 +1,5 @@
-import type { AstroRenderer } from "@storybook-astro/framework";
-import type {
-	ComponentAnnotations,
-	StoryAnnotations,
-} from "storybook/internal/types";
 import { POSTS } from "../../.storybook/fixtures/posts";
+import type { Meta, Story } from "../../.storybook/types";
 import PostCard from "./PostCard.astro";
 
 /* 768px 以上で抜粋が出る。ツールバーの表示幅で確かめる */
@@ -15,10 +11,9 @@ const meta = {
 	component: PostCard,
 	tags: ["autodocs"],
 	title: "Components/PostCard",
-} satisfies ComponentAnnotations<AstroRenderer>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryAnnotations<AstroRenderer>;
 
 /** 記事一覧の横長のカード */
 export const Row: Story = {};

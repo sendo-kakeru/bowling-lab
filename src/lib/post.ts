@@ -1,6 +1,6 @@
 import { type DefaultTreeAdapterMap, parseFragment } from "parse5";
 import * as v from "valibot";
-import { parseMediaRef } from "./media";
+import { parseMediaRef } from "./media.ts";
 
 const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -75,13 +75,16 @@ export const PostFrontmatterSchema = v.strictObject(
 
 /** `_` は下書きの印。残りは英小文字・数字・ハイフンだけ */
 const SLUG_REGEX = /^_?[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const DRAFT_PREFIX = "_";
+export const DRAFT_PREFIX = "_";
+
+/** /posts/page/2 のページ送りとぶつかるので、記事のスラッグには使えない */
+export const RESERVED_SLUG = "page";
 
 const PostSlugSchema = v.pipe(
 	v.string(),
 	v.regex(SLUG_REGEX),
-	// /posts/page/2 のページ送りとぶつかる。下書きも `_` を外して公開した時点でぶつかる
-	v.check((slug) => slug.replace(DRAFT_PREFIX, "") !== "page"),
+	// 下書きも `_` を外して公開した時点でぶつかる
+	v.check((slug) => slug.replace(DRAFT_PREFIX, "") !== RESERVED_SLUG),
 	v.brand("PostSlug"),
 );
 

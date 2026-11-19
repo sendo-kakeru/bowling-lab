@@ -32,11 +32,11 @@ AI のレビューが見落としたものや、妥当でない設計に気づ�
 
 旧リポジトリ（`sendo-kakeru/bowling-lab_old`）にあったものは、そこから移植できる。
 
-- [ ] CI（lint、型チェック、ユニットテスト、ビルド。旧リポジトリの `.github/workflows/`）
-- [ ] Renovate（旧リポジトリの `renovate.json`）と、Node / pnpm のバージョン固定（`mise.toml`）
+- [x] CI（lint、型チェック、ユニットテスト、ビルド。`.github/workflows/ci-*.yml`）
+- [x] Renovate（`renovate.json`）と、Node / pnpm のバージョン固定（`mise.toml`）
 - [x] 本番へのデプロイ（`main` への push で `.github/workflows/deploy-prod.yml`）
 - [ ] PR ごとのプレビュー URL の発行（動作確認だけでマージする前提）
 - [ ] AI レビューの GitHub Actions ワークフロー。API キーをリポジトリのシークレットに登録してから作る
 - [ ] 表示の差分比較（ページのスクリーンショット）と、全ページのスモークテスト
 
-ブランチ保護は、private リポジトリでは GitHub Pro 以上が必要なので使っていない。CI ができたら、マージ前に人間が CI の結果を見る。
+ブランチ保護は、private リポジトリでは GitHub Pro 以上が必要なので使っていない。マージ前に人間が CI の結果を見る。

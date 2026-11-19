@@ -2,14 +2,13 @@
 import { Image } from "astro:assets";
 import type { HTMLAttributes } from "astro/types";
 import logo from "../../assets/avatar.png";
+import { SITE_TITLE } from "../../consts";
 
 // 画像は About のアバターと同じ。リンクの名前はサイト名の文字で付くので、画像は飾り（alt=""）にする
 
-interface Props extends HTMLAttributes<"a"> {
-	title: string;
-}
+type Props = HTMLAttributes<"a">;
 
-const { title, class: className, ...rest } = Astro.props;
+const { class: className, ...rest } = Astro.props;
 ---
 
 <a {...rest} href="/" class:list={["header-logo", className]}>
@@ -21,7 +20,7 @@ const { title, class: className, ...rest } = Astro.props;
 		src={logo}
 		width={48}
 	/>
-	<span class="header-logo-title">{title}</span>
+	<span class="header-logo-title">{SITE_TITLE}</span>
 </a>
 
 <style>

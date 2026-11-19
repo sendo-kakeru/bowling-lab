@@ -1,5 +1,6 @@
 ---
 import type { Post } from "../lib/get-posts";
+import type { Page } from "../lib/pagination";
 import Breadcrumb from "./Breadcrumb.astro";
 import Pagination from "./Pagination.astro";
 import PostCard from "./PostCard.astro";
@@ -9,17 +10,16 @@ import PostCard from "./PostCard.astro";
 */
 
 interface Props {
-	posts: readonly Post[];
-	/** 今のページ（1 始まり） */
-	current: number;
-	pageCount: number;
+	page: Page<Post>;
 }
 
-const { posts, current, pageCount } = Astro.props;
+const {
+	page: { items: posts, page: current, pageCount },
+} = Astro.props;
 ---
 
 <div class="posts-page">
-	<Breadcrumb items={[{ href: "/", label: "HOME" }, { label: "POSTS" }]} />
+	<Breadcrumb ancestors={[{ href: "/", label: "HOME" }]} current="POSTS" />
 
 	<!-- 記事のカードと見分けがつくよう、見出しはカードに載せずレーンに直接置く -->
 	<h1 class="text-page-title">POSTS</h1>

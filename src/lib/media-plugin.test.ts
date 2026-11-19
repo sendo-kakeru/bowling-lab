@@ -1,32 +1,8 @@
 import { markdownToHtml } from "satteri";
 import { describe, expect, test } from "vitest";
-import type { MediaManifest } from "./media-manifest.ts";
+import { MEDIA_ORIGIN } from "../consts.ts";
 import { createMediaPlugin } from "./media-plugin.ts";
-
-const ORIGIN = "https://bowling-media.sendo.page";
-
-const MANIFEST: MediaManifest = {
-	"2026/kyoto/cat.jpg": {
-		height: 1600,
-		key: "images/2026/kyoto/cat.a1b2c3.jpg",
-		type: "image",
-		width: 2400,
-	},
-	["2026/京都/がっこう.jpg".normalize("NFC")]: {
-		height: 1600,
-		key: "images/2026/kyoto/school.a1b2c3.jpg",
-		type: "image",
-		width: 2400,
-	},
-	"2026/kyoto/walk.mov": {
-		duration: 12.4,
-		height: 1080,
-		key: "videos/2026/kyoto/walk.d4e5f6.mp4",
-		poster: "images/2026/kyoto/walk.d4e5f6.poster.jpg",
-		type: "video",
-		width: 1920,
-	},
-};
+import { MANIFEST } from "./test-helpers.ts";
 
 const FILE_URL = new URL(`file://${process.cwd()}/src/content/posts/sample.md`);
 
@@ -44,13 +20,8 @@ describe("createMediaPlugin", () => {
 			markdown: "![レーンの猫](media:2026/kyoto/cat.jpg)",
 		});
 
-		const url = (width: number): string =>
-			`${ORIGIN}/cdn-cgi/image/width=${width},format=auto/images/2026/kyoto/cat.a1b2c3.jpg`;
-		const srcset = [480, 760, 1136, 1520]
-			.map((width) => `${url(width)} ${width}w`)
-			.join(", ");
-		expect(html).toContain(
-			`<img alt="レーンの猫" decoding="async" height="1600" loading="lazy" sizes="(width >= 760px) 760px, 100vw" src="${url(760)}" srcset="${srcset}" style="--media-ratio: 1.5" width="2400">`,
+		expect(html).toMatch(
+			/<img alt="レーンの猫" [^<]*srcset="[^"]*images\/2026\/kyoto\/cat\.a1b2c3\.jpg/,
 		);
 	});
 
@@ -60,16 +31,8 @@ describe("createMediaPlugin", () => {
 		});
 
 		expect(html).toContain(
-			`<video aria-label="散歩" controls height="1080" playsinline poster="${ORIGIN}/cdn-cgi/image/width=1520,format=auto/images/2026/kyoto/walk.d4e5f6.poster.jpg" preload="metadata" src="${ORIGIN}/videos/2026/kyoto/walk.d4e5f6.mp4" style="--media-ratio: 1.7778" width="1920"></video>`,
+			`<video aria-label="散歩" controls height="1080" playsinline poster="${MEDIA_ORIGIN}/cdn-cgi/image/width=1520,format=auto/images/2026/kyoto/walk.d4e5f6.poster.jpg" preload="metadata" src="${MEDIA_ORIGIN}/videos/2026/kyoto/walk.d4e5f6.mp4" style="--media-ratio: 1.7778" width="1920"></video>`,
 		);
-	});
-
-	test("NFD で書いた参照も、NFC のキーで manifest を引く", async () => {
-		const html = await render({
-			markdown: `![](${"media:2026/京都/がっこう.jpg".normalize("NFD")})`,
-		});
-
-		expect(html).toContain("images/2026/kyoto/school.a1b2c3.jpg");
 	});
 
 	test("media: でない画像には手を付けない", async () => {

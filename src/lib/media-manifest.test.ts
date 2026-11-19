@@ -1,30 +1,14 @@
 import { describe, expect, test } from "vitest";
 import { getMediaManifest, parseMediaManifest } from "./media-manifest.ts";
-
-const IMAGE = {
-	height: 1600,
-	key: "images/2026/kyoto/cat.a1b2c3.jpg",
-	type: "image",
-	width: 2400,
-};
-
-const VIDEO = {
-	duration: 12.4,
-	height: 1080,
-	key: "videos/2026/kyoto/walk.d4e5f6.mp4",
-	poster: "images/2026/kyoto/walk.d4e5f6.poster.jpg",
-	type: "video",
-	width: 1920,
-};
+import {
+	CAT_IMAGE as IMAGE,
+	MANIFEST,
+	WALK_VIDEO as VIDEO,
+} from "./test-helpers.ts";
 
 describe("parseMediaManifest", () => {
 	test("画像と動画の項目を受け付ける", () => {
-		const data = {
-			"2026/kyoto/cat.jpg": IMAGE,
-			"2026/kyoto/walk.mov": VIDEO,
-		};
-
-		expect(parseMediaManifest({ data })).toEqual(data);
+		expect(parseMediaManifest({ data: MANIFEST })).toEqual(MANIFEST);
 	});
 
 	test("空の manifest を受け付ける", () => {

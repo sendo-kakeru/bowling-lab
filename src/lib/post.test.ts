@@ -11,7 +11,9 @@ import {
 } from "./post.ts";
 
 describe("PostFrontmatterSchema", () => {
-	const parse = (data: Record<string, unknown>) =>
+	const parse = (
+		data: Record<string, unknown>,
+	): v.SafeParseResult<typeof PostFrontmatterSchema> =>
 		v.safeParse(PostFrontmatterSchema, {
 			publishedAt: "2026-11-15",
 			title: "10番ピンが残る理由",
@@ -90,7 +92,7 @@ describe("PostFrontmatterSchema", () => {
 });
 
 describe("readPublishedAtSource", () => {
-	const source = (line: string) =>
+	const source = (line: string): string =>
 		`---\ntitle: 題\n${line}\n---\n\npublishedAt: 本文の行\n`;
 
 	test("引用符なし・引用符つきの日付を、書かれたまま返す", () => {
@@ -302,7 +304,10 @@ describe("getExcerpt", () => {
 });
 
 describe("getToc", () => {
-	const heading = (depth: number, text: string) => ({
+	const heading = (
+		depth: number,
+		text: string,
+	): { depth: number; slug: string; text: string } => ({
 		depth,
 		slug: `id-${text}`,
 		text,
