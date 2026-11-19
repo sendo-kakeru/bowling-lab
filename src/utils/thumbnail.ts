@@ -1,10 +1,16 @@
-import { BALL_COLOR_NAMES, type BallColorName, ballSvg } from "./ball-svg.ts";
+import {
+	BALL_COLOR_NAMES,
+	type BallColorName,
+	ballSvg,
+	svgDocument,
+} from "./ball-svg.ts";
 import {
 	imageUrl,
 	THUMBNAIL_CROPS,
 	type Thumbnail,
 	type ThumbnailCrop,
 } from "./media.ts";
+import { TOKEN_COLORS } from "./token-colors.ts";
 
 const FNV_OFFSET_BASIS = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;
@@ -42,7 +48,11 @@ export function ballThumbnailSvg({ color }: { color: BallColorName }): string {
 		cy: height / 2,
 		r: height * 0.4,
 	});
-	return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="#efe4d0"/>${ball}</svg>`;
+	return svgDocument({
+		content: `<rect width="${width}" height="${height}" fill="${TOKEN_COLORS["wood-100"]}"/>${ball}`,
+		height,
+		width,
+	});
 }
 
 /**

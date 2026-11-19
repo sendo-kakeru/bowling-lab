@@ -19,7 +19,7 @@ export type BallColorName = keyof typeof BALL_COLORS;
 export const BALL_COLOR_NAMES = Object.keys(BALL_COLORS) as BallColorName[];
 
 /** `#rrggbb` の色に別の色を ratio の割合で混ぜる */
-function mixHex({
+export function mixHex({
 	base,
 	other,
 	ratio,
@@ -50,6 +50,19 @@ const HOLES = [
 /** 座標の浮動小数の誤差（35.840000000000003 など）を SVG に出さない */
 function round({ value }: { value: number }): number {
 	return Math.round(value * 100) / 100;
+}
+
+/** SVG の断片を、それだけで開ける `<svg>` の文書にする（配信するファイルや data URI の画像） */
+export function svgDocument({
+	width,
+	height,
+	content,
+}: {
+	width: number;
+	height: number;
+	content: string;
+}): string {
+	return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${content}</svg>`;
 }
 
 /**
