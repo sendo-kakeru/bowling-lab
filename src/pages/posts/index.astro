@@ -8,6 +8,6 @@ import { paginate } from "../../lib/pagination";
 const [page] = paginate({ items: await getPosts(), perPage: LIST_PER_PAGE });
 ---
 
-<Base description="すべての記事。新しい順に並んでいます。" title="記事一覧">
+<Base description="ボウリングに関する記事一覧" title="記事一覧">
 	<PostList current={page.page} pageCount={page.pageCount} posts={page.items} />
 </Base>

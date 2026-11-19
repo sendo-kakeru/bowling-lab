@@ -22,7 +22,7 @@ const { posts, current, pageCount } = Astro.props;
 	<Breadcrumb items={[{ href: "/", label: "HOME" }, { label: "POSTS" }]} />
 
 	<!-- 記事のカードと見分けがつくよう、見出しはカードに載せずレーンに直接置く -->
-	<h1 class="text-page-title">ALL POSTS</h1>
+	<h1 class="text-page-title">POSTS</h1>
 
 	{posts.length > 0 ? (
 		<ol class="list">

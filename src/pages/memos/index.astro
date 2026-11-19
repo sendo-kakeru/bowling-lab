@@ -8,9 +8,6 @@ import { paginate } from "../../lib/pagination";
 const [page] = paginate({ items: await getMemos(), perPage: LIST_PER_PAGE });
 ---
 
-<Base
-	description="記事にするほどでもない、一文だけのメモ。新しい順に並んでいます。"
-	title="MEMO"
->
+<Base description="メモ一覧" title="メモ一覧">
 	<MemoList current={page.page} memos={page.items} pageCount={page.pageCount} />
 </Base>

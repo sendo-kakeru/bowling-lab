@@ -46,7 +46,7 @@ describe("withCurrent", () => {
 		expect(links.map(({ label, current }) => [label, current])).toEqual([
 			["Home", undefined],
 			["Posts", "true"],
-			["Memo", undefined],
+			["Memos", undefined],
 			["About", undefined],
 		]);
 	});

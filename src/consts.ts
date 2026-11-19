@@ -7,7 +7,7 @@ export const SITE_SHORT_TITLE = "Bowling Lab";
 
 export const SITE_TAGLINE = "ボウリングの雑記";
 
-export const SITE_AUTHOR = "sendo-kakeru";
+export const SITE_AUTHOR = "Sendo";
 
 export const SITE_LANG = "ja";
 

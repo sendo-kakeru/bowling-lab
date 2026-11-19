@@ -12,7 +12,7 @@ type NavTarget = Omit<NavLink, "current">;
 export const MAIN_NAV = [
 	{ label: "Home", url: "/" },
 	{ label: "Posts", url: "/posts" },
-	{ label: "Memo", url: "/memos" },
+	{ label: "Memos", url: "/memos" },
 	{ label: "About", url: "/about" },
 ] as const satisfies NavTarget[];
 

@@ -22,9 +22,9 @@ const { memos, current, pageCount, class: className, ...rest } = Astro.props;
 ---
 
 <div {...rest} class:list={["memo-page", className]}>
-	<Breadcrumb items={[{ href: "/", label: "HOME" }, { label: "MEMO" }]} />
+	<Breadcrumb items={[{ href: "/", label: "HOME" }, { label: "MEMOS" }]} />
 
-	<h1 class="text-page-title">MEMO</h1>
+	<h1 class="text-page-title">MEMOS</h1>
 
 	{memos.length > 0 ? (
 		<ol class="list">
