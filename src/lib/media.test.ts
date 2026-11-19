@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { MEDIA_ORIGIN } from "../consts.ts";
 import {
 	decideThumbnail,
 	imageUrl,
@@ -9,31 +10,12 @@ import {
 	toVideoAttributes,
 	videoUrl,
 } from "./media.ts";
-import type { MediaManifest } from "./media-manifest.ts";
-
-const ORIGIN = "https://bowling-media.sendo.page";
-
-const MANIFEST: MediaManifest = {
-	"2026/kyoto/cat.jpg": {
-		height: 1600,
-		key: "images/2026/kyoto/cat.a1b2c3.jpg",
-		type: "image",
-		width: 2400,
-	},
-	"2026/kyoto/walk.mov": {
-		duration: 12.4,
-		height: 1080,
-		key: "videos/2026/kyoto/walk.d4e5f6.mp4",
-		poster: "images/2026/kyoto/walk.d4e5f6.poster.jpg",
-		type: "video",
-		width: 1920,
-	},
-};
+import { MANIFEST, WALK_VIDEO } from "./test-helpers.ts";
 
 describe("配信 URL", () => {
 	test("画像は幅を指定した変換配信の URL", () => {
 		expect(imageUrl({ key: "images/2026/a.jpg", width: 760 })).toBe(
-			`${ORIGIN}/cdn-cgi/image/width=760,format=auto/images/2026/a.jpg`,
+			`${MEDIA_ORIGIN}/cdn-cgi/image/width=760,format=auto/images/2026/a.jpg`,
 		);
 	});
 
@@ -41,13 +23,13 @@ describe("配信 URL", () => {
 		expect(
 			imageUrl({ height: 630, key: "images/2026/a.jpg", width: 1200 }),
 		).toBe(
-			`${ORIGIN}/cdn-cgi/image/width=1200,height=630,fit=cover,format=auto/images/2026/a.jpg`,
+			`${MEDIA_ORIGIN}/cdn-cgi/image/width=1200,height=630,fit=cover,format=auto/images/2026/a.jpg`,
 		);
 	});
 
 	test("動画は R2 から直接配信する URL", () => {
 		expect(videoUrl({ key: "videos/2026/w.mp4" })).toBe(
-			`${ORIGIN}/videos/2026/w.mp4`,
+			`${MEDIA_ORIGIN}/videos/2026/w.mp4`,
 		);
 	});
 
@@ -55,10 +37,10 @@ describe("配信 URL", () => {
 		expect(
 			imageUrl({ key: "images/2026/a b,c#1.abc123.png", width: 192 }),
 		).toBe(
-			`${ORIGIN}/cdn-cgi/image/width=192,format=auto/images/2026/a%20b%2Cc%231.abc123.png`,
+			`${MEDIA_ORIGIN}/cdn-cgi/image/width=192,format=auto/images/2026/a%20b%2Cc%231.abc123.png`,
 		);
 		expect(videoUrl({ key: "videos/2026/a b.abc123.mp4" })).toBe(
-			`${ORIGIN}/videos/2026/a%20b.abc123.mp4`,
+			`${MEDIA_ORIGIN}/videos/2026/a%20b.abc123.mp4`,
 		);
 	});
 });
@@ -77,7 +59,7 @@ describe("parseMediaRef", () => {
 });
 
 const url = (options: string): string =>
-	`${ORIGIN}/cdn-cgi/image/${options},format=auto/images/a.jpg`;
+	`${MEDIA_ORIGIN}/cdn-cgi/image/${options},format=auto/images/a.jpg`;
 
 /** srcset の候補を「変換のオプション 幅の記述子」の形にする */
 function candidates({ srcset }: { srcset: string }): string[] {
@@ -202,26 +184,25 @@ describe("toThumbnailImage", () => {
 });
 
 describe("toVideoAttributes", () => {
-	const video = MANIFEST["2026/kyoto/walk.mov"];
-	if (video?.type !== "video") throw new Error("動画の項目がない");
-
 	test("代替テキストがなければ aria-label を付けない", () => {
-		expect(toVideoAttributes({ alt: "", video })).toEqual({
+		expect(toVideoAttributes({ alt: "", video: WALK_VIDEO })).toEqual({
 			controls: true,
 			height: 1080,
 			playsinline: true,
-			poster: `${ORIGIN}/cdn-cgi/image/width=1520,format=auto/images/2026/kyoto/walk.d4e5f6.poster.jpg`,
+			poster: `${MEDIA_ORIGIN}/cdn-cgi/image/width=1520,format=auto/images/2026/kyoto/walk.d4e5f6.poster.jpg`,
 			preload: "metadata",
-			src: `${ORIGIN}/videos/2026/kyoto/walk.d4e5f6.mp4`,
+			src: `${MEDIA_ORIGIN}/videos/2026/kyoto/walk.d4e5f6.mp4`,
 			style: "--media-ratio: 1.7778",
 			width: 1920,
 		});
 	});
 
 	test("代替テキストは aria-label にする", () => {
-		expect(toVideoAttributes({ alt: "散歩", video })).toMatchObject({
-			"aria-label": "散歩",
-		});
+		expect(toVideoAttributes({ alt: "散歩", video: WALK_VIDEO })).toMatchObject(
+			{
+				"aria-label": "散歩",
+			},
+		);
 	});
 });
 
