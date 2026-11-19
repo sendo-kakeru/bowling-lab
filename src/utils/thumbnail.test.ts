@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { BALL_COLOR_NAMES, ballColorForSlug } from "./ball.ts";
+import { BALL_COLOR_NAMES } from "./ball-svg.ts";
+import { ballColorForSlug } from "./thumbnail.ts";
 
 describe("ballColorForSlug", () => {
 	test("同じスラッグはいつも同じ色になる", () => {

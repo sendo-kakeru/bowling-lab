@@ -1,5 +1,5 @@
 import type { APIRoute, GetStaticPaths } from "astro";
-import { BALL_COLOR_NAMES, type BallColorName } from "../../utils/ball";
+import { BALL_COLOR_NAMES, type BallColorName } from "../../utils/ball-svg";
 import { ballThumbnailName, ballThumbnailSvg } from "../../utils/thumbnail";
 
 export const getStaticPaths = (() =>

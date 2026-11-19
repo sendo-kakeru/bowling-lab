@@ -3,7 +3,7 @@
   色は絵の色として扱い、トークンにはしない（CSS からは使わない）。紺はトークンの紺では暗すぎるので明るめにしている
 */
 
-/** キーの順がスラッグから色を選ぶときの順。並べ替えると既存の記事の色が変わる */
+/** キーの順が記事に色を割り当てる順（thumbnail.ts の ballColorForSlug）。並べ替えると既存の記事の色が変わる */
 // biome-ignore assist/source/useSortedKeys: キーの順に意味があるため
 export const BALL_COLORS = {
 	navy: "#2c406a",
@@ -17,25 +17,6 @@ export const BALL_COLORS = {
 export type BallColorName = keyof typeof BALL_COLORS;
 
 export const BALL_COLOR_NAMES = Object.keys(BALL_COLORS) as BallColorName[];
-
-const FNV_OFFSET_BASIS = 0x811c9dc5;
-const FNV_PRIME = 0x01000193;
-
-/** FNV-1a（32 ビット）。並び順などに依らず、同じ記事はビルドし直しても同じ色になる */
-function fnv1a({ text }: { text: string }): number {
-	let hash = FNV_OFFSET_BASIS;
-	for (const byte of new TextEncoder().encode(text)) {
-		hash = Math.imul(hash ^ byte, FNV_PRIME) >>> 0;
-	}
-	return hash;
-}
-
-export function ballColorForSlug({ slug }: { slug: string }): BallColorName {
-	const name =
-		BALL_COLOR_NAMES[fnv1a({ text: slug }) % BALL_COLOR_NAMES.length];
-	if (name === undefined) throw new Error("ボールの色が選べない");
-	return name;
-}
 
 /** `#rrggbb` の色に別の色を ratio の割合で混ぜる */
 function mixHex({

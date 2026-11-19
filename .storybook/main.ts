@@ -1,5 +1,5 @@
 import type { StorybookConfig } from "@storybook-astro/framework";
-import { BALL_COLOR_NAMES } from "../src/utils/ball.ts";
+import { BALL_COLOR_NAMES } from "../src/utils/ball-svg.ts";
 import { ballThumbnailName, ballThumbnailSvg } from "../src/utils/thumbnail.ts";
 
 const ballThumbnails = BALL_COLOR_NAMES.map((color) => ({
