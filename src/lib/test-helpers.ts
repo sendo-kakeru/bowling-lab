@@ -38,3 +38,13 @@ export function catchMemoParseError({
 	}
 	throw new Error("MemoParseError が投げられなかった");
 }
+
+/** srcset の候補を「変換のオプション 幅の記述子」の形にする */
+export function candidates({ srcset }: { srcset: string }): string[] {
+	return srcset.split(", ").map((candidate) => {
+		const [, options] = /\/cdn-cgi\/image\/([^/]+),format=auto\//.exec(
+			candidate,
+		) ?? [undefined, ""];
+		return `${options} ${candidate.split(" ").at(-1)}`;
+	});
+}

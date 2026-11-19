@@ -30,8 +30,8 @@ export const LEGAL_NAV = [
 
 const TRAILING_SLASH = /\/$/;
 
-function trimPath({ pathname }: { pathname: string }): string {
-	return pathname.replace(TRAILING_SLASH, "") || "/";
+function trimPath({ path }: { path: string }): string {
+	return path.replace(TRAILING_SLASH, "") || "/";
 }
 
 /** 今のページなら "page"、その親の区分（記事の詳細なら Posts）なら "true" */
@@ -42,10 +42,10 @@ function navCurrent({
 	url: string;
 	pathname: string;
 }): NavLink["current"] {
-	const path = trimPath({ pathname: url });
-	const currentPath = trimPath({ pathname });
-	if (path === currentPath) return "page";
-	if (path !== "/" && currentPath.startsWith(`${path}/`)) return "true";
+	const linkPath = trimPath({ path: url });
+	const currentPath = trimPath({ path: pathname });
+	if (linkPath === currentPath) return "page";
+	if (linkPath !== "/" && currentPath.startsWith(`${linkPath}/`)) return "true";
 	return undefined;
 }
 
