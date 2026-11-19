@@ -1,5 +1,4 @@
-import { getImage } from "astro:assets";
-import defaultThumbnail from "../assets/default-thumbnail.jpg";
+import { type BallColorName, ballColorForSlug } from "./ball";
 import {
 	imageUrl,
 	THUMBNAIL_CROPS,
@@ -7,26 +6,28 @@ import {
 	type ThumbnailCrop,
 } from "./media";
 
+/** 既定のサムネイルのファイル名（拡張子なし）。src/pages/thumbnails/[name].svg.ts が作る */
+export function ballThumbnailName({ color }: { color: BallColorName }): string {
+	return `ball-${color}`;
+}
+
 /**
- * サムネイルの切り抜きの URL。メディアは変換配信の URL（絶対）、既定の画像はサイト内の相対 URL を返す。
- * OGP などで絶対 URL が要るときは `new URL(url, Astro.site)` で直す
+ * サムネイルの切り抜きの URL。メディアは変換配信の URL（絶対）、既定の画像は記事の色のボールの SVG のサイト内の相対 URL を返す。
+ * 既定の画像はカードの切り抜きの大きさで作ってあり、crop に依らない
  */
-export async function getThumbnailUrl({
+export function getThumbnailUrl({
 	thumbnail,
+	slug,
 	crop,
 }: {
 	thumbnail: Thumbnail;
+	slug: string;
 	crop: ThumbnailCrop;
-}): Promise<string> {
-	const { width, height } = THUMBNAIL_CROPS[crop];
-	if (thumbnail.source !== "default") {
-		return imageUrl({ height, key: thumbnail.image.key, width });
+}): string {
+	if (thumbnail.source === "default") {
+		const color = ballColorForSlug({ slug });
+		return `/thumbnails/${ballThumbnailName({ color })}.svg`;
 	}
-	const { src } = await getImage({
-		fit: "cover",
-		height,
-		src: defaultThumbnail,
-		width,
-	});
-	return src;
+	const { width, height } = THUMBNAIL_CROPS[crop];
+	return imageUrl({ height, key: thumbnail.image.key, width });
 }

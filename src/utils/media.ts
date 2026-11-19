@@ -193,7 +193,6 @@ export function decideThumbnail({
  */
 export const THUMBNAIL_CROPS = {
 	card: { height: 320, width: 704 },
-	ogp: { height: 630, width: 1200 },
 } as const;
 
 export type ThumbnailCrop = keyof typeof THUMBNAIL_CROPS;
