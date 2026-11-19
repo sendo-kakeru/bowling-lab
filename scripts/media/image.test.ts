@@ -1,7 +1,7 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import sharp from "sharp";
+import sharp, { type Sharp } from "sharp";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { processImage } from "./image.ts";
 
@@ -15,7 +15,7 @@ afterAll(async () => {
 	await rm(dir, { force: true, recursive: true });
 });
 
-function blank({ height, width }: { height: number; width: number }) {
+function blank({ height, width }: { height: number; width: number }): Sharp {
 	return sharp({
 		create: { background: "#808080", channels: 3, height, width },
 	});

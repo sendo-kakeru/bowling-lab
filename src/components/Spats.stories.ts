@@ -1,19 +1,15 @@
-import type { AstroRenderer } from "@storybook-astro/framework";
-import type {
-	ComponentAnnotations,
-	StoryAnnotations,
-} from "storybook/internal/types";
+import { withLane } from "../../.storybook/decorators";
+import type { Meta, Story } from "../../.storybook/types";
 import Spats from "./Spats.astro";
 
 const meta = {
 	component: Spats,
-	decorators: [(Story) => `<div class="story-lane">${Story()}</div>`],
+	decorators: [withLane],
 	tags: ["autodocs"],
 	title: "Components/Spats",
-} satisfies ComponentAnnotations<AstroRenderer>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryAnnotations<AstroRenderer>;
 
 /** フッターの直前に置く大きさ */
 export const Default: Story = {};

@@ -1,18 +1,16 @@
-import type { AstroRenderer } from "@storybook-astro/framework";
-import type {
-	ComponentAnnotations,
-	StoryAnnotations,
-} from "storybook/internal/types";
+import { POSTS } from "../../.storybook/fixtures/posts";
+import type { Meta, Story } from "../../.storybook/types";
 import Breadcrumb from "./Breadcrumb.astro";
+
+const postWithLongTitle = POSTS[3];
 
 const meta = {
 	component: Breadcrumb,
 	tags: ["autodocs"],
 	title: "Components/Breadcrumb",
-} satisfies ComponentAnnotations<AstroRenderer>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryAnnotations<AstroRenderer>;
 
 /** 一覧のページ */
 export const List: Story = {
@@ -27,10 +25,7 @@ export const LongTitle: Story = {
 		items: [
 			{ href: "/", label: "HOME" },
 			{ href: "/posts", label: "POSTS" },
-			{
-				label:
-					"親指を抜くタイミングを 3 週間かけて変えてみた記録と、そのあいだに気づいたことのまとめ",
-			},
+			{ label: postWithLongTitle?.title },
 		],
 	},
 };

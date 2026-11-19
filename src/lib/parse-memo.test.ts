@@ -1,20 +1,15 @@
 import { describe, expect, test } from "vitest";
 import { MemoParseError, parseMemo, parseMemoSections } from "./parse-memo.ts";
+import { catchMemoParseError } from "./test-helpers.ts";
 
 /** 行の配列を 1 つの本文にする。行番号を数えやすくするため */
 function source(...lines: string[]): string {
 	return lines.join("\n");
 }
 
-/** 投げられた MemoParseError を取り出す */
+/** parseMemo が投げた MemoParseError を取り出す */
 function catchParseError({ source }: { source: string }): MemoParseError {
-	try {
-		parseMemo({ source });
-	} catch (error) {
-		if (error instanceof MemoParseError) return error;
-		throw error;
-	}
-	throw new Error("MemoParseError が投げられなかった");
+	return catchMemoParseError({ run: () => parseMemo({ source }) });
 }
 
 describe("parseMemo", () => {

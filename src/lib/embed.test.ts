@@ -71,7 +71,7 @@ describe("parseEmbed", () => {
 });
 
 describe("embedPlugin", () => {
-	const render = (markdown: string) =>
+	const render = (markdown: string): string =>
 		markdownToHtml(markdown, { hastPlugins: [embedPlugin] }).html;
 
 	test("URL だけの段落を YouTube の埋め込みにする", () => {

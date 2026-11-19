@@ -1,10 +1,6 @@
-import type { AstroRenderer } from "@storybook-astro/framework";
-import type {
-	ComponentAnnotations,
-	StoryAnnotations,
-} from "storybook/internal/types";
 import { withPageLayout } from "../../.storybook/decorators";
 import { MEMOS } from "../../.storybook/fixtures/memos";
+import type { Meta, Story } from "../../.storybook/types";
 import MemoList from "./MemoList.astro";
 
 const meta = {
@@ -14,10 +10,9 @@ const meta = {
 	parameters: { layout: "fullscreen" },
 	tags: ["autodocs"],
 	title: "Pages/MemoList",
-} satisfies ComponentAnnotations<AstroRenderer>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryAnnotations<AstroRenderer>;
 
 export const Default: Story = {};
 

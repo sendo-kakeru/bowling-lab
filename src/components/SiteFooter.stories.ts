@@ -1,8 +1,4 @@
-import type { AstroRenderer } from "@storybook-astro/framework";
-import type {
-	ComponentAnnotations,
-	StoryAnnotations,
-} from "storybook/internal/types";
+import type { Meta, Story } from "../../.storybook/types";
 import SiteFooter from "./SiteFooter.astro";
 
 const meta = {
@@ -10,9 +6,8 @@ const meta = {
 	parameters: { layout: "fullscreen" },
 	tags: ["autodocs"],
 	title: "Components/SiteFooter",
-} satisfies ComponentAnnotations<AstroRenderer>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryAnnotations<AstroRenderer>;
 
 export const Default: Story = {};
