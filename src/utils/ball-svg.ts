@@ -52,6 +52,19 @@ function round({ value }: { value: number }): number {
 	return Math.round(value * 100) / 100;
 }
 
+/** SVG の断片を、それだけで開ける `<svg>` の文書にする（配信するファイルや data URI の画像） */
+export function svgDocument({
+	width,
+	height,
+	content,
+}: {
+	width: number;
+	height: number;
+	content: string;
+}): string {
+	return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${content}</svg>`;
+}
+
 /**
  * ボールの SVG の断片（`<g>`）。呼び出し側の `<svg>` に埋め込む。
  * グラデーションと切り抜きの id は色の名前から作るので、同じ色のボールを 1 枚に 2 つ置くと id が重なる

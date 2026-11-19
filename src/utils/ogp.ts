@@ -1,10 +1,11 @@
 import satori, { type Font } from "satori";
 import sharp from "sharp";
 import { SITE_TAGLINE, SITE_TITLE } from "../consts.ts";
-import { type BallColorName, ballSvg } from "./ball.ts";
+import { type BallColorName, ballSvg, svgDocument } from "./ball-svg.ts";
 import { formatDotDate } from "./date.ts";
 import { createMeasure, satoriFonts, type TextFont } from "./ogp-fonts.ts";
 import { type FittedText, fitText, type TextStep } from "./ogp-text.ts";
+import { TOKEN_COLORS } from "./token-colors.ts";
 
 /*
   OGP 画像（1200×630 の PNG）。satori で SVG に組み、sharp で PNG にする。
@@ -15,9 +16,9 @@ const WIDTH = 1200;
 const HEIGHT = 630;
 
 const COLORS = {
-	background: "#FBF6EC",
-	date: "#6B5440",
-	text: "#142038",
+	background: TOKEN_COLORS.card,
+	date: TOKEN_COLORS["ink-600"],
+	text: TOKEN_COLORS["navy-900"],
 } as const;
 
 const FONTS = {
@@ -134,7 +135,11 @@ function ball({
 	color: BallColorName;
 }): Node {
 	const size = r * 2;
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${ballSvg({ color, cx: r, cy: r, r })}</svg>`;
+	const svg = svgDocument({
+		content: ballSvg({ color, cx: r, cy: r, r }),
+		height: size,
+		width: size,
+	});
 	return {
 		props: {
 			src: `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`,
