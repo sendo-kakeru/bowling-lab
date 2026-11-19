@@ -3,6 +3,7 @@ import {
 	decideThumbnail,
 	imageUrl,
 	parseMediaRef,
+	toEyecatchImage,
 	toImageAttributes,
 	toVideoAttributes,
 	videoUrl,
@@ -124,6 +125,59 @@ describe("toImageAttributes", () => {
 		});
 
 		expect(candidates({ srcset: String(srcset) })).toEqual(["width=150 150w"]);
+	});
+});
+
+describe("toEyecatchImage", () => {
+	test("768px 以上は 5:2、未満は 16:9 に切り抜き、それぞれの表示幅の sizes を付ける", () => {
+		const { img, sources } = toEyecatchImage({
+			image: { height: 1600, key: "images/a.jpg", width: 2400 },
+		});
+
+		expect(sources).toHaveLength(1);
+		const [wide] = sources;
+		expect(wide).toMatchObject({
+			height: 845,
+			media: "(width >= 768px)",
+			sizes:
+				"(width >= 1280px) 1056px, (width >= 1024px) calc(100vw - 200px), calc(100vw - 170px)",
+			width: 2112,
+		});
+		expect(candidates({ srcset: wide?.srcset ?? "" })).toEqual([
+			"width=640,height=256,fit=cover 640w",
+			"width=840,height=336,fit=cover 840w",
+			"width=1056,height=422,fit=cover 1056w",
+			"width=1280,height=512,fit=cover 1280w",
+			"width=1680,height=672,fit=cover 1680w",
+			"width=2112,height=845,fit=cover 2112w",
+		]);
+
+		expect(img).toMatchObject({
+			height: 810,
+			sizes: "calc(91.41vw - 24px)",
+			src: url("width=360,height=203,fit=cover"),
+			width: 1440,
+		});
+		expect(candidates({ srcset: img.srcset })).toEqual([
+			"width=360,height=203,fit=cover 360w",
+			"width=720,height=405,fit=cover 720w",
+			"width=1080,height=608,fit=cover 1080w",
+			"width=1440,height=810,fit=cover 1440w",
+		]);
+	});
+
+	test("マスターから切り出せるいちばん大きな切り抜きで頭打ちにする", () => {
+		// 横長すぎて、高さ 400px からは 5:2 で幅 1000px までしか切り出せない
+		const { sources } = toEyecatchImage({
+			image: { height: 400, key: "images/a.jpg", width: 2400 },
+		});
+
+		expect(candidates({ srcset: sources[0]?.srcset ?? "" })).toEqual([
+			"width=640,height=256,fit=cover 640w",
+			"width=840,height=336,fit=cover 840w",
+			"width=1000,height=400,fit=cover 1000w",
+		]);
+		expect(sources[0]).toMatchObject({ height: 400, width: 1000 });
 	});
 });
 

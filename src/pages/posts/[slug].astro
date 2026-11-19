@@ -9,7 +9,7 @@ import { SITE_AUTHOR } from "../../consts";
 import Base from "../../layouts/Base.astro";
 import { formatDotDate, formatIsoDate } from "../../lib/date";
 import { getPosts } from "../../lib/get-posts";
-import { toImageAttributes } from "../../lib/media";
+import { toEyecatchImage } from "../../lib/media";
 
 export const getStaticPaths = (async () => {
 	const posts = await getPosts();
@@ -25,7 +25,7 @@ const { Content } = await render(post.entry);
 // 本文の最初の画像で代用したときは、同じ画像が 2 回並ぶので冒頭に出さない
 const headerImage =
 	post.thumbnail.source === "frontmatter"
-		? toImageAttributes({ image: post.thumbnail.image, loading: "eager" })
+		? toEyecatchImage({ image: post.thumbnail.image })
 		: undefined;
 const ogImagePath = `/og/posts/${post.slug}.png`;
 const url = new URL(Astro.url.pathname, Astro.site).href;
@@ -74,9 +74,18 @@ const blogPosting = {
 			</header>
 
 			{headerImage && (
-				<div class="post-image">
-					<img {...headerImage} alt="" />
-				</div>
+				<picture class="post-image">
+					{headerImage.sources.map((source) => (
+						<source {...source}>
+					))}
+					<img
+						{...headerImage.img}
+						alt=""
+						decoding="async"
+						fetchpriority="high"
+						loading="eager"
+					>
+				</picture>
 			)}
 
 			<div class="post-body">

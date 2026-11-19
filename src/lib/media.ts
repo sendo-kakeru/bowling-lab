@@ -77,6 +77,40 @@ function capWidths({
 	return [...new Set(widths.map((w) => Math.min(w, max)))];
 }
 
+/** 切り抜きの縦横比 */
+interface Aspect {
+	width: number;
+	height: number;
+}
+
+interface CropCandidate {
+	url: string;
+	width: number;
+	height: number;
+}
+
+/**
+ * 縦横比で切り抜いた候補。fit=cover はマスターより大きい切り抜きを求めると拡大するので、
+ * マスターから切り出せるいちばん大きな切り抜きで頭打ちにする
+ */
+function cropCandidates({
+	image: { key, width, height },
+	aspect,
+	widths,
+}: {
+	image: StillImage;
+	aspect: Aspect;
+	widths: readonly number[];
+}): CropCandidate[] {
+	const max = Math.floor(
+		Math.min(width, (height * aspect.width) / aspect.height),
+	);
+	return capWidths({ max, widths }).map((w) => {
+		const h = Math.round((w * aspect.height) / aspect.width);
+		return { height: h, url: imageUrl({ height: h, key, width: w }), width: w };
+	});
+}
+
 function toSrcset({
 	candidates,
 }: {
@@ -112,21 +146,16 @@ function mediaRatio({
 	return Math.round((width / height) * 10000) / 10000;
 }
 
-/**
- * `<img>` の alt を除いた属性。Markdown の変換と .astro の両方で使う。
- * alt は呼び出し側で付ける。.astro で属性を展開すると、あとから書いた同じ属性は上書きせず重複して出るため
- */
+/** 本文の `<img>` の alt を除いた属性。alt は Markdown の変換で付ける */
 export function toImageAttributes({
 	image: { key, width, height },
-	loading = "lazy",
 }: {
 	image: StillImage;
-	loading?: "lazy" | "eager";
 }): Record<string, string | number> {
 	return {
 		decoding: "async",
 		height,
-		loading,
+		loading: "lazy",
 		sizes: `(width >= ${CONTENT_WIDTH}px) ${CONTENT_WIDTH}px, 100vw`,
 		src: imageUrl({ key, width: Math.min(CONTENT_WIDTH, width) }),
 		srcset: toSrcset({
@@ -224,6 +253,85 @@ export function decideThumbnail({
 		throw new Error(`media:${path} が media-manifest.json にない`);
 	}
 	return { image: toStillImage({ entry }), source: "body" };
+}
+
+interface CropRule {
+	aspect: Aspect;
+	sizes: string;
+	widths: readonly number[];
+}
+
+/**
+ * 記事冒頭の画像（アイキャッチ）の切り抜き。768px 以上は 5:2、未満は 16:9（src/pages/posts/[slug].astro の CSS）。
+ * sizes は同じファイルの CSS から求めた表示幅で、少し大きめに見積もる。
+ * Safari は sizes の min() / max() を読めず全体を 100vw として扱うので、calc() とメディア条件だけで書く。
+ * 幅の候補は、各ブレークポイントの 1x / 2x の表示幅（768px で 598、1024px で 824、1280px 以上で 1056、スマホで 319〜677）を少し上回るように選んだ
+ */
+const EYECATCH_CROPS = {
+	img: {
+		aspect: { height: 9, width: 16 },
+		sizes: "calc(91.41vw - 24px)",
+		widths: [360, 720, 1080, 1440],
+	},
+	sources: [
+		{
+			aspect: { height: 2, width: 5 },
+			media: "(width >= 768px)",
+			sizes:
+				"(width >= 1280px) 1056px, (width >= 1024px) calc(100vw - 200px), calc(100vw - 170px)",
+			widths: [640, 840, 1056, 1280, 1680, 2112],
+		},
+	],
+} as const satisfies {
+	img: CropRule;
+	sources: readonly (CropRule & { media: string })[];
+};
+
+interface ResponsiveImage {
+	src: string;
+	srcset: string;
+	sizes: string;
+	/** いちばん大きな候補の寸法。CSS で幅を決めるので、縦横比を伝えるためだけに使う */
+	width: number;
+	height: number;
+}
+
+type ResponsiveSource = Omit<ResponsiveImage, "src"> & { media: string };
+
+function toResponsiveImage({
+	image,
+	rule: { aspect, sizes, widths },
+}: {
+	image: StillImage;
+	rule: CropRule;
+}): ResponsiveImage {
+	const candidates = cropCandidates({ aspect, image, widths });
+	const [smallest] = candidates;
+	const largest = candidates.at(-1);
+	if (smallest === undefined || largest === undefined) {
+		throw new Error("切り抜きの候補がない");
+	}
+	return {
+		height: largest.height,
+		sizes,
+		src: smallest.url,
+		srcset: toSrcset({ candidates }),
+		width: largest.width,
+	};
+}
+
+/** アイキャッチの `<picture>` の中身。どの `<source>` の media にも当たらなければ img の切り抜き */
+export function toEyecatchImage({ image }: { image: StillImage }): {
+	img: ResponsiveImage;
+	sources: ResponsiveSource[];
+} {
+	return {
+		img: toResponsiveImage({ image, rule: EYECATCH_CROPS.img }),
+		sources: EYECATCH_CROPS.sources.map((rule) => {
+			const { src: _, ...source } = toResponsiveImage({ image, rule });
+			return { ...source, media: rule.media };
+		}),
+	};
 }
 
 /**
