@@ -19,7 +19,7 @@ const { posts, current, pageCount } = Astro.props;
 ---
 
 <div class="posts-page">
-	<Breadcrumb items={[{ href: "/", label: "HOME" }, { label: "POSTS" }]} />
+	<Breadcrumb ancestors={[{ href: "/", label: "HOME" }]} current="POSTS" />
 
 	<!-- 記事のカードと見分けがつくよう、見出しはカードに載せずレーンに直接置く -->
 	<h1 class="text-page-title">POSTS</h1>

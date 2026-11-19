@@ -9,7 +9,7 @@ import Base from "../layouts/Base.astro";
 
 <Base description="本サイト、管理者について" title="About">
 	<div class="about-page">
-		<Breadcrumb items={[{ href: "/", label: "HOME" }, { label: "ABOUT" }]} />
+		<Breadcrumb ancestors={[{ href: "/", label: "HOME" }]} current="ABOUT" />
 
 		<!-- 見出しは記事一覧と同じく、ナビの名前としてカードに載せずレーンに直接置く -->
 		<h1 class="text-page-title">ABOUT</h1>
