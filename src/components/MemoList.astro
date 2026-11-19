@@ -1,5 +1,4 @@
 ---
-import type { HTMLAttributes } from "astro/types";
 import type { Memo } from "../lib/memo-schema";
 import Breadcrumb from "./Breadcrumb.astro";
 import MemoSlip from "./MemoSlip.astro";
@@ -10,7 +9,7 @@ import Pagination from "./Pagination.astro";
   スマホは 1 列、768px 以上は 2 列。日付は伝票ごとに載っているので、日付の見出しで区切らない
 */
 
-interface Props extends HTMLAttributes<"div"> {
+interface Props {
 	/** 新しい順 */
 	memos: readonly Memo[];
 	/** 今のページ（1 始まり） */
@@ -18,11 +17,11 @@ interface Props extends HTMLAttributes<"div"> {
 	pageCount: number;
 }
 
-const { memos, current, pageCount, class: className, ...rest } = Astro.props;
+const { memos, current, pageCount } = Astro.props;
 ---
 
-<div {...rest} class:list={["memo-page", className]}>
-	<Breadcrumb items={[{ href: "/", label: "HOME" }, { label: "MEMOS" }]} />
+<div class="memo-page">
+	<Breadcrumb ancestors={[{ href: "/", label: "HOME" }]} current="MEMOS" />
 
 	<h1 class="text-page-title">MEMOS</h1>
 
