@@ -7,11 +7,14 @@ export type Measure = ({
 	fontSize: number;
 }) => number;
 
-/** 文字の大きさの候補。前から順に試し、maxLines 行に収まった最初のものを使う */
+/**
+ * 文字の大きさの候補。前から順に試し、lineWidths の行数に収まった最初のものを使う。
+ * lineWidths は 1 行目からの各行の最大幅で、その長さが最大の行数になる
+ */
 export interface TextStep {
 	fontSize: number;
 	lineHeight: number;
-	maxLines: number;
+	lineWidths: readonly [number, ...number[]];
 }
 
 export interface FittedText {
@@ -65,21 +68,25 @@ function splitIntoAtoms({ text }: { text: string }): string[] {
 	return atoms;
 }
 
-/** 幅に収まるように行を分ける。1 つで幅を超える語だけは字の途中で分ける */
+/**
+ * 行ごとの幅に収まるように行を分ける。lineWidths より後の行は最後の幅で組む。
+ * 1 つで幅を超える語だけは字の途中で分ける
+ */
 function wrapText({
 	text,
-	maxWidth,
+	lineWidths,
 	fontSize,
 	measure,
 }: {
 	text: string;
-	maxWidth: number;
+	lineWidths: TextStep["lineWidths"];
 	fontSize: number;
 	measure: Measure;
 }): string[] {
-	const fits = (line: string): boolean =>
-		measure({ fontSize, text: line }) <= maxWidth;
 	const lines: string[] = [];
+	const fits = (line: string): boolean =>
+		measure({ fontSize, text: line }) <=
+		(lineWidths[lines.length] ?? lineWidths.at(-1) ?? lineWidths[0]);
 	let line = "";
 	for (const atom of splitIntoAtoms({ text })) {
 		if (atom === " ") {
@@ -127,31 +134,38 @@ function truncateLine({
 }
 
 /**
- * 文字の大きさを steps の順に試し、実際に組んだ行数が maxLines 以下になった最初の大きさで組む。
- * 最後の大きさでも収まらなければ、maxLines 行目の末尾を「…」で省略する
+ * 文字の大きさを steps の順に試し、実際に組んだ行数が lineWidths の行数以下になった最初の大きさで組む。
+ * 最後の大きさでも収まらなければ、最後の行の末尾を「…」で省略する
  */
 export function fitText({
 	text,
-	maxWidth,
 	steps,
 	measure,
 }: {
 	text: string;
-	maxWidth: number;
 	steps: readonly [TextStep, ...TextStep[]];
 	measure: Measure;
 }): FittedText {
-	for (const { fontSize, lineHeight, maxLines } of steps) {
-		const lines = wrapText({ fontSize, maxWidth, measure, text });
-		if (lines.length <= maxLines) return { fontSize, lineHeight, lines };
+	for (const { fontSize, lineHeight, lineWidths } of steps) {
+		const lines = wrapText({ fontSize, lineWidths, measure, text });
+		if (lines.length <= lineWidths.length) {
+			return { fontSize, lineHeight, lines };
+		}
 	}
-	const { fontSize, lineHeight, maxLines } = steps.at(-1) ?? steps[0];
-	const lines = wrapText({ fontSize, maxWidth, measure, text });
-	const kept = lines.slice(0, maxLines - 1);
-	const cut = lines[maxLines - 1] ?? "";
+	const { fontSize, lineHeight, lineWidths } = steps.at(-1) ?? steps[0];
+	const lines = wrapText({ fontSize, lineWidths, measure, text });
+	const last = lineWidths.length - 1;
 	return {
 		fontSize,
 		lineHeight,
-		lines: [...kept, truncateLine({ fontSize, line: cut, maxWidth, measure })],
+		lines: [
+			...lines.slice(0, last),
+			truncateLine({
+				fontSize,
+				line: lines[last] ?? "",
+				maxWidth: lineWidths[last] ?? lineWidths[0],
+				measure,
+			}),
+		],
 	};
 }

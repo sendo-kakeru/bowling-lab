@@ -32,19 +32,71 @@ const FONTS = {
 	title: { families: ["Inter", "Noto Sans JP"], weight: 700 },
 } as const satisfies Record<string, TextFont>;
 
+const POST_BALL = { cx: 1090, cy: 560, r: 190 } as const;
 const TITLE_LEFT = 80;
-export const TITLE_WIDTH = 1120 - TITLE_LEFT;
+const TITLE_RIGHT = 1120;
+const TITLE_TOP = 72;
+/** 3 行までのタイトルは、TITLE_TOP からボールの上端までの範囲の縦の中央に置く。下だけが空かないように */
+const TITLE_AREA_BOTTOM = POST_BALL.cy - POST_BALL.r;
+/** 字とボールの間に空ける幅 */
+const TITLE_BALL_GAP = 32;
+
+/**
+ * タイトルを TITLE_TOP から組んだときの index 行目の最大幅。行の高さがボールにかかる行は、ボールの左端の手前までにする。
+ * 縦の中央に置くのはボールの上端より上に収まるときだけなので、その行はどれも全幅になる
+ */
+function titleLineWidth({
+	index,
+	lineHeight,
+}: {
+	index: number;
+	lineHeight: number;
+}): number {
+	const top = TITLE_TOP + index * lineHeight;
+	const nearestY = Math.min(Math.max(POST_BALL.cy, top), top + lineHeight);
+	const dy = Math.abs(POST_BALL.cy - nearestY);
+	const right =
+		dy >= POST_BALL.r
+			? TITLE_RIGHT
+			: Math.min(
+					TITLE_RIGHT,
+					Math.floor(
+						POST_BALL.cx -
+							Math.sqrt(POST_BALL.r ** 2 - dy ** 2) -
+							TITLE_BALL_GAP,
+					),
+				);
+	return right - TITLE_LEFT;
+}
+
+function titleStep({
+	fontSize,
+	lineHeight,
+	maxLines,
+}: {
+	fontSize: number;
+	lineHeight: number;
+	maxLines: number;
+}): TextStep {
+	const [first = 0, ...rest] = Array.from({ length: maxLines }, (_, index) =>
+		titleLineWidth({ index, lineHeight }),
+	);
+	return { fontSize, lineHeight, lineWidths: [first, ...rest] };
+}
+
 export const TITLE_STEPS = [
-	{ fontSize: 68, lineHeight: 96, maxLines: 2 },
-	{ fontSize: 52, lineHeight: 80, maxLines: 3 },
+	titleStep({ fontSize: 84, lineHeight: 112, maxLines: 1 }),
+	titleStep({ fontSize: 68, lineHeight: 96, maxLines: 2 }),
+	titleStep({ fontSize: 52, lineHeight: 80, maxLines: 4 }),
 ] as const satisfies readonly [TextStep, ...TextStep[]];
 
 const SITE_BALL = { cx: 1010, cy: 315, r: 230 } as const;
 const SITE_LEFT = 90;
+const TAGLINE_WIDTH = SITE_BALL.cx - SITE_BALL.r - SITE_LEFT;
 const TAGLINE_STEPS = [
-	{ fontSize: 34, lineHeight: 48, maxLines: 1 },
-	{ fontSize: 28, lineHeight: 40, maxLines: 1 },
-	{ fontSize: 28, lineHeight: 40, maxLines: 2 },
+	{ fontSize: 34, lineHeight: 48, lineWidths: [TAGLINE_WIDTH] },
+	{ fontSize: 28, lineHeight: 40, lineWidths: [TAGLINE_WIDTH] },
+	{ fontSize: 28, lineHeight: 40, lineWidths: [TAGLINE_WIDTH, TAGLINE_WIDTH] },
 ] as const satisfies readonly [TextStep, ...TextStep[]];
 
 interface Node {
@@ -194,18 +246,24 @@ export async function renderPostOgp({
 	publishedAt: Date;
 	color: BallColorName;
 }): Promise<Uint8Array<ArrayBuffer>> {
+	const fitted = fitText({
+		measure: createMeasure({ textFont: FONTS.title }),
+		steps: TITLE_STEPS,
+		text: title,
+	});
+	const titleHeight = fitted.lines.length * fitted.lineHeight;
 	const titleBlock = textBlock({
-		fitted: fitText({
-			maxWidth: TITLE_WIDTH,
-			measure: createMeasure({ textFont: FONTS.title }),
-			steps: TITLE_STEPS,
-			text: title,
-		}),
+		fitted,
 		style: {
 			left: TITLE_LEFT,
 			position: "absolute",
-			top: 72,
-			width: TITLE_WIDTH,
+			top:
+				TITLE_TOP +
+				Math.max(
+					0,
+					Math.round((TITLE_AREA_BOTTOM - TITLE_TOP - titleHeight) / 2),
+				),
+			width: TITLE_RIGHT - TITLE_LEFT,
 		},
 		textFont: FONTS.title,
 	});
@@ -247,7 +305,7 @@ export async function renderPostOgp({
 					width: 780,
 				},
 			}),
-			ball({ color, cx: 1090, cy: 560, r: 190 }),
+			ball({ color, ...POST_BALL }),
 		],
 	});
 	return renderPng({ blocks: [titleBlock, nameBlock, dateBlock], root });
@@ -272,7 +330,6 @@ export async function renderSiteOgp(): Promise<Uint8Array<ArrayBuffer>> {
 	});
 	const taglineBlock = textBlock({
 		fitted: fitText({
-			maxWidth: SITE_BALL.cx - SITE_BALL.r - SITE_LEFT,
 			measure: createMeasure({ textFont: FONTS.tagline }),
 			steps: TAGLINE_STEPS,
 			text: SITE_TAGLINE,

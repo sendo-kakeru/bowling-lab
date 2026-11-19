@@ -1,8 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { TITLE_STEPS, TITLE_WIDTH } from "./ogp.ts";
+import { TITLE_STEPS } from "./ogp.ts";
 import { fitText, type Measure } from "./ogp-text.ts";
 
-/** 和文と全角は 1em、それ以外は 0.5em の幅とみなす。68px なら 1 行に和文 15 字、52px なら 20 字 */
+/**
+ * 和文と全角は 1em、それ以外は 0.5em の幅とみなす。幅 1040px の行に和文が 84px で 12 字、68px で 15 字、52px で 20 字入る。
+ * 52px の 4 行目はボールの左端の手前（x=969）までの 889px で、17 字入る
+ */
 const measure: Measure = ({ text, fontSize }) =>
 	[...text].reduce(
 		(width, char) => width + (/[　-鿿＀-￯]/u.test(char) ? 1 : 0.5) * fontSize,
@@ -11,7 +14,6 @@ const measure: Measure = ({ text, fontSize }) =>
 
 function fitTitle({ title }: { title: string }) {
 	return fitText({
-		maxWidth: TITLE_WIDTH,
 		measure,
 		steps: TITLE_STEPS,
 		text: title,
@@ -21,11 +23,19 @@ function fitTitle({ title }: { title: string }) {
 const kana = ({ length }: { length: number }): string => "あ".repeat(length);
 
 describe("記事のタイトル", () => {
-	test("短いタイトルは 68px の 1 行", () => {
+	test("1 行に収まる短いタイトルは 84px", () => {
 		expect(fitTitle({ title: "10番ピンが残る理由" })).toEqual({
+			fontSize: 84,
+			lineHeight: 112,
+			lines: ["10番ピンが残る理由"],
+		});
+	});
+
+	test("84px で 1 行に収まらなければ 68px", () => {
+		expect(fitTitle({ title: kana({ length: 13 }) })).toEqual({
 			fontSize: 68,
 			lineHeight: 96,
-			lines: ["10番ピンが残る理由"],
+			lines: [kana({ length: 13 })],
 		});
 	});
 
@@ -45,22 +55,24 @@ describe("記事のタイトル", () => {
 		});
 	});
 
-	test("52px でちょうど 3 行なら省略しない", () => {
-		expect(fitTitle({ title: kana({ length: 60 }) }).lines).toEqual([
+	test("52px の 4 行目はボールの手前までの幅で組む", () => {
+		expect(fitTitle({ title: kana({ length: 77 }) }).lines).toEqual([
 			kana({ length: 20 }),
 			kana({ length: 20 }),
 			kana({ length: 20 }),
+			kana({ length: 17 }),
 		]);
 	});
 
-	test("52px で 3 行を超えるなら、3 行目の末尾を「…」で省略する", () => {
-		expect(fitTitle({ title: kana({ length: 61 }) })).toEqual({
+	test("52px で 4 行を超えるなら、4 行目の末尾を「…」で省略する", () => {
+		expect(fitTitle({ title: kana({ length: 78 }) })).toEqual({
 			fontSize: 52,
 			lineHeight: 80,
 			lines: [
 				kana({ length: 20 }),
 				kana({ length: 20 }),
-				`${kana({ length: 19 })}…`,
+				kana({ length: 20 }),
+				`${kana({ length: 16 })}…`,
 			],
 		});
 	});
