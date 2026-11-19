@@ -161,7 +161,10 @@ export function satoriFonts({
 	return { fontFamily: fonts.map(({ name }) => `"${name}"`).join(","), fonts };
 }
 
-/** 書体を切り替える位置で区切り、区切りごとに字形を並べた幅を足す。字間は 1 字ごとに足す */
+/**
+ * 書体を切り替える位置で区切り、区切りごとに字形を並べた幅を足す。字間は 1 字ごとに足す。
+ * satori は改行できる位置ごとに分けて組むので、字をまたぐ置き換え（calt）と字詰め（kern）を切って同じ幅にする
+ */
 export function createMeasure({ textFont }: { textFont: TextFont }): Measure {
 	return ({ text, fontSize }) => {
 		const runs: { face: FontFace | undefined; text: string }[] = [];
@@ -179,7 +182,9 @@ export function createMeasure({ textFont }: { textFont: TextFont }): Measure {
 			const { font } = loadFace({ face: run.face });
 			return (
 				width +
-				(font.layout(run.text).advanceWidth / font.unitsPerEm) * fontSize
+				(font.layout(run.text, { calt: false, kern: false }).advanceWidth /
+					font.unitsPerEm) *
+					fontSize
 			);
 		}, 0);
 		return glyphs + (textFont.letterSpacing ?? 0) * [...text].length;

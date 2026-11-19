@@ -66,6 +66,11 @@ describe("記事のタイトル", () => {
 	});
 
 	test("英数字の語は途中で改行しない", () => {
+		const { lines } = fitTitle({ title: `${kana({ length: 13 })} Storm` });
+		expect(lines).toEqual([kana({ length: 13 }), "Storm"]);
+	});
+
+	test("英数字の混ざったタイトルは空白で改行する", () => {
 		const { lines } = fitTitle({
 			title: "Storm Phaze II と Hyroad Pearl を 3 ゲームずつ投げ比べた",
 		});
@@ -73,6 +78,16 @@ describe("記事のタイトル", () => {
 			"Storm Phaze II と Hyroad Pearl",
 			"を 3 ゲームずつ投げ比べた",
 		]);
+	});
+
+	test("開きかっこは行末に置かない", () => {
+		const { lines } = fitTitle({ title: `${kana({ length: 14 })}「あ」` });
+		expect(lines).toEqual([kana({ length: 14 }), "「あ」"]);
+	});
+
+	test("全角の空白は和文の 1 字として残す", () => {
+		const { lines } = fitTitle({ title: "ボウリング　第1回" });
+		expect(lines).toEqual(["ボウリング　第1回"]);
 	});
 
 	test("句読点と閉じかっこは行頭に置かない", () => {

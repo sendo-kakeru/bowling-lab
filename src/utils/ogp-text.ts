@@ -33,12 +33,12 @@ const NO_LINE_START = new Set(
 /** 行末に置かない字。後ろの字とつなげる */
 const NO_LINE_END = new Set("（［｛〔〈《「『【〘〖〝‘“([{");
 
-/** 改行できる位置で区切った断片。空白は " " の 1 つにまとめる */
+/** 改行できる位置で区切った断片。半角の空白は " " の 1 つにまとめ、全角の空白は和文の字として残す */
 function splitIntoAtoms({ text }: { text: string }): string[] {
 	const tokens: string[] = [];
 	for (const char of text.trim()) {
 		const last = tokens.at(-1);
-		if (/\s/u.test(char)) {
+		if (/[^\S\u3000]/u.test(char)) {
 			if (last !== " ") tokens.push(" ");
 		} else if (
 			WIDE.test(char) ||
@@ -66,7 +66,7 @@ function splitIntoAtoms({ text }: { text: string }): string[] {
 }
 
 /** 幅に収まるように行を分ける。1 つで幅を超える語だけは字の途中で分ける */
-export function wrapText({
+function wrapText({
 	text,
 	maxWidth,
 	fontSize,
