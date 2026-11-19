@@ -4,6 +4,7 @@ import { satteri } from "@astrojs/markdown-satteri";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig, fontProviders } from "astro/config";
 import { embedPlugin } from "./src/lib/embed.ts";
+import { lineBreakPlugin } from "./src/lib/line-break-plugin.ts";
 import { getMediaManifest } from "./src/lib/media-manifest.ts";
 import { createMediaPlugin } from "./src/lib/media-plugin.ts";
 import { sourceDigest } from "./src/lib/source-digest.ts";
@@ -56,6 +57,10 @@ export default defineConfig({
 				}),
 			],
 			mdastPlugins: [
+				withSourceDigest({
+					path: "./src/lib/line-break-plugin.ts",
+					plugin: lineBreakPlugin,
+				}),
 				withSourceDigest({
 					path: "./src/lib/media-plugin.ts",
 					plugin: createMediaPlugin({ manifest: getMediaManifest() }),
