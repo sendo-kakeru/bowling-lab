@@ -2,6 +2,7 @@ import { relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineMdastPlugin, type MdastPluginDefinition } from "satteri";
 import {
+	getMediaEntry,
 	parseMediaRef,
 	toImageAttributes,
 	toStillImage,
@@ -36,12 +37,11 @@ export function createMediaPlugin({
 		image(node, ctx) {
 			const path = parseMediaRef({ url: node.url });
 			if (path === undefined) return;
-			const entry = manifest[path];
-			if (!entry) {
-				throw new Error(
-					`${describeFile({ fileURL: ctx.fileURL })}: ${node.url} が media-manifest.json にない`,
-				);
-			}
+			const entry = getMediaEntry({
+				manifest,
+				path,
+				ref: `${describeFile({ fileURL: ctx.fileURL })}: ${node.url}`,
+			});
 			const alt = node.alt ?? "";
 			const title = node.title ? { title: node.title } : {};
 			ctx.replaceNode(node, {

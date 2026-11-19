@@ -24,6 +24,21 @@ export function parseMediaRef({ url }: { url: string }): string | undefined {
 		: undefined;
 }
 
+/** manifest から論理パスの項目を引く。なければ ref（どの参照か）を添えて投げる */
+export function getMediaEntry({
+	manifest,
+	path,
+	ref,
+}: {
+	manifest: MediaManifest;
+	path: string;
+	ref: string;
+}): MediaEntry {
+	const entry = manifest[path];
+	if (!entry) throw new Error(`${ref} が media-manifest.json にない`);
+	return entry;
+}
+
 /**
  * キーをパスの区切りごとにエンコードする。media:push は空白などを含む inbox のパスをそのままキーにするので、
  * そのまま繋ぐと srcset の区切り（空白・カンマ）や URL の # と ? と誤って読まれる
@@ -236,20 +251,16 @@ export function decideThumbnail({
 	manifest: MediaManifest;
 }): Thumbnail {
 	if (thumbnail !== undefined) {
-		const entry = manifest[thumbnail];
-		if (!entry) {
-			throw new Error(
-				`thumbnail の media:${thumbnail} が media-manifest.json にない`,
-			);
-		}
+		const entry = getMediaEntry({
+			manifest,
+			path: thumbnail,
+			ref: `thumbnail の media:${thumbnail}`,
+		});
 		return { image: toStillImage({ entry }), source: "frontmatter" };
 	}
 	const path = findFirstMediaPath({ node: fromMarkdown(markdown) });
 	if (path === undefined) return { source: "default" };
-	const entry = manifest[path];
-	if (!entry) {
-		throw new Error(`media:${path} が media-manifest.json にない`);
-	}
+	const entry = getMediaEntry({ manifest, path, ref: `media:${path}` });
 	return { image: toStillImage({ entry }), source: "body" };
 }
 
