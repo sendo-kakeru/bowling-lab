@@ -335,11 +335,27 @@ export function toEyecatchImage({ image }: { image: StillImage }): {
 }
 
 /**
- * サムネイルの切り抜き。card は記事カードの画像の枠でいちばん大きい、ホームのタイル（約 352 × 160px）の 2 倍。
- * ほかの枠（スマホの 96px 角、一覧の 200 × 120px）は CSS の object-fit: cover で中央を切り出す
+ * 記事カードのサムネイルの切り抜き（約 2.2:1）。width / height はいちばん大きな候補で、ホームのタイルのいちばん広い枠（約 375 × 160px）の 2 倍。
+ * 枠ごとの表示幅は PostCard.astro の sizes。224 はスマホの 96px 角の枠（object-fit: cover で 96 × 2.2 ≒ 212px 幅の切り抜きが要る）用
  */
-export const THUMBNAIL_CROPS = {
-	card: { height: 320, width: 704 },
+export const THUMBNAIL_CROP = {
+	height: 349,
+	width: 768,
+	widths: [224, 352, 528, 768],
 } as const;
 
-export type ThumbnailCrop = keyof typeof THUMBNAIL_CROPS;
+/** サムネイルの src と srcset。src はいちばん大きな候補 */
+export function toThumbnailImage({ image }: { image: StillImage }): {
+	src: string;
+	srcset: string;
+} {
+	const { width, height, widths } = THUMBNAIL_CROP;
+	const candidates = cropCandidates({
+		aspect: { height, width },
+		image,
+		widths,
+	});
+	const largest = candidates.at(-1);
+	if (largest === undefined) throw new Error("切り抜きの候補がない");
+	return { src: largest.url, srcset: toSrcset({ candidates }) };
+}

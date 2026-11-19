@@ -2,8 +2,8 @@
 import type { HTMLAttributes } from "astro/types";
 import { formatDotDate, formatIsoDate } from "../lib/date";
 import type { Post } from "../lib/get-posts";
-import { THUMBNAIL_CROPS } from "../lib/media";
-import { getThumbnailUrl } from "../lib/thumbnail";
+import { THUMBNAIL_CROP } from "../lib/media";
+import { getThumbnailImage } from "../lib/thumbnail";
 import Card from "./Card.astro";
 
 /*
@@ -33,12 +33,20 @@ const {
 } = Astro.props;
 
 const Heading = `h${headingLevel}` as const;
-const thumbnailUrl = getThumbnailUrl({
-	crop: "card",
+const { src, srcset } = getThumbnailImage({
 	slug: post.slug,
 	thumbnail: post.thumbnail,
 });
-const { width, height } = THUMBNAIL_CROPS.card;
+const { width, height } = THUMBNAIL_CROP;
+/**
+ * 画像の枠ごとに要る切り抜きの幅（下の CSS）。object-fit: cover で高さに合わせて切るので、
+ * 枠の幅と「枠の高さ × 2.2」の大きいほう。スマホの 96px 角は 212px、一覧の 200 × 120px は 264px、
+ * ホームのタイルは高さ 160px で 352px（1360px 以上は枠の幅 375px のほうが大きい）
+ */
+const SIZES = {
+	row: "(width >= 768px) 264px, 212px",
+	tile: "(width >= 1360px) 375px, (width >= 768px) 352px, 212px",
+} as const satisfies Record<NonNullable<Props["layout"]>, string>;
 ---
 
 <Card
@@ -54,7 +62,9 @@ const { width, height } = THUMBNAIL_CROPS.card;
 			fetchpriority={priority ? "high" : undefined}
 			height={height}
 			loading={priority ? "eager" : "lazy"}
-			src={thumbnailUrl}
+			sizes={srcset && SIZES[layout]}
+			src={src}
+			srcset={srcset}
 			width={width}
 		>
 	</div>

@@ -5,6 +5,7 @@ import {
 	parseMediaRef,
 	toEyecatchImage,
 	toImageAttributes,
+	toThumbnailImage,
 	toVideoAttributes,
 	videoUrl,
 } from "./media.ts";
@@ -178,6 +179,22 @@ describe("toEyecatchImage", () => {
 			"width=1000,height=400,fit=cover 1000w",
 		]);
 		expect(sources[0]).toMatchObject({ height: 400, width: 1000 });
+	});
+});
+
+describe("toThumbnailImage", () => {
+	test("2.2:1 の切り抜きを 224 / 352 / 528 / 768 で出し、src はいちばん大きな候補", () => {
+		const { src, srcset } = toThumbnailImage({
+			image: { height: 1600, key: "images/a.jpg", width: 2400 },
+		});
+
+		expect(src).toBe(url("width=768,height=349,fit=cover"));
+		expect(candidates({ srcset })).toEqual([
+			"width=224,height=102,fit=cover 224w",
+			"width=352,height=160,fit=cover 352w",
+			"width=528,height=240,fit=cover 528w",
+			"width=768,height=349,fit=cover 768w",
+		]);
 	});
 });
 
