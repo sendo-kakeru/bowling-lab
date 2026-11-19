@@ -54,11 +54,11 @@ export function isHdr({ probe }: { probe: Probe }): boolean {
 }
 
 /**
- * 長辺 1920px（フル HD）に収める。本文の表示幅は最大 760px なので、高精細な画面の全画面再生でも足りる。
- * 動画は配信時に変換しないので、閲覧者に届く重さはここでしか減らせない。小さい動画は拡大しない
+ * 長辺 1920px（フル HD）に収め、60fps を超えるものは 60fps にする。動画は配信時に変換しないので、閲覧者に届く重さはここでしか減らせない。
+ * 小さい動画は拡大せず、60fps 以下は変えない。縦横比を保って偶数に丸めると画素の縦横比（SAR）が 1:1 からずれるので、1:1 に戻す
  */
 const SCALE_FILTER =
-	"scale=w='min(1920,iw)':h='min(1920,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2";
+	"scale=w='min(1920,iw)':h='min(1920,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2,setsar=1,fps=fps='min(60,source_fps)'";
 
 /**
  * HDR を SDR（BT.709）に変換する。Homebrew の ffmpeg には zscale も libplacebo もないので、
@@ -67,14 +67,26 @@ const SCALE_FILTER =
 const HDR_TO_SDR_FILTER =
 	"format=p010le,hwupload,scale_vt=color_matrix=bt709:color_primaries=bt709:color_transfer=bt709,hwdownload,format=p010le";
 
-const BT709_TAG_ARGS = [
-	"-color_primaries",
-	"bt709",
-	"-color_trc",
-	"bt709",
-	"-colorspace",
-	"bt709",
-];
+/** 映像の加工に使う ffmpeg の引数。input は -i より前、output は後に置く */
+export function videoFilterArgs({ hdr }: { hdr: boolean }): {
+	input: string[];
+	output: string[];
+} {
+	if (!hdr) return { input: [], output: ["-vf", SCALE_FILTER] };
+	return {
+		input: ["-init_hw_device", "videotoolbox=vt", "-filter_hw_device", "vt"],
+		output: [
+			"-vf",
+			`${SCALE_FILTER},${HDR_TO_SDR_FILTER}`,
+			"-color_primaries",
+			"bt709",
+			"-color_trc",
+			"bt709",
+			"-colorspace",
+			"bt709",
+		],
+	};
+}
 
 /** ffmpeg と ffprobe がなければ、入れ方を示して止める */
 export async function ensureFfmpeg(): Promise<void> {
@@ -105,15 +117,13 @@ export async function processVideoItem({
 }): Promise<ProcessedItem> {
 	const scratch = await mkdtemp(path.join(workDir, "video-"));
 	const mp4Path = path.join(scratch, "video.mp4");
-	const hdr = isHdr({
-		probe: await probeVideo({ inputPath: item.sourcePath }),
+	const filter = videoFilterArgs({
+		hdr: isHdr({ probe: await probeVideo({ inputPath: item.sourcePath }) }),
 	});
 	await run({
 		args: [
 			"-y",
-			...(hdr
-				? ["-init_hw_device", "videotoolbox=vt", "-filter_hw_device", "vt"]
-				: []),
+			...filter.input,
 			"-i",
 			item.sourcePath,
 			// iPhone の MOV は位置情報をデータのトラックにも持つので、映像と音声だけを選ぶ
@@ -127,9 +137,7 @@ export async function processVideoItem({
 			"23",
 			"-preset",
 			"medium",
-			"-vf",
-			hdr ? `${SCALE_FILTER},${HDR_TO_SDR_FILTER}` : SCALE_FILTER,
-			...(hdr ? BT709_TAG_ARGS : []),
+			...filter.output,
 			"-pix_fmt",
 			"yuv420p",
 			"-c:a",
