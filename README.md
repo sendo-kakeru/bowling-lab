@@ -12,7 +12,7 @@
 - メモ: 独り言
   - 記事にするほどでもない思考
   - 1つのメモに対して、あとから続きを足せる
-- 将来的にスコアなども見せられるボーリング業界でのプロフィールサイトにしても良さそう
+- 将来的にスコアなども見せられるボウリング業界でのプロフィールサイトにしても良さそう
 
 ## 開発
 
@@ -25,7 +25,15 @@ pnpm lint     # lint と整形の確認（Biome）
 pnpm format   # lint の自動修正と整形
 pnpm test     # ユニットテスト
 pnpm typecheck  # 型チェック
+pnpm memo       # メモを作る
+pnpm memo:add   # いちばん新しいメモに続きの見出しを足す
+pnpm post       # 記事の下書きを作る
+pnpm media:push # 画像と動画を加工して R2 に上げる
+pnpm storybook  # Storybook（http://localhost:6006）
+pnpm build-storybook  # Storybook のビルド
 ```
+
+コンテンツのコマンドの詳しい動きは [content.md のコマンド](docs/design/content.md#コマンド)、`media:push` は [media.md の CLI](docs/design/media.md#cli)。
 
 - 設計: [コンテンツ管理](docs/design/content.md)、[メディア配信](docs/design/media.md)
 - 開発の進め方: [AI 開発体制](docs/ai-development.md)
