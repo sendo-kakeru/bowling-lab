@@ -101,6 +101,17 @@ export function toStillImage({ entry }: { entry: MediaEntry }): StillImage {
 	};
 }
 
+/** 本文の画像と動画の幅 / 高さ。prose.css が高さを画面の 80% に抑えるのに使う */
+function mediaRatio({
+	width,
+	height,
+}: {
+	width: number;
+	height: number;
+}): number {
+	return Math.round((width / height) * 10000) / 10000;
+}
+
 /**
  * `<img>` の alt を除いた属性。Markdown の変換と .astro の両方で使う。
  * alt は呼び出し側で付ける。.astro で属性を展開すると、あとから書いた同じ属性は上書きせず重複して出るため
@@ -124,6 +135,7 @@ export function toImageAttributes({
 				width: w,
 			})),
 		}),
+		style: `--media-ratio: ${mediaRatio({ height, width })}`,
 		width,
 	};
 }
@@ -146,6 +158,7 @@ export function toVideoAttributes({
 		poster: imageUrl({ key: poster, width: Math.min(POSTER_WIDTH, width) }),
 		preload: "metadata",
 		src: videoUrl({ key }),
+		style: `--media-ratio: ${mediaRatio({ height, width })}`,
 		width,
 	};
 }

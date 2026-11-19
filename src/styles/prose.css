@@ -202,7 +202,14 @@
 		margin-top: var(--prose-gap);
 	}
 
+	/*
+	  縦長の写真や動画が画面より高くならないよう、高さを画面の 80% に抑えて中央に置く。
+	  max-height で抑えると、width 属性の幅が残って縦横比が崩れる。代わりに幅の上限を高さから逆算する。
+	  --media-ratio（幅 / 高さ）は src/lib/media.ts が付ける。ない要素（外部の画像）は高さで抑えない
+	*/
 	.prose :is(img, video) {
+		max-width: min(100%, 80svh * var(--media-ratio, 1000));
+		margin-inline: auto;
 		border-radius: var(--radius-6);
 	}
 

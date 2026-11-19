@@ -113,6 +113,7 @@ describe("toImageAttributes", () => {
 			sizes: "(width >= 760px) 760px, 100vw",
 			src: url("width=640"),
 			srcset: `${url("width=480")} 480w, ${url("width=640")} 640w`,
+			style: "--media-ratio: 1.4988",
 			width: 640,
 		});
 	});
@@ -138,6 +139,7 @@ describe("toVideoAttributes", () => {
 			poster: `${ORIGIN}/cdn-cgi/image/width=1520,format=auto/images/2026/kyoto/walk.d4e5f6.poster.jpg`,
 			preload: "metadata",
 			src: `${ORIGIN}/videos/2026/kyoto/walk.d4e5f6.mp4`,
+			style: "--media-ratio: 1.7778",
 			width: 1920,
 		});
 	});

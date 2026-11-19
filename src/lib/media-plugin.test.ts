@@ -50,7 +50,7 @@ describe("createMediaPlugin", () => {
 			.map((width) => `${url(width)} ${width}w`)
 			.join(", ");
 		expect(html).toContain(
-			`<img alt="レーンの猫" decoding="async" height="1600" loading="lazy" sizes="(width >= 760px) 760px, 100vw" src="${url(760)}" srcset="${srcset}" width="2400">`,
+			`<img alt="レーンの猫" decoding="async" height="1600" loading="lazy" sizes="(width >= 760px) 760px, 100vw" src="${url(760)}" srcset="${srcset}" style="--media-ratio: 1.5" width="2400">`,
 		);
 	});
 
@@ -60,7 +60,7 @@ describe("createMediaPlugin", () => {
 		});
 
 		expect(html).toContain(
-			`<video aria-label="散歩" controls height="1080" playsinline poster="${ORIGIN}/cdn-cgi/image/width=1520,format=auto/images/2026/kyoto/walk.d4e5f6.poster.jpg" preload="metadata" src="${ORIGIN}/videos/2026/kyoto/walk.d4e5f6.mp4" width="1920"></video>`,
+			`<video aria-label="散歩" controls height="1080" playsinline poster="${ORIGIN}/cdn-cgi/image/width=1520,format=auto/images/2026/kyoto/walk.d4e5f6.poster.jpg" preload="metadata" src="${ORIGIN}/videos/2026/kyoto/walk.d4e5f6.mp4" style="--media-ratio: 1.7778" width="1920"></video>`,
 		);
 	});
 
