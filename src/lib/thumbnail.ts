@@ -1,15 +1,11 @@
-import {
-	BALL_COLOR_NAMES,
-	type BallColorName,
-	ballSvg,
-	svgDocument,
-} from "./ball-svg.ts";
+import { BALL_COLOR_NAMES, type BallColorName, ballSvg } from "./ball-svg.ts";
 import {
 	type CroppedImage,
 	THUMBNAIL_SIZE,
 	type Thumbnail,
 	toThumbnailImage,
 } from "./media.ts";
+import { svgDocument } from "./svg.ts";
 import { TOKEN_COLORS } from "./token-colors.ts";
 
 const FNV_OFFSET_BASIS = 0x811c9dc5;
