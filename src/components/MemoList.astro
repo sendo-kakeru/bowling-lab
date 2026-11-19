@@ -1,5 +1,6 @@
 ---
 import type { Memo } from "../lib/memo-schema";
+import type { Page } from "../lib/pagination";
 import Breadcrumb from "./Breadcrumb.astro";
 import MemoSlip from "./MemoSlip.astro";
 import Pagination from "./Pagination.astro";
@@ -10,14 +11,13 @@ import Pagination from "./Pagination.astro";
 */
 
 interface Props {
-	/** 新しい順 */
-	memos: readonly Memo[];
-	/** 今のページ（1 始まり） */
-	current: number;
-	pageCount: number;
+	/** 項目は新しい順 */
+	page: Page<Memo>;
 }
 
-const { memos, current, pageCount } = Astro.props;
+const {
+	page: { items: memos, page: current, pageCount },
+} = Astro.props;
 ---
 
 <div class="memo-page">

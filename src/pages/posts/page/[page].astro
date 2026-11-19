@@ -18,5 +18,5 @@ const { page } = Astro.props;
 	description={`ボウリングに関する記事一覧 ${page.page} ページ目。`}
 	title={`記事一覧（${page.page} ページ目）`}
 >
-	<PostList current={page.page} pageCount={page.pageCount} posts={page.items} />
+	<PostList page={page} />
 </Base>
