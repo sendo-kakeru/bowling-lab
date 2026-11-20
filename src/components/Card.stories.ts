@@ -7,7 +7,7 @@ const meta = {
 	args: {
 		slots: {
 			default:
-				'<p class="story-card-body">カードの面。記事、About、記事のカードで使う。</p>',
+				'<p class="story-card-body">カードの面。記事、固定ページ、記事のカードで使う。</p>',
 		},
 	},
 	component: Card,

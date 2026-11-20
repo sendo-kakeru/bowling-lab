@@ -1,6 +1,8 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 import { SITE_TAGLINE, SITE_TITLE } from "../../consts";
+import type { Post } from "../../lib/content/get-posts";
+import Button from "../Button.astro";
 import Card from "../Card.astro";
 import Spats from "../Spats.astro";
 
@@ -8,15 +10,23 @@ import Spats from "../Spats.astro";
   ホームのサイト説明。初めて来た人に何のサイトかを伝える。ページの見出し（h1）はここが持つ
 */
 
-type Props = HTMLAttributes<"div">;
+interface Props extends HTMLAttributes<"div"> {
+	/** 自己紹介を兼ねた最初の記事。記事がまだないときは案内を出さない */
+	firstPost: Post | undefined;
+}
 
-const { class: className, ...rest } = Astro.props;
+const { firstPost, class: className, ...rest } = Astro.props;
 ---
 
 <Card {...rest} class:list={["home-intro", className]}>
 	<Spats size="small" />
 	<h1 class="title">{SITE_TITLE}</h1>
 	<p class="tagline">{SITE_TAGLINE}</p>
+	{firstPost && (
+		<Button href={`/posts/${firstPost.slug}`} variant="outline">
+			はじめての方へ
+		</Button>
+	)}
 </Card>
 
 <style>
