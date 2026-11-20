@@ -70,29 +70,33 @@ export function decideThumbnail({
 }
 
 /**
- * 記事カードのサムネイルの切り抜き（2.2:1）。いちばん大きな候補は、ホームのタイルのいちばん広い枠（約 375 × 160px）の 2 倍。
- * 224 はスマホの 96px 角の枠（object-fit: cover で 96 × 2.2 ≒ 212px 幅の切り抜きが要る）用。枠ごとの表示幅は PostCard.astro の sizes
+ * 記事カードのサムネイルの切り抜き。枠の縦横比が違うので枠ごとに切り抜き、PostCard.astro が <picture> で出し分ける。
+ * 1 つの切り抜きを object-fit: cover で別の比率の枠に入れると、スマホの正方形の枠には 2.2:1 の中央の半分も入らない。
+ * 大きさは枠ごとに 1 つで、その枠を出す端末のいちばん高い DPR に合わせる。
+ * - square: 768px 未満の 96px 角。3x のスマホで 288
+ * - row: 768px 以上の一覧の 200 × 120px（5:3）。2x で 400
+ * - tile: 768px 以上のホームのタイル。高さ 160px で幅は約 375px まで変わるので 2.2:1 で切り、object-fit: cover で枠に合わせる。
+ *   いちばん広い枠（約 375 × 160px）の 2x で 768
+ * DPR の低い画面は少し大きなファイルを受け取るが、この大きさでは差は小さい。
+ * 変換は幅 × 形式で数えられ、無料枠は月 5,000 なので、記事 1 つあたり 3 つに抑える
  */
-const THUMBNAIL_CROP = {
-	aspect: { height: 5, width: 11 },
-	widths: [224, 352, 528, 768],
-} as const satisfies CropRule;
+const THUMBNAIL_CROPS = {
+	row: { aspect: { height: 3, width: 5 }, widths: [400] },
+	square: { aspect: { height: 1, width: 1 }, widths: [288] },
+	tile: { aspect: { height: 5, width: 11 }, widths: [768] },
+} as const satisfies Record<string, CropRule>;
 
-const THUMBNAIL_WIDTH = Math.max(...THUMBNAIL_CROP.widths);
+type ThumbnailCrops = Record<keyof typeof THUMBNAIL_CROPS, CroppedImage>;
 
-/** サムネイルの寸法（いちばん大きな候補）。既定の画像（ボールの SVG）もこの大きさにする */
-const THUMBNAIL_SIZE = {
-	height: cropHeight({ aspect: THUMBNAIL_CROP.aspect, width: THUMBNAIL_WIDTH }),
-	width: THUMBNAIL_WIDTH,
+/** 既定の画像（ボールの SVG）の寸法。いちばん横長の切り抜き（タイル）に合わせる */
+const [TILE_WIDTH] = THUMBNAIL_CROPS.tile.widths;
+const DEFAULT_THUMBNAIL_SIZE = {
+	height: cropHeight({
+		aspect: THUMBNAIL_CROPS.tile.aspect,
+		width: TILE_WIDTH,
+	}),
+	width: TILE_WIDTH,
 };
-
-export function toThumbnailImage({
-	image,
-}: {
-	image: StillImage;
-}): CroppedImage {
-	return toCroppedImage({ image, rule: THUMBNAIL_CROP });
-}
 
 const FNV_OFFSET_BASIS = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;
@@ -119,11 +123,12 @@ export function ballThumbnailName({ color }: { color: BallColorName }): string {
 }
 
 /**
- * 既定のサムネイルの SVG。カードの切り抜きと同じ大きさにし、object-fit: cover でどの枠に切り抜かれてもボールが欠けないよう中央に置く。
+ * 既定のサムネイルの SVG。タイルの切り抜きと同じ大きさにし、object-fit: cover でどの枠に切り抜かれてもボールが欠けないよう中央に置く
+ * （正方形の枠でも高さの 80% の直径なので収まる）。
  * Storybook は静的エンドポイントを配信しないので、.storybook/main.ts もこれで同じ URL に出す
  */
 export function ballThumbnailSvg({ color }: { color: BallColorName }): string {
-	const { width, height } = THUMBNAIL_SIZE;
+	const { width, height } = DEFAULT_THUMBNAIL_SIZE;
 	const ball = ballSvg({
 		color,
 		cx: width / 2,
@@ -137,8 +142,13 @@ export function ballThumbnailSvg({ color }: { color: BallColorName }): string {
 	});
 }
 
+type ThumbnailImage =
+	| { kind: "default"; src: string; width: number; height: number }
+	| { kind: "crops"; crops: ThumbnailCrops };
+
 /**
- * サムネイルの画像。メディアは変換配信の URL（絶対）、既定の画像は記事の色のボールの SVG のサイト内の相対 URL で、srcset はない
+ * サムネイルの画像。メディアは枠ごとの切り抜き（変換配信の絶対 URL）、
+ * 既定の画像は記事の色のボールの SVG のサイト内の相対 URL 1 つで、どの枠にも object-fit: cover で入れる
  */
 export function getThumbnailImage({
 	thumbnail,
@@ -146,13 +156,22 @@ export function getThumbnailImage({
 }: {
 	thumbnail: Thumbnail;
 	slug: string;
-}): Omit<CroppedImage, "srcset"> & { srcset?: string } {
+}): ThumbnailImage {
 	if (thumbnail.source === "default") {
 		const color = ballColorForSlug({ slug });
 		return {
-			...THUMBNAIL_SIZE,
+			...DEFAULT_THUMBNAIL_SIZE,
+			kind: "default",
 			src: `/thumbnails/${ballThumbnailName({ color })}.svg`,
 		};
 	}
-	return toThumbnailImage({ image: thumbnail.image });
+	const { image } = thumbnail;
+	return {
+		crops: {
+			row: toCroppedImage({ image, rule: THUMBNAIL_CROPS.row }),
+			square: toCroppedImage({ image, rule: THUMBNAIL_CROPS.square }),
+			tile: toCroppedImage({ image, rule: THUMBNAIL_CROPS.tile }),
+		},
+		kind: "crops",
+	};
 }

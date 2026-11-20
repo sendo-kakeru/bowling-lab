@@ -32,21 +32,15 @@ const {
 } = Astro.props;
 
 const Heading = `h${headingLevel}` as const;
-const { src, srcset, width, height } = getThumbnailImage({
+const image = getThumbnailImage({
 	slug: post.slug,
 	thumbnail: post.thumbnail,
 });
-/**
- * 画像の枠ごとに要る切り抜きの幅（下の CSS）。object-fit: cover で高さに合わせて切るので、
- * 枠の幅と「枠の高さ × 2.2」の大きいほう。スマホの 96px 角は 212px、一覧の 200 × 120px は 264px、
- * ホームのタイルは高さ 160px で 352px。1024px 以上のタイルの幅は (画面幅 - 240px) / 3
- * （ガター 40px × 2、レーンの内余白 24px × 2、列の間 24px × 2、カードの内余白 12px × 2）で、
- * 1296px から 352px を超え、1360px（--layout-page-width）で約 373px に止まる
- */
-const SIZES = {
-	row: "(width >= 768px) 264px, 212px",
-	tile: "(width >= 1296px) 375px, (width >= 768px) 352px, 212px",
-} as const satisfies Record<NonNullable<Props["layout"]>, string>;
+const imgAttributes = {
+	decoding: "async",
+	fetchpriority: priority ? "high" : undefined,
+	loading: priority ? "eager" : "lazy",
+} as const;
 ---
 
 <Card
@@ -56,17 +50,33 @@ const SIZES = {
 	class:list={["post-card", className]}
 >
 	<div class="thumb">
-		<img
-			alt=""
-			decoding="async"
-			fetchpriority={priority ? "high" : undefined}
-			height={height}
-			loading={priority ? "eager" : "lazy"}
-			sizes={srcset && SIZES[layout]}
-			src={src}
-			srcset={srcset}
-			width={width}
-		>
+		{/* 768px を境に枠の縦横比が変わり切り抜きも替わる（アートディレクション）。srcset / sizes では比率を替えられないので <picture> にする。
+		    切り抜きの大きさは枠ごとに 1 つ（thumbnail.ts の THUMBNAIL_CROPS） */}
+		{image.kind === "crops" ? (
+			<picture>
+				<source
+					height={image.crops[layout].height}
+					media="(width >= 768px)"
+					srcset={image.crops[layout].src}
+					width={image.crops[layout].width}
+				>
+				<img
+					{...imgAttributes}
+					alt=""
+					height={image.crops.square.height}
+					src={image.crops.square.src}
+					width={image.crops.square.width}
+				>
+			</picture>
+		) : (
+			<img
+				{...imgAttributes}
+				alt=""
+				height={image.height}
+				src={image.src}
+				width={image.width}
+			>
+		)}
 	</div>
 	<div class="body">
 		<Heading class="title">
@@ -99,6 +109,11 @@ const SIZES = {
 	height: 6rem;
 	border-radius: var(--radius-6);
 	background: var(--color-wood-100);
+}
+
+/* <picture> の箱を消し、<img> の 100% を .thumb の大きさにする */
+.thumb picture {
+	display: contents;
 }
 
 .thumb img {

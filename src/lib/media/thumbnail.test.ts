@@ -1,13 +1,12 @@
 import { describe, expect, test } from "vitest";
 import { MEDIA_ORIGIN } from "../../consts.ts";
 import { BALL_COLOR_NAMES } from "../svg/ball-svg.ts";
-import { candidates, MANIFEST } from "../test-helpers.ts";
+import { MANIFEST } from "../test-helpers.ts";
 import {
 	ballColorForSlug,
 	ballThumbnailSvg,
 	decideThumbnail,
 	getThumbnailImage,
-	toThumbnailImage,
 } from "./thumbnail.ts";
 
 const url = (options: string): string =>
@@ -36,47 +35,57 @@ describe("ballColorForSlug", () => {
 });
 
 describe("getThumbnailImage", () => {
-	test("既定の画像は、メディアのいちばん大きな切り抜きと同じ寸法のボールの SVG", () => {
-		const fallback = getThumbnailImage({
-			slug: "a",
-			thumbnail: { source: "default" },
-		});
-		const media = getThumbnailImage({
+	const cropsOf = ({ width, height }: { width: number; height: number }) => {
+		const image = getThumbnailImage({
 			slug: "a",
 			thumbnail: {
-				image: { height: 1600, key: "images/a.jpg", width: 2400 },
+				image: { height, key: "images/a.jpg", width },
 				source: "body",
 			},
 		});
+		if (image.kind !== "crops") throw new Error("切り抜きになっていない");
+		return image.crops;
+	};
 
-		expect(fallback).toEqual({
-			height: media.height,
+	test("既定の画像は、タイルと同じ 768 × 349 のボールの SVG", () => {
+		expect(
+			getThumbnailImage({ slug: "a", thumbnail: { source: "default" } }),
+		).toEqual({
+			height: 349,
+			kind: "default",
 			src: "/thumbnails/ball-purple.svg",
-			width: media.width,
+			width: 768,
 		});
 		expect(ballThumbnailSvg({ color: "purple" })).toContain(
-			`width="${media.width}" height="${media.height}"`,
+			'width="768" height="349"',
 		);
 	});
-});
 
-describe("toThumbnailImage", () => {
-	test("2.2:1 の切り抜きを 224 / 352 / 528 / 768 で出し、src と寸法はいちばん大きな候補", () => {
-		const { srcset, ...rest } = toThumbnailImage({
-			image: { height: 1600, key: "images/a.jpg", width: 2400 },
-		});
+	test("スマホの 96px 角の枠は 1:1 を 3x の 288 で出す", () => {
+		expect(cropsOf({ height: 1600, width: 2400 }).square.src).toBe(
+			url("width=288,height=288,fit=cover"),
+		);
+	});
 
-		expect(rest).toEqual({
+	test("一覧の 200 × 120px の枠は 5:3 を 2x の 400 で出す", () => {
+		expect(cropsOf({ height: 1600, width: 2400 }).row.src).toBe(
+			url("width=400,height=240,fit=cover"),
+		);
+	});
+
+	test("タイルは 2.2:1 を、いちばん広い枠の 2x の 768 で出す", () => {
+		expect(cropsOf({ height: 1600, width: 2400 }).tile).toMatchObject({
 			height: 349,
 			src: url("width=768,height=349,fit=cover"),
 			width: 768,
 		});
-		expect(candidates({ srcset })).toEqual([
-			"width=224,height=102,fit=cover 224w",
-			"width=352,height=160,fit=cover 352w",
-			"width=528,height=240,fit=cover 528w",
-			"width=768,height=349,fit=cover 768w",
-		]);
+	});
+
+	test("マスターより大きく切り抜かない", () => {
+		const small = cropsOf({ height: 200, width: 300 });
+
+		expect(small.square.src).toBe(url("width=200,height=200,fit=cover"));
+		expect(small.tile.src).toBe(url("width=300,height=136,fit=cover"));
 	});
 });
 
