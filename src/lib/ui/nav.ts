@@ -1,4 +1,4 @@
-import { INSTAGRAM_URL } from "../consts";
+import { INSTAGRAM_URL } from "../../consts";
 
 export interface NavLink {
 	label: string;

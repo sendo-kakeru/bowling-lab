@@ -1,10 +1,10 @@
 import { describe, expect, test } from "vitest";
-import { getMediaManifest, parseMediaManifest } from "./media-manifest.ts";
 import {
 	CAT_IMAGE as IMAGE,
 	MANIFEST,
 	WALK_VIDEO as VIDEO,
-} from "./test-helpers.ts";
+} from "../test-helpers.ts";
+import { getMediaManifest, parseMediaManifest } from "./media-manifest.ts";
 
 describe("parseMediaManifest", () => {
 	test("画像と動画の項目を受け付ける", () => {

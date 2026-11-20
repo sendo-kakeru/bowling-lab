@@ -1,4 +1,4 @@
-import type { Memo } from "../../src/lib/memo-schema";
+import type { Memo } from "../../src/lib/content/memo-schema";
 
 /* ストーリーで使うメモの伝票。続きの件数（紙の重なり）を変えて並べる */
 

@@ -1,5 +1,5 @@
+import { TOKEN_COLORS } from "../token-colors.ts";
 import { mixHex } from "./svg.ts";
-import { TOKEN_COLORS } from "./token-colors.ts";
 
 /*
   ボウリングピンの絵。サイト共通の OGP 画像（#48）で使う。

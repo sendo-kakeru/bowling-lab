@@ -7,9 +7,9 @@ import JsonLd from "../../components/JsonLd.astro";
 import TableOfContents from "../../components/post/TableOfContents.astro";
 import { SITE_AUTHOR } from "../../consts";
 import Base from "../../layouts/Base.astro";
+import { getPosts } from "../../lib/content/get-posts";
 import { formatDotDate, formatIsoDate } from "../../lib/date";
-import { getPosts } from "../../lib/get-posts";
-import { type EyecatchImage, toEyecatchImage } from "../../lib/media";
+import { type EyecatchImage, toEyecatchImage } from "../../lib/media/media";
 
 export const getStaticPaths = (async () => {
 	const posts = await getPosts();

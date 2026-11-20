@@ -1,5 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { parseMemo, parseMemoSections } from "../../src/lib/parse-memo.ts";
+import {
+	parseMemo,
+	parseMemoSections,
+} from "../../src/lib/content/parse-memo.ts";
 import {
 	formatMemoId,
 	type MemoChange,

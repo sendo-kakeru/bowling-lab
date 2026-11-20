@@ -1,4 +1,4 @@
-import { formatIsoDate, formatTime } from "./date.ts";
+import { formatIsoDate, formatTime } from "../date.ts";
 
 /*
   メモの書き込みの区切りになる見出し（`## 2026-11-06 21:14`）。

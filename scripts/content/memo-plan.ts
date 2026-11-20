@@ -1,11 +1,11 @@
 import { MEMO_DIR } from "../../src/consts.ts";
-import { formatIsoDate, formatTime } from "../../src/lib/date.ts";
-import { formatMemoHeading } from "../../src/lib/memo-heading.ts";
+import { formatMemoHeading } from "../../src/lib/content/memo-heading.ts";
 import {
 	type ParsedMemoNote,
 	parseMemoSections,
 	withMemoFilePath,
-} from "../../src/lib/parse-memo.ts";
+} from "../../src/lib/content/parse-memo.ts";
+import { formatIsoDate, formatTime } from "../../src/lib/date.ts";
 
 /*
   メモを作るコマンドの判断の部分。どのファイルに何を書くかを決めるだけで、読み書きはしない

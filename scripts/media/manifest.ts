@@ -3,7 +3,7 @@ import {
 	type MediaEntry,
 	type MediaManifest,
 	parseMediaManifest,
-} from "../../src/lib/media-manifest.ts";
+} from "../../src/lib/media/media-manifest.ts";
 
 export async function readManifest({
 	filePath,
