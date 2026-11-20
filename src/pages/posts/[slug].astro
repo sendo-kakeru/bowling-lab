@@ -5,7 +5,7 @@ import Breadcrumb from "../../components/Breadcrumb.astro";
 import Card from "../../components/Card.astro";
 import JsonLd from "../../components/JsonLd.astro";
 import TableOfContents from "../../components/post/TableOfContents.astro";
-import { SITE_AUTHOR } from "../../consts";
+import { INSTAGRAM_URL, SITE_AUTHOR } from "../../consts";
 import Base from "../../layouts/Base.astro";
 import { getPosts } from "../../lib/content/get-posts";
 import { formatDotDate, formatIsoDate } from "../../lib/date";
@@ -42,7 +42,7 @@ const blogPosting = {
 	author: {
 		"@type": "Person",
 		name: SITE_AUTHOR,
-		url: new URL("/about", Astro.site).href,
+		url: INSTAGRAM_URL,
 	},
 	datePublished: formatIsoDate({ date: post.publishedAt }),
 	description: post.description,

@@ -53,7 +53,6 @@ describe("withCurrent", () => {
 			["Home", undefined],
 			["Posts", "true"],
 			["Memos", undefined],
-			["About", undefined],
 		]);
 	});
 });

@@ -12,7 +12,8 @@ import { getPosts } from "../lib/content/get-posts";
 const LATEST_POST_COUNT = 3;
 const LATEST_MEMO_COUNT = 2;
 
-const latestPosts = (await getPosts()).slice(0, LATEST_POST_COUNT);
+const posts = await getPosts();
+const latestPosts = posts.slice(0, LATEST_POST_COUNT);
 const latestMemos = (await getMemos()).slice(0, LATEST_MEMO_COUNT);
 ---
 
@@ -28,7 +29,7 @@ const latestMemos = (await getMemos()).slice(0, LATEST_MEMO_COUNT);
 		<div class="hero">
 			<PinDeck />
 		</div>
-		<HomeIntro class="column" />
+		<HomeIntro class="column" firstPost={posts.at(-1)} />
 		<LatestMemos class="column" memos={latestMemos} />
 		<LatestPosts posts={latestPosts} />
 	</div>

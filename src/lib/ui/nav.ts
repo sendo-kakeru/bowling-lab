@@ -13,7 +13,6 @@ export const MAIN_NAV = [
 	{ label: "Home", url: "/" },
 	{ label: "Posts", url: "/posts" },
 	{ label: "Memos", url: "/memos" },
-	{ label: "About", url: "/about" },
 ] as const satisfies NavTarget[];
 
 /** ヘッダーとフッターにアイコンで出す、サイトの外へのリンク */
