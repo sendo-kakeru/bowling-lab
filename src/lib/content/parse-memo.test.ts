@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
+import { catchMemoParseError } from "../test-helpers.ts";
 import { MemoParseError, parseMemo, parseMemoSections } from "./parse-memo.ts";
-import { catchMemoParseError } from "./test-helpers.ts";
 
 /** 行の配列を 1 つの本文にする。行番号を数えやすくするため */
 function source(...lines: string[]): string {

@@ -1,4 +1,4 @@
-import { MEDIA_ORIGIN } from "../consts.ts";
+import { MEDIA_ORIGIN } from "../../consts.ts";
 import type {
 	MediaEntry,
 	MediaManifest,

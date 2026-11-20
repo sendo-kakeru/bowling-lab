@@ -1,8 +1,8 @@
 import { markdownToHtml } from "satteri";
 import { describe, expect, test } from "vitest";
-import { MEDIA_ORIGIN } from "../consts.ts";
+import { MEDIA_ORIGIN } from "../../consts.ts";
+import { MANIFEST } from "../test-helpers.ts";
 import { createMediaPlugin } from "./media-plugin.ts";
-import { MANIFEST } from "./test-helpers.ts";
 
 const FILE_URL = new URL(`file://${process.cwd()}/src/content/posts/sample.md`);
 

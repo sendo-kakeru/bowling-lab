@@ -1,5 +1,11 @@
 import { fromMarkdown } from "mdast-util-from-markdown";
-import { BALL_COLOR_NAMES, type BallColorName, ballSvg } from "./ball-svg.ts";
+import {
+	BALL_COLOR_NAMES,
+	type BallColorName,
+	ballSvg,
+} from "../svg/ball-svg.ts";
+import { svgDocument } from "../svg/svg.ts";
+import { TOKEN_COLORS } from "../token-colors.ts";
 import {
 	type CroppedImage,
 	type CropRule,
@@ -11,8 +17,6 @@ import {
 	toStillImage,
 } from "./media.ts";
 import type { MediaManifest } from "./media-manifest.ts";
-import { svgDocument } from "./svg.ts";
-import { TOKEN_COLORS } from "./token-colors.ts";
 
 interface MarkdownNode {
 	type: string;

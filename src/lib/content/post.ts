@@ -1,6 +1,6 @@
 import { type DefaultTreeAdapterMap, parseFragment } from "parse5";
 import * as v from "valibot";
-import { parseMediaRef } from "./media.ts";
+import { parseMediaRef } from "../media/media.ts";
 
 const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 

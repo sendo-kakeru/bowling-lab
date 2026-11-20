@@ -1,5 +1,5 @@
 import * as v from "valibot";
-import manifestJson from "../data/media-manifest.json" with { type: "json" };
+import manifestJson from "../../data/media-manifest.json" with { type: "json" };
 
 /*
   メディアの manifest（src/data/media-manifest.json）。

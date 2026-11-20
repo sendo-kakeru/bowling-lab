@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
-import { MEDIA_ORIGIN } from "../consts.ts";
-import { BALL_COLOR_NAMES } from "./ball-svg.ts";
-import { candidates, MANIFEST } from "./test-helpers.ts";
+import { MEDIA_ORIGIN } from "../../consts.ts";
+import { BALL_COLOR_NAMES } from "../svg/ball-svg.ts";
+import { candidates, MANIFEST } from "../test-helpers.ts";
 import {
 	ballColorForSlug,
 	ballThumbnailSvg,

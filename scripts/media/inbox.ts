@@ -1,8 +1,8 @@
 import type { Hash } from "node:crypto";
 import { glob, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { MEDIA_SCHEME } from "../../src/lib/media.ts";
-import type { MediaEntry } from "../../src/lib/media-manifest.ts";
+import { MEDIA_SCHEME } from "../../src/lib/media/media.ts";
+import type { MediaEntry } from "../../src/lib/media/media-manifest.ts";
 
 export type ImageFormat = "jpeg" | "png";
 

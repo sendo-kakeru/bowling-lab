@@ -4,9 +4,9 @@ import { basename, dirname, extname, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import type { Loader, LoaderContext } from "astro/loaders";
 import { MEMO_DIR } from "../consts.ts";
+import { resolvePostedAt } from "../lib/content/memo-schema.ts";
+import { parseMemo, withMemoFilePath } from "../lib/content/parse-memo.ts";
 import { errorMessage } from "../lib/error.ts";
-import { resolvePostedAt } from "../lib/memo-schema.ts";
-import { parseMemo, withMemoFilePath } from "../lib/parse-memo.ts";
 
 /*
   メモのコンテンツローダー。1 ファイル = 1 メモで、id はファイル名（拡張子なし）。

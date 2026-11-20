@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
+import { catchMemoParseError } from "../test-helpers.ts";
 import { compareMemos, type Memo, resolvePostedAt } from "./memo-schema.ts";
 import { type MemoParseError, parseMemo } from "./parse-memo.ts";
-import { catchMemoParseError } from "./test-helpers.ts";
 
 /** 見出しの日時の並びから、メモの本文を作って読む */
 function resolve(...postedAts: string[]): ReturnType<typeof resolvePostedAt> {

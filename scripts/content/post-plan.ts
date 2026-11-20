@@ -1,5 +1,5 @@
+import { DRAFT_PREFIX, RESERVED_SLUG } from "../../src/lib/content/post.ts";
 import { formatIsoDate } from "../../src/lib/date.ts";
-import { DRAFT_PREFIX, RESERVED_SLUG } from "../../src/lib/post.ts";
 
 /*
   記事を作るコマンドの判断の部分。ファイル名と中身を決めるだけで、書き込みはしない

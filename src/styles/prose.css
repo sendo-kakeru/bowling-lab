@@ -205,7 +205,7 @@
 	/*
 	  縦長の写真や動画が画面より高くならないよう、高さを画面の 80% に抑えて中央に置く。
 	  max-height で抑えると、width 属性の幅が残って縦横比が崩れる。代わりに幅の上限を高さから逆算する。
-	  --media-ratio（幅 / 高さ）は src/lib/media.ts が付ける。ない要素（外部の画像）は高さで抑えない。
+	  --media-ratio（幅 / 高さ）は src/lib/media/media.ts が付ける。ない要素（外部の画像）は高さで抑えない。
 	  svh を読めないブラウザでは値ごと無効になり、base.css の max-width: 100% まで消えて本文からはみ出すので、読めるときだけ指定する
 	*/
 	.prose :is(img, video) {
@@ -224,7 +224,7 @@
 		background: var(--color-ink-900);
 	}
 
-	/* 表は本文の幅いっぱいに広げ、超えたら枠（src/lib/table-plugin.ts）の中で横にスクロールさせる */
+	/* 表は本文の幅いっぱいに広げ、超えたら枠（src/lib/markdown/table-plugin.ts）の中で横にスクロールさせる */
 	.prose .table-scroll {
 		overflow-x: auto;
 	}
@@ -268,7 +268,7 @@
 			center / 100% 100% no-repeat;
 	}
 
-	/* URL だけの行から作った埋め込み（src/lib/embed.ts）。比率を保つ枠に iframe を広げる */
+	/* URL だけの行から作った埋め込み（src/lib/markdown/embed.ts）。比率を保つ枠に iframe を広げる */
 	.prose .embed {
 		display: grid;
 		overflow: hidden;

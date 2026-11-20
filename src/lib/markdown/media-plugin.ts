@@ -7,8 +7,8 @@ import {
 	toImageAttributes,
 	toStillImage,
 	toVideoAttributes,
-} from "./media.ts";
-import type { MediaManifest } from "./media-manifest.ts";
+} from "../media/media.ts";
+import type { MediaManifest } from "../media/media-manifest.ts";
 
 function describeFile({ fileURL }: { fileURL: URL | undefined }): string {
 	return fileURL

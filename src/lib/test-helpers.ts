@@ -1,5 +1,5 @@
-import type { MediaManifest } from "./media-manifest.ts";
-import { MemoParseError } from "./parse-memo.ts";
+import { MemoParseError } from "./content/parse-memo.ts";
+import type { MediaManifest } from "./media/media-manifest.ts";
 
 /* テストだけが使う見本と道具 */
 

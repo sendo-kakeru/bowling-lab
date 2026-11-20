@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { MEDIA_ORIGIN } from "../consts.ts";
+import { MEDIA_ORIGIN } from "../../consts.ts";
+import { candidates, WALK_VIDEO } from "../test-helpers.ts";
 import {
 	imageUrl,
 	parseMediaRef,
@@ -8,7 +9,6 @@ import {
 	toVideoAttributes,
 	videoUrl,
 } from "./media.ts";
-import { candidates, WALK_VIDEO } from "./test-helpers.ts";
 
 describe("配信 URL", () => {
 	test("画像は幅を指定した変換配信の URL", () => {

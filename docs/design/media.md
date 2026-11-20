@@ -60,7 +60,7 @@
 ### 配信（Image Transformations）
 
 - `format=auto` で AVIF / WebP を出し分ける
-- `srcset` の幅の候補と `sizes` は、表示する場所ごとに決める（切り抜きと幅の候補は `src/lib/media.ts`、サムネイルの切り抜きは `src/lib/thumbnail.ts`。`sizes` は表示する側の CSS の隣で、アイキャッチは `src/pages/posts/[slug].astro`、カードは `PostCard.astro`）
+- `srcset` の幅の候補と `sizes` は、表示する場所ごとに決める（切り抜きと幅の候補は `src/lib/media/media.ts`、サムネイルの切り抜きは `src/lib/media/thumbnail.ts`。`sizes` は表示する側の CSS の隣で、アイキャッチは `src/pages/posts/[slug].astro`、カードは `PostCard.astro`）
 
   | 場所 | 切り抜き | 幅の候補 | `sizes` |
   | --- | --- | --- | --- |

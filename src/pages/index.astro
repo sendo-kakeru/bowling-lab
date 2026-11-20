@@ -6,8 +6,8 @@ import PinDeck from "../components/home/PinDeck.astro";
 import JsonLd from "../components/JsonLd.astro";
 import { SITE_TITLE } from "../consts";
 import Base from "../layouts/Base.astro";
-import { getMemos } from "../lib/get-memos";
-import { getPosts } from "../lib/get-posts";
+import { getMemos } from "../lib/content/get-memos";
+import { getPosts } from "../lib/content/get-posts";
 
 const LATEST_POST_COUNT = 3;
 const LATEST_MEMO_COUNT = 2;

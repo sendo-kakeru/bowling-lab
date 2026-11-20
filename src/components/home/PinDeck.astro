@@ -5,12 +5,12 @@ import {
 	INITIAL_STATE,
 	PIN_SPOTS,
 	toView,
-} from "../../lib/pin-deck";
+} from "../../lib/ui/pin-deck";
 import Button from "../Button.astro";
 
 /*
   ホームのいちばん上の、真上から見たピンデッキ。PLAY を押すと、見えている画面の下の外からボールが転がってきてピンを倒す。
-  結果の決め方と状態の進み方は src/lib/pin-deck.ts にあり、ここは描くだけにする。
+  結果の決め方と状態の進み方は src/lib/ui/pin-deck.ts にあり、ここは描くだけにする。
 */
 
 type Props = HTMLAttributes<"div">;
@@ -141,7 +141,7 @@ import {
 	type Shot,
 	toView,
 	transition,
-} from "../../lib/pin-deck";
+} from "../../lib/ui/pin-deck";
 
 interface Parts {
 	deck: HTMLElement;

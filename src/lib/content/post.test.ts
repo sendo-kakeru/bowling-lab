@@ -1,6 +1,6 @@
 import * as v from "valibot";
 import { describe, expect, test } from "vitest";
-import { formatIsoDate } from "./date.ts";
+import { formatIsoDate } from "../date.ts";
 import {
 	comparePosts,
 	getExcerpt,
