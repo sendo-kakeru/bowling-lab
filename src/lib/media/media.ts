@@ -70,8 +70,11 @@ export function videoUrl({ key }: { key: string }): string {
 /** 本文の表示幅（--layout-content-width）。CSS ピクセル */
 const CONTENT_WIDTH = 760;
 
-/** 本文の画像の srcset の幅。1520 は本文の表示幅の 2 倍 */
-const BODY_WIDTHS = [480, 760, 1136, 1520] as const;
+/**
+ * 本文の画像の srcset の幅。760 は 1x、1520 は 2x の本文の表示幅、1136 は 3x のスマホ用。
+ * 1x のスマホ用の小さな候補は、ほとんど使われないので持たない（変換の数を抑える）
+ */
+const BODY_WIDTHS = [760, 1136, 1520] as const;
 
 /**
  * 候補の幅を上限で頭打ちにして重複を除く。
@@ -249,14 +252,15 @@ export function toCroppedImage({
 
 /**
  * 記事冒頭の画像（アイキャッチ）の切り抜き。768px 以上は wide（5:2）、未満は narrow（16:9）。
- * 幅の候補は、各ブレークポイントの 1x / 2x の表示幅（768px で 598、1024px で 824、1280px 以上で 1056、スマホで 319〜677）を少し上回るように選んだ。
+ * 表示幅は 768px で 598、1024px で 824、1280px 以上で 1056、スマホで 319〜677。変換の数を抑えるため、候補は枠ごとに 3 つにする。
+ * wide は 1x の最大（1056）と 2x（1196〜2112）を 1680 / 2112 で覆う。narrow は 2x / 3x のスマホ用で、1x のスマホ用の小さな候補は持たない。
  * 表示幅は src/pages/posts/[slug].astro の CSS
  */
 const EYECATCH_CROPS = {
-	narrow: { aspect: { height: 9, width: 16 }, widths: [360, 720, 1080, 1440] },
+	narrow: { aspect: { height: 9, width: 16 }, widths: [720, 1080, 1440] },
 	wide: {
 		aspect: { height: 2, width: 5 },
-		widths: [640, 840, 1056, 1280, 1680, 2112],
+		widths: [1056, 1680, 2112],
 	},
 } as const satisfies Record<string, CropRule>;
 
