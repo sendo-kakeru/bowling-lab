@@ -3,8 +3,8 @@ import type { GetStaticPaths } from "astro";
 import PostList from "../../../components/PostList.astro";
 import { LIST_PER_PAGE } from "../../../consts";
 import Base from "../../../layouts/Base.astro";
-import { getPosts } from "../../../lib/get-posts";
-import { getRestPageStaticPaths, paginate } from "../../../lib/pagination";
+import { getPosts } from "../../../lib/content/get-posts";
+import { getRestPageStaticPaths, paginate } from "../../../lib/ui/pagination";
 
 export const getStaticPaths = (async () => {
 	const pages = paginate({ items: await getPosts(), perPage: LIST_PER_PAGE });
@@ -15,8 +15,8 @@ const { page } = Astro.props;
 ---
 
 <Base
-	description={`すべての記事の ${page.page} ページ目。新しい順に並んでいます。`}
+	description={`ボウリングに関する記事一覧 ${page.page} ページ目。`}
 	title={`記事一覧（${page.page} ページ目）`}
 >
-	<PostList current={page.page} pageCount={page.pageCount} posts={page.items} />
+	<PostList page={page} />
 </Base>

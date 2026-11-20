@@ -1,5 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { parsePostSlug, readPublishedAtSource } from "../../src/lib/post.ts";
+import {
+	parsePostSlug,
+	readPublishedAtSource,
+} from "../../src/lib/content/post.ts";
 import { planNewPost } from "./post-plan.ts";
 
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -26,7 +29,17 @@ describe("planNewPost", () => {
 
 		expect(post).toEqual({
 			slug: "_k3f9",
-			source: '---\ntitle: ""\npublishedAt: 2026-11-16\n---\n\n',
+			source: [
+				"---",
+				'title: ""',
+				"publishedAt: 2026-11-16",
+				"# 以下は省略可",
+				"# description: 概要文",
+				"# thumbnail: media:2026/example/photo.jpg",
+				"---",
+				"",
+				"",
+			].join("\n"),
 		});
 		expect(parsePostSlug({ filePath: `${post.slug}.md` })).toEqual({
 			isDraft: true,

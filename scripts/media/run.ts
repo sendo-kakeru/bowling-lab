@@ -1,7 +1,6 @@
 import { spawn } from "node:child_process";
 
 interface RunResult {
-	stderr: string;
 	stdout: string;
 }
 
@@ -28,7 +27,7 @@ export function run({
 		child.on("error", reject);
 		child.on("close", (code) => {
 			if (code === 0) {
-				resolve({ stderr, stdout });
+				resolve({ stdout });
 				return;
 			}
 			reject(

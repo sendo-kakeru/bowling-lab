@@ -2,14 +2,11 @@
 import type { HTMLAttributes } from "astro/types";
 
 /*
-  カードの面。記事、About、PostCard で使う。
-  中の余白は呼び出し側で決める。
+  カードの面。中の余白は呼び出し側で決める。
 */
 
-type Tag = "article" | "div" | "section";
-
 interface Props extends HTMLAttributes<"div"> {
-	as?: Tag;
+	as?: "article" | "div";
 	/** 記事詳細のような大きな面は影を深くする */
 	raised?: boolean;
 }

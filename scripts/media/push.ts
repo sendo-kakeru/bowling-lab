@@ -2,6 +2,8 @@ import { access, mkdir, mkdtemp, rename, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
+import { errorMessage } from "../../src/lib/error.ts";
+import { ROOT } from "../root.ts";
 import { processImageItem } from "./image.ts";
 import {
 	type InboxItem,
@@ -22,12 +24,14 @@ import { ensureFfmpeg, processVideoItem } from "./video.ts";
 
 const UPLOAD_CONCURRENCY = 4;
 
-const ROOT = path.resolve(import.meta.dirname, "../..");
 const INBOX_DIR = path.join(ROOT, "media/inbox");
 const UPLOADED_DIR = path.join(ROOT, "media/uploaded");
 const MANIFEST_PATH = path.join(ROOT, "src/data/media-manifest.json");
 
-const failures: { logicalPath: string; message: string }[] = [];
+interface Failure {
+	logicalPath: string;
+	message: string;
+}
 
 try {
 	await main();
@@ -48,6 +52,7 @@ async function main(): Promise<void> {
 	const dryRun = options["dry-run"];
 	const { force } = options;
 
+	const failures: Failure[] = [];
 	const { items, unsupported } = await scanInbox({ inboxDir: INBOX_DIR });
 	for (const logicalPath of unsupported) {
 		failures.push({ logicalPath, message: "扱えない種類のファイル" });
@@ -85,8 +90,12 @@ async function main(): Promise<void> {
 			}
 		}
 
-		const succeeded =
-			upload === undefined ? processed : await uploadAll({ processed, upload });
+		let succeeded = processed;
+		if (upload !== undefined) {
+			const uploaded = await uploadAll({ processed, upload });
+			failures.push(...uploaded.failures);
+			succeeded = uploaded.succeeded;
+		}
 
 		if (dryRun) {
 			for (const { result } of succeeded) printDryRun({ result });
@@ -138,14 +147,17 @@ async function main(): Promise<void> {
 	}
 }
 
-/** 全項目のファイルを並列で上げ、ファイルがすべて上がった項目だけを返す */
+/** 全項目のファイルを並列で上げる。ファイルがすべて上がった項目と、上がらなかった項目の失敗に分ける */
 async function uploadAll({
 	processed,
 	upload,
 }: {
 	processed: { item: InboxItem; result: ProcessedItem }[];
 	upload: (file: UploadFile) => Promise<void>;
-}): Promise<{ item: InboxItem; result: ProcessedItem }[]> {
+}): Promise<{
+	succeeded: { item: InboxItem; result: ProcessedItem }[];
+	failures: Failure[];
+}> {
 	const tasks = processed.flatMap((entry) =>
 		entry.result.files.map((file) => ({ entry, file })),
 	);
@@ -165,13 +177,13 @@ async function uploadAll({
 	};
 	await Promise.all(Array.from({ length: UPLOAD_CONCURRENCY }, worker));
 
-	for (const [item, error] of errors) {
-		failures.push({
+	return {
+		failures: Array.from(errors, ([item, error]) => ({
 			logicalPath: item.logicalPath,
 			message: `アップロードに失敗した: ${errorMessage({ error })}`,
-		});
-	}
-	return processed.filter(({ item }) => !errors.has(item));
+		})),
+		succeeded: processed.filter(({ item }) => !errors.has(item)),
+	};
 }
 
 /** 原本を media/uploaded へ移す。同じ名前の原本がすでにあれば、上書きせず別の名前にする */
@@ -207,8 +219,4 @@ function printDryRun({ result }: { result: ProcessedItem }): void {
 		console.log(`  ${file.key}  (${file.contentType})\n    ${file.path}`);
 	}
 	console.log(`  manifest: ${JSON.stringify(result.entry)}`);
-}
-
-function errorMessage({ error }: { error: unknown }): string {
-	return error instanceof Error ? error.message : String(error);
 }

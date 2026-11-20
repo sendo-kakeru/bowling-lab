@@ -1,9 +1,9 @@
-import type { Post } from "../../src/lib/get-posts";
-import { parsePostSlug } from "../../src/lib/post";
+import type { Post } from "../../src/lib/content/get-posts";
+import { parsePostSlug } from "../../src/lib/content/post";
 
 /*
   ストーリーで使う記事。サムネイルは既定の画像にする
-  （media-manifest.json の鍵は仮のもので、R2 に画像がないため）
+  （架空の記事なので、R2 にも media-manifest.json にも画像がないため）
 */
 
 function post({

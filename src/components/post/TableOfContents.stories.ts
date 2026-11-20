@@ -1,9 +1,5 @@
-import type { AstroRenderer } from "@storybook-astro/framework";
-import type {
-	ComponentAnnotations,
-	StoryAnnotations,
-} from "storybook/internal/types";
 import { TOC_ITEMS } from "../../../.storybook/fixtures/toc";
+import type { Meta, Story } from "../../../.storybook/types";
 import TableOfContents from "./TableOfContents.astro";
 
 /* どちらの形を出すかは呼び出し側（src/pages/posts/[slug].astro）が画面幅で切り替える */
@@ -13,10 +9,9 @@ const meta = {
 	component: TableOfContents,
 	tags: ["autodocs"],
 	title: "Components/TableOfContents",
-} satisfies ComponentAnnotations<AstroRenderer>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryAnnotations<AstroRenderer>;
 
 /** PC の右の列 */
 export const Side: Story = {};

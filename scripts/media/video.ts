@@ -3,6 +3,7 @@ import { createReadStream } from "node:fs";
 import { mkdir, mkdtemp, rename } from "node:fs/promises";
 import path from "node:path";
 import * as v from "valibot";
+import { isEnoentError } from "../../src/lib/error.ts";
 import { IMAGE_OUTPUT, processImage } from "./image.ts";
 import {
 	buildKey,
@@ -95,11 +96,7 @@ export async function ensureFfmpeg(): Promise<void> {
 		try {
 			await run({ args: ["-version"], command });
 		} catch (error) {
-			if (
-				error instanceof Error &&
-				"code" in error &&
-				error.code === "ENOENT"
-			) {
+			if (isEnoentError({ error })) {
 				throw new Error(
 					`${command} が見つからない。動画の加工に必要なので入れる\n  brew install ffmpeg`,
 				);

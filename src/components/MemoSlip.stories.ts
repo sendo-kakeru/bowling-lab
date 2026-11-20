@@ -1,28 +1,24 @@
-import type { AstroRenderer } from "@storybook-astro/framework";
-import type {
-	ComponentAnnotations,
-	StoryAnnotations,
-} from "storybook/internal/types";
+import { withLane } from "../../.storybook/decorators";
 import {
 	MEMO_LONG,
 	MEMO_MANY_REPLIES,
 	MEMO_NO_REPLY,
 	MEMO_ONE_REPLY,
 } from "../../.storybook/fixtures/memos";
+import type { Meta, Story } from "../../.storybook/types";
 import MemoSlip from "./MemoSlip.astro";
 
-/* 伝票はカードと同じ色なので、板目の上（story-lane）に置く */
+/* 伝票はカードと同じ色なので、板目の上（withLane）に置く */
 
 const meta = {
 	args: { memo: MEMO_NO_REPLY },
 	component: MemoSlip,
-	decorators: [(Story) => `<div class="story-lane">${Story()}</div>`],
+	decorators: [withLane],
 	tags: ["autodocs"],
 	title: "Components/MemoSlip",
-} satisfies ComponentAnnotations<AstroRenderer>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryAnnotations<AstroRenderer>;
 
 /** 続きがない。紙を重ねず、開閉もない */
 export const NoReply: Story = {};

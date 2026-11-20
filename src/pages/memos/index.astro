@@ -2,15 +2,12 @@
 import MemoList from "../../components/MemoList.astro";
 import { LIST_PER_PAGE } from "../../consts";
 import Base from "../../layouts/Base.astro";
-import { getMemos } from "../../lib/get-memos";
-import { paginate } from "../../lib/pagination";
+import { getMemos } from "../../lib/content/get-memos";
+import { paginate } from "../../lib/ui/pagination";
 
 const [page] = paginate({ items: await getMemos(), perPage: LIST_PER_PAGE });
 ---
 
-<Base
-	description="記事にするほどでもない、一文だけのメモ。新しい順に並んでいます。"
-	title="MEMO"
->
-	<MemoList current={page.page} memos={page.items} pageCount={page.pageCount} />
+<Base description="メモ一覧" title="メモ一覧">
+	<MemoList page={page} />
 </Base>

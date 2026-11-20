@@ -3,11 +3,12 @@
 import { satteri } from "@astrojs/markdown-satteri";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig, fontProviders } from "astro/config";
-import { embedPlugin } from "./src/lib/embed.ts";
-import { getMediaManifest } from "./src/lib/media-manifest.ts";
-import { createMediaPlugin } from "./src/lib/media-plugin.ts";
-import { sourceDigest } from "./src/lib/source-digest.ts";
-import { tablePlugin } from "./src/lib/table-plugin.ts";
+import { embedPlugin } from "./src/lib/markdown/embed.ts";
+import { lineBreakPlugin } from "./src/lib/markdown/line-break-plugin.ts";
+import { createMediaPlugin } from "./src/lib/markdown/media-plugin.ts";
+import { sourceDigest } from "./src/lib/markdown/source-digest.ts";
+import { tablePlugin } from "./src/lib/markdown/table-plugin.ts";
+import { getMediaManifest } from "./src/lib/media/media-manifest.ts";
 
 /**
  * Astro は設定を文字列にした値が前回と違うときだけ、描画済みの記事のキャッシュ（node_modules/.astro）を捨てる。
@@ -49,15 +50,22 @@ export default defineConfig({
 	markdown: {
 		processor: satteri({
 			hastPlugins: [
-				withSourceDigest({ path: "./src/lib/embed.ts", plugin: embedPlugin }),
 				withSourceDigest({
-					path: "./src/lib/table-plugin.ts",
+					path: "./src/lib/markdown/embed.ts",
+					plugin: embedPlugin,
+				}),
+				withSourceDigest({
+					path: "./src/lib/markdown/table-plugin.ts",
 					plugin: tablePlugin,
 				}),
 			],
 			mdastPlugins: [
 				withSourceDigest({
-					path: "./src/lib/media-plugin.ts",
+					path: "./src/lib/markdown/line-break-plugin.ts",
+					plugin: lineBreakPlugin,
+				}),
+				withSourceDigest({
+					path: "./src/lib/markdown/media-plugin.ts",
 					plugin: createMediaPlugin({ manifest: getMediaManifest() }),
 				}),
 			],

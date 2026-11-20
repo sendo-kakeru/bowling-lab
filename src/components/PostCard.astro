@@ -1,8 +1,8 @@
 ---
 import type { HTMLAttributes } from "astro/types";
+import type { Post } from "../lib/content/get-posts";
 import { formatDotDate, formatIsoDate } from "../lib/date";
-import type { Post } from "../lib/get-posts";
-import { getThumbnailImage } from "../lib/thumbnail";
+import { getThumbnailImage } from "../lib/media/thumbnail";
 import Card from "./Card.astro";
 
 /*
@@ -39,13 +39,13 @@ const { src, srcset, width, height } = getThumbnailImage({
 /**
  * 画像の枠ごとに要る切り抜きの幅（下の CSS）。object-fit: cover で高さに合わせて切るので、
  * 枠の幅と「枠の高さ × 2.2」の大きいほう。スマホの 96px 角は 212px、一覧の 200 × 120px は 264px、
- * ホームのタイルは高さ 160px で 352px。1024px 以上のタイルの幅は (画面幅 - 236px) / 3
- * （ガター 40px × 2、レーンの内余白 24px × 2、列の間 24px × 2、カードの内余白 10px × 2）で、
- * 1292px から 352px を超え、1360px（--layout-page-width）で約 375px に止まる
+ * ホームのタイルは高さ 160px で 352px。1024px 以上のタイルの幅は (画面幅 - 240px) / 3
+ * （ガター 40px × 2、レーンの内余白 24px × 2、列の間 24px × 2、カードの内余白 12px × 2）で、
+ * 1296px から 352px を超え、1360px（--layout-page-width）で約 373px に止まる
  */
 const SIZES = {
 	row: "(width >= 768px) 264px, 212px",
-	tile: "(width >= 1292px) 375px, (width >= 768px) 352px, 212px",
+	tile: "(width >= 1296px) 375px, (width >= 768px) 352px, 212px",
 } as const satisfies Record<NonNullable<Props["layout"]>, string>;
 ---
 
@@ -183,15 +183,19 @@ const SIZES = {
 		/* 同じ段の高いカードに合わせて伸びた分は、画像と文字の間ではなくカードの下に空ける */
 		align-content: start;
 		align-items: start;
-		padding: var(--card-padding);
+		/* 縦長の面では --card-padding だと画像が縁に詰まって見えるので広げる。
+		   角を同心円にそろえるため、画像の角丸を減らした分だけ余白を足す（16px = 4px + 12px） */
+		padding: 0.75rem;
 	}
 
 	[data-layout="tile"] .thumb {
 		height: 10rem;
+		border-radius: var(--radius-4);
 	}
 
+	/* 文字の左右は画像の端にそろえる */
 	[data-layout="tile"] .body {
-		padding: 0.875rem 0.5rem 0.5rem;
+		padding: 1rem 0 0.5rem;
 	}
 
 	[data-layout="tile"] .title {

@@ -15,10 +15,6 @@
 			"matchPackageNames": ["astro", "@astrojs/*"]
 		},
 		{
-			"groupName": "emdash",
-			"matchPackageNames": ["emdash", "@emdash-cms/*"]
-		},
-		{
 			"groupName": "cloudflare",
 			"matchPackageNames": ["wrangler", "@cloudflare/*"]
 		},

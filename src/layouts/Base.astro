@@ -9,7 +9,7 @@ import {
 	THEME_COLOR,
 } from "../consts";
 import { formatIsoDate } from "../lib/date";
-import { OGP_HEIGHT, OGP_WIDTH } from "../lib/ogp";
+import { OGP_HEIGHT, OGP_WIDTH } from "../lib/ogp/ogp";
 import layerOrder from "../styles/layers.css?raw";
 import PageLayout from "./PageLayout.astro";
 import "../styles/tokens.css";
@@ -123,6 +123,54 @@ gtag('js', new Date());`;
 		</PageLayout>
 	</body>
 </html>
+
+<script>
+/*
+  Safari は横にはみ出した要素へ Tab で入れないので、表やコードを横に読めない。
+  はみ出しているあいだだけ Tab で入れるようにし、何の領域かを名前で伝える。
+  はみ出さないものまで止めると、何もできない止まり先が増えるので外す
+*/
+/** 幅の丸めで 1px だけ多く出ることがあるので、それはスクロールできるとみなさない */
+const ROUNDING_SLACK = 1;
+
+function syncScrollRegion({ element }: { element: Element }): void {
+	if (element.scrollWidth - element.clientWidth <= ROUNDING_SLACK) {
+		// フォーカス中に外すとフォーカスがページの先頭へ飛ぶので、離れるまで残す
+		if (element === document.activeElement) return;
+		for (const name of ["tabindex", "role", "aria-label"])
+			element.removeAttribute(name);
+		return;
+	}
+	element.setAttribute("tabindex", "0");
+	element.setAttribute("role", "group");
+	element.setAttribute(
+		"aria-label",
+		element.matches("pre")
+			? "横にスクロールできるコード"
+			: "横にスクロールできる表",
+	);
+}
+
+function setupScrollRegions(): void {
+	const regions = document.querySelectorAll(".prose :is(pre, .table-scroll)");
+	if (regions.length === 0) return;
+	const syncAll = (): void => {
+		for (const element of regions) syncScrollRegion({ element });
+	};
+	// 幅が変わったとき（画面の回転、閉じたメモを開いたとき）に合わせ直す
+	const observer = new ResizeObserver((entries) => {
+		for (const { target } of entries) syncScrollRegion({ element: target });
+	});
+	for (const element of regions) observer.observe(element);
+	// Web フォントが差し替わると文字の幅は変わるが、枠の大きさは変わらないので ResizeObserver では拾えない。
+	// 日本語のフォントは文字の範囲ごとに後から読み込まれるので、読み込みが終わるたびに合わせ直す
+	document.fonts.addEventListener("loadingdone", syncAll);
+	for (const element of regions)
+		element.addEventListener("focusout", () => syncScrollRegion({ element }));
+}
+
+setupScrollRegions();
+</script>
 
 <style>
 /* レーンの外（ガターの外側、スクロールしすぎたとき）は壁の色 */

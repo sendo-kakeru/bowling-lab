@@ -1,9 +1,10 @@
 import { randomInt } from "node:crypto";
 import { mkdir, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { POST_DIR, planNewPost } from "./post-plan.ts";
-
-const ROOT = path.resolve(import.meta.dirname, "../..");
+import { POST_DIR } from "../../src/consts.ts";
+import { errorMessage } from "../../src/lib/error.ts";
+import { ROOT } from "../root.ts";
+import { planNewPost } from "./post-plan.ts";
 
 try {
 	await mkdir(path.join(ROOT, POST_DIR), { recursive: true });
@@ -19,6 +20,6 @@ try {
 	await writeFile(path.join(ROOT, target), source, { flag: "wx" });
 	console.log(target);
 } catch (error) {
-	console.error(error instanceof Error ? error.message : String(error));
+	console.error(errorMessage({ error }));
 	process.exitCode = 1;
 }

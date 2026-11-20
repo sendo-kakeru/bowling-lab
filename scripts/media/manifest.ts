@@ -1,8 +1,9 @@
 import { readFile, writeFile } from "node:fs/promises";
 import {
+	type MediaEntry,
 	type MediaManifest,
 	parseMediaManifest,
-} from "../../src/lib/media-manifest.ts";
+} from "../../src/lib/media/media-manifest.ts";
 
 export async function readManifest({
 	filePath,
@@ -48,7 +49,7 @@ export function addEntries({
 	entries,
 	manifest,
 }: {
-	entries: { entry: MediaManifest[string]; logicalPath: string }[];
+	entries: { entry: MediaEntry; logicalPath: string }[];
 	manifest: MediaManifest;
 }): MediaManifest {
 	const next = { ...manifest };

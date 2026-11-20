@@ -7,7 +7,7 @@ export const SITE_SHORT_TITLE = "Bowling Lab";
 
 export const SITE_TAGLINE = "ボウリングの雑記";
 
-export const SITE_AUTHOR = "sendo-kakeru";
+export const SITE_AUTHOR = "Sendo";
 
 export const SITE_LANG = "ja";
 
@@ -22,10 +22,14 @@ export const SITE_TIME_ZONE = "Asia/Tokyo";
 /** 記事とメモの一覧で、1 ページに出す件数 */
 export const LIST_PER_PAGE = 20;
 
+/** 記事とメモの md を置くディレクトリ。リポジトリのルートからの相対パス */
+export const POST_DIR = "src/content/posts";
+export const MEMO_DIR = "src/content/memos";
+
 /** 画像と動画を配信するドメイン（R2）。設計は docs/design/media.md */
 export const MEDIA_ORIGIN = "https://bowling-media.sendo.page";
 
 /** Google タグマネージャーのコンテナ ID */
-export const GTM_ID = "GTM-HK7JGLGTDM";
+export const GTM_ID = "GTM-M6JTXKNV";
 
 export const INSTAGRAM_URL = "https://www.instagram.com/sendo_bowling/";

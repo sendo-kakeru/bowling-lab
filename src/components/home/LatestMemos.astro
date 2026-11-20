@@ -1,11 +1,11 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import type { Memo } from "../../lib/memo-schema";
+import type { Memo } from "../../lib/content/memo-schema";
 import MemoSlip from "../MemoSlip.astro";
 import SectionHead from "./SectionHead.astro";
 
 /*
-  ホームのメモ（MEMO）
+  ホームのメモ（MEMOS）
 */
 
 interface Props extends HTMLAttributes<"section"> {
@@ -25,7 +25,7 @@ const { memos, class: className, ...rest } = Astro.props;
 		class="head"
 		moreHref={memos.length > 0 ? "/memos" : undefined}
 		moreLabel="メモをすべて見る"
-		title="MEMO"
+		title="MEMOS"
 		titleId="latest-memos-title"
 	/>
 

@@ -6,38 +6,12 @@
 - Instagram: [@sendo_bowling](https://www.instagram.com/sendo_bowling/)
 - ドメイン: `bowling.sendo.page`
 
-## 機能
-
-- 記事: 通常の記事投稿
-- メモ: 独り言
-  - 記事にするほどでもない思考
-  - 1つのメモに対して、あとから続きを足せる
-- 将来的にスコアなども見せられるボーリング業界でのプロフィールサイトにしても良さそう
-
-## 開発
-
-```bash
-pnpm install
-pnpm dev      # 開発サーバー（http://localhost:4321）
-pnpm build    # 本番ビルド（dist/）
-pnpm preview  # ビルド結果の確認
-pnpm lint     # lint と整形の確認（Biome）
-pnpm format   # lint の自動修正と整形
-pnpm test     # ユニットテスト
-pnpm typecheck  # 型チェック
-```
-
-- 設計: [コンテンツ管理](docs/design/content.md)、[メディア配信](docs/design/media.md)
-- 開発の進め方: [AI 開発体制](docs/ai-development.md)
-- 旧サイト（EmDash 製）: [sendo-kakeru/bowling-lab_old](https://github.com/sendo-kakeru/bowling-lab_old)
-
 ## ブランチ名規約
 
 - `main`: 本番環境用ブランチ（直接プッシュ禁止）
 - `develop`: 開発用の統合ブランチ
 - `feature/*`: 新機能開発用ブランチ
 - `fix/*`: 軽微な修正用ブランチ
-- `bugfix/*`: バグ修正用ブランチ
 - `hotfix/*`: 本番環境の緊急修正用ブランチ
 - `chore/*`: 雑務・依存関係更新用ブランチ
 - `refactor/*`: リファクタリング用ブランチ

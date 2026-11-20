@@ -1,21 +1,16 @@
-import type { AstroRenderer } from "@storybook-astro/framework";
-import type {
-	ComponentAnnotations,
-	StoryAnnotations,
-} from "storybook/internal/types";
+import type { Meta, Story } from "../../.storybook/types";
 import Pagination from "./Pagination.astro";
 
-/* 番号の並べ方は src/lib/pagination.ts が決める。ここは props だけ渡す */
+/* 番号の並べ方は src/lib/ui/pagination.ts が決める。ここは props だけ渡す */
 
 const meta = {
 	args: { basePath: "/posts", pageCount: 12 },
 	component: Pagination,
 	tags: ["autodocs"],
 	title: "Components/Pagination",
-} satisfies ComponentAnnotations<AstroRenderer>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryAnnotations<AstroRenderer>;
 
 /** 1 ページ目。PREV は押せない */
 export const Page1: Story = {

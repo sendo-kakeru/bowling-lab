@@ -1,7 +1,7 @@
 ---
 import type { HTMLAttributes } from "astro/types";
+import type { Memo } from "../lib/content/memo-schema";
 import { formatDotDate, formatTime } from "../lib/date";
-import type { Memo } from "../lib/memo-schema";
 
 /*
   メモ 1 件の伝票。上に最初の書き込みの日時、点線の下にその本文。
@@ -37,8 +37,11 @@ const [first, ...replies] = memo.notes;
 	{replies.length > 0 && (
 		<details class="thread">
 			<summary class="toggle">
-				<span aria-hidden="true">THREAD · {replies.length}</span>
-				<span class="sr-only">続きの書き込み {replies.length} 件</span>
+				<!-- 名前は見える文字から始める（音声操作で「THREAD」と呼べるように）。中黒は読ませない -->
+				<span>
+					THREAD <span aria-hidden="true">·</span> {replies.length}
+				</span>
+				<span class="sr-only">（続きの書き込み）</span>
 				<span aria-hidden="true" class="caret" />
 			</summary>
 			<ol class="replies">
@@ -168,8 +171,8 @@ const [first, ...replies] = memo.notes;
 	border-radius: inherit;
 }
 
-/* 本文のリンクは、閉じているあいだも開閉の覆いより上に出して押せるようにする */
-.text :global(a) {
+/* 最初の書き込みはアコーディオンの外で常に見えているので、その中で操作するもの（リンク、動画、埋め込み、横スクロール）は閉じているあいだも覆いより上に出す */
+.text :global(:is(a, video, iframe, pre, .table-scroll)) {
 	position: relative;
 	z-index: 1;
 }

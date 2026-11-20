@@ -1,16 +1,15 @@
-import { formatIsoDate, formatTime } from "../../src/lib/date.ts";
-import { formatMemoHeading } from "../../src/lib/memo-heading.ts";
+import { MEMO_DIR } from "../../src/consts.ts";
+import { formatMemoHeading } from "../../src/lib/content/memo-heading.ts";
 import {
-	MemoParseError,
 	type ParsedMemoNote,
 	parseMemoSections,
-} from "../../src/lib/parse-memo.ts";
+	withMemoFilePath,
+} from "../../src/lib/content/parse-memo.ts";
+import { formatIsoDate, formatTime } from "../../src/lib/date.ts";
 
 /*
   メモを作るコマンドの判断の部分。どのファイルに何を書くかを決めるだけで、読み書きはしない
 */
-
-export const MEMO_DIR = "src/content/memos";
 
 /** メモのファイル 1 つ。id はファイル名（拡張子なし） */
 export interface MemoFile {
@@ -35,17 +34,11 @@ export function formatMemoId({ date }: { date: Date }): string {
 
 /** 書式の誤りは、ファイルのパスと行番号つきで投げる */
 function sectionMemo({ memo }: { memo: MemoFile }): SectionedMemo {
-	try {
-		return { ...memo, sections: parseMemoSections({ source: memo.source }) };
-	} catch (error) {
-		if (error instanceof MemoParseError) {
-			throw new Error(
-				`${MEMO_DIR}/${memo.id}.md:${error.line} ${error.message}`,
-				{ cause: error },
-			);
-		}
-		throw error;
-	}
+	const sections = withMemoFilePath({
+		filePath: `${MEMO_DIR}/${memo.id}.md`,
+		parse: () => parseMemoSections({ source: memo.source }),
+	});
+	return { ...memo, sections };
 }
 
 /**

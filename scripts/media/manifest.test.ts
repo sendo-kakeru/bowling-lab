@@ -1,13 +1,7 @@
 import { describe, expect, test } from "vitest";
-import type { MediaManifest } from "../../src/lib/media-manifest.ts";
+import type { MediaManifest } from "../../src/lib/media/media-manifest.ts";
+import { CAT_IMAGE as CAT } from "../../src/lib/test-helpers.ts";
 import { addEntries, planItems } from "./manifest.ts";
-
-const CAT = {
-	height: 1600,
-	key: "images/2026/kyoto/cat.a1b2c3.jpg",
-	type: "image",
-	width: 2400,
-} as const;
 
 const MANIFEST: MediaManifest = { "2026/kyoto/cat.jpg": CAT };
 

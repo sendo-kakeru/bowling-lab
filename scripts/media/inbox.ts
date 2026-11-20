@@ -1,7 +1,8 @@
 import type { Hash } from "node:crypto";
 import { glob, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { MediaManifest } from "../../src/lib/media-manifest.ts";
+import { MEDIA_SCHEME } from "../../src/lib/media/media.ts";
+import type { MediaEntry } from "../../src/lib/media/media-manifest.ts";
 
 export type ImageFormat = "jpeg" | "png";
 
@@ -45,7 +46,7 @@ export interface UploadFile {
 }
 
 export interface ProcessedItem {
-	entry: MediaManifest[string];
+	entry: MediaEntry;
 	files: UploadFile[];
 	logicalPath: string;
 }
@@ -108,9 +109,8 @@ export function markdownSnippet({
 }: {
 	logicalPath: string;
 }): string {
-	const destination = /[\s()<>]/.test(logicalPath)
-		? `<media:${logicalPath}>`
-		: `media:${logicalPath}`;
+	const ref = `${MEDIA_SCHEME}${logicalPath}`;
+	const destination = /[\s()<>]/.test(logicalPath) ? `<${ref}>` : ref;
 	return `![](${destination})`;
 }
 

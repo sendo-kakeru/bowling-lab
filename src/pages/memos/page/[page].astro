@@ -3,8 +3,8 @@ import type { GetStaticPaths } from "astro";
 import MemoList from "../../../components/MemoList.astro";
 import { LIST_PER_PAGE } from "../../../consts";
 import Base from "../../../layouts/Base.astro";
-import { getMemos } from "../../../lib/get-memos";
-import { getRestPageStaticPaths, paginate } from "../../../lib/pagination";
+import { getMemos } from "../../../lib/content/get-memos";
+import { getRestPageStaticPaths, paginate } from "../../../lib/ui/pagination";
 
 export const getStaticPaths = (async () => {
 	const pages = paginate({ items: await getMemos(), perPage: LIST_PER_PAGE });
@@ -15,8 +15,8 @@ const { page } = Astro.props;
 ---
 
 <Base
-	description={`記事にするほどでもない、一文だけのメモの ${page.page} ページ目。新しい順に並んでいます。`}
-	title={`MEMO（${page.page} ページ目）`}
+	description={`メモ一覧 ${page.page} ページ目`}
+	title={`メモ一覧（${page.page} ページ目）`}
 >
-	<MemoList current={page.page} memos={page.items} pageCount={page.pageCount} />
+	<MemoList page={page} />
 </Base>

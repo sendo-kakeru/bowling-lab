@@ -3,24 +3,20 @@ import { Image } from "astro:assets";
 import avatar from "../assets/avatar.png";
 import Breadcrumb from "../components/Breadcrumb.astro";
 import Card from "../components/Card.astro";
-import { SITE_AUTHOR } from "../consts";
+import { INSTAGRAM_URL, SITE_AUTHOR } from "../consts";
 import Base from "../layouts/Base.astro";
 ---
 
-<Base
-	description="書いている sendo-kakeru と、ボウリングを観察して考えたことを書き残すこのブログについて。"
-	title="About"
->
+<Base description="本サイト、管理者について" title="About">
 	<div class="about-page">
-		<Breadcrumb items={[{ href: "/", label: "HOME" }, { label: "ABOUT" }]} />
+		<Breadcrumb ancestors={[{ href: "/", label: "HOME" }]} current="ABOUT" />
 
 		<!-- 見出しは記事一覧と同じく、ナビの名前としてカードに載せずレーンに直接置く -->
 		<h1 class="text-page-title">ABOUT</h1>
 
 		<Card as="article" class="about" raised>
 			<div class="about-body prose text-body">
-				<!-- 見た目ではアバターと名前が見出しの代わりになるので、見出しは読み上げの構造のためだけに残す -->
-				<h2 class="sr-only">自分について</h2>
+				<h2 class="sr-only">私について</h2>
 				<!-- 名前がすぐ横にあるので、画像は飾りとして読み上げない -->
 				<div class="profile">
 					<Image
@@ -29,23 +25,26 @@ import Base from "../layouts/Base.astro";
 						densities={[1, 2]}
 						loading="eager"
 						src={avatar}
-						width={96}
+						width={64}
 					/>
 					<p class="name">{SITE_AUTHOR}</p>
 				</div>
-				<p>{SITE_AUTHOR} です。[ボウリングとの関わり、普段していること]</p>
 				<p>
-					コードは{" "}
-					<a href="https://github.com/sendo-kakeru">GitHub</a>{" "}
-					に置いています。
+					独学でローダウン投法を練習しています👋
+					<br>
+					ボウリング歴は半年ほど。Ema Iwazawa選手のフォームを目指しています。
+				</p>
+				<p>
+					練習のためにマイボールを使っていますが、ハウスボールメインで投げていきたいです。
 				</p>
 
 				<h2>このサイトについて</h2>
 				<p>
-					Sendo Bowling Lab
-					は、ボウリングを観察して、考えたことを書き残すブログです。フォーム、ボール、レーンの読み方、スペアの取り方などを、自分で試しながらまとめています。
+					練習の中で意識していることや選手の考察などを残していきます。
+					<br>
+					動画投稿は
+					<a href={INSTAGRAM_URL}>Instagram</a>にて行なっています。
 				</p>
-				<p>[ブログを始めた理由、どんな人に読んでほしいか]</p>
 			</div>
 		</Card>
 	</div>
@@ -76,11 +75,11 @@ import Base from "../layouts/Base.astro";
 	display: grid;
 	grid-template-columns: auto minmax(0, 1fr);
 	align-items: center;
-	column-gap: 1rem;
+	column-gap: 0.5rem;
 }
 
 .avatar {
-	width: 4.5rem;
+	width: 4rem;
 	height: auto;
 	aspect-ratio: 1;
 }
@@ -88,7 +87,7 @@ import Base from "../layouts/Base.astro";
 .name {
 	color: var(--color-navy-900);
 	font-family: var(--font-display);
-	font-size: var(--font-size-26);
+	font-size: var(--font-size-28);
 	font-weight: 700;
 	letter-spacing: 0.02em;
 	line-height: 1.2;
@@ -103,14 +102,6 @@ import Base from "../layouts/Base.astro";
 		--about-padding-inline: 2.25rem;
 
 		row-gap: 1rem;
-	}
-
-	.profile {
-		column-gap: 1.25rem;
-	}
-
-	.avatar {
-		width: 6rem;
 	}
 
 	.about-body {

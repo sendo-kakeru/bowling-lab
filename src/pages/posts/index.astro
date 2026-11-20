@@ -2,12 +2,12 @@
 import PostList from "../../components/PostList.astro";
 import { LIST_PER_PAGE } from "../../consts";
 import Base from "../../layouts/Base.astro";
-import { getPosts } from "../../lib/get-posts";
-import { paginate } from "../../lib/pagination";
+import { getPosts } from "../../lib/content/get-posts";
+import { paginate } from "../../lib/ui/pagination";
 
 const [page] = paginate({ items: await getPosts(), perPage: LIST_PER_PAGE });
 ---
 
-<Base description="すべての記事。新しい順に並んでいます。" title="記事一覧">
-	<PostList current={page.page} pageCount={page.pageCount} posts={page.items} />
+<Base description="ボウリングに関する記事一覧" title="記事一覧">
+	<PostList page={page} />
 </Base>

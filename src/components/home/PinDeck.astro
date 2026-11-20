@@ -5,12 +5,12 @@ import {
 	INITIAL_STATE,
 	PIN_SPOTS,
 	toView,
-} from "../../lib/pin-deck";
+} from "../../lib/ui/pin-deck";
 import Button from "../Button.astro";
 
 /*
   ホームのいちばん上の、真上から見たピンデッキ。PLAY を押すと、見えている画面の下の外からボールが転がってきてピンを倒す。
-  結果の決め方と状態の進み方は src/lib/pin-deck.ts にあり、ここは描くだけにする。
+  結果の決め方と状態の進み方は src/lib/ui/pin-deck.ts にあり、ここは描くだけにする。
 */
 
 type Props = HTMLAttributes<"div">;
@@ -103,17 +103,13 @@ function pinStyle({
 	<div class="controls">
 		<p aria-hidden="true" class="result">
 			<span class="box" data-box={view.result?.box} data-pin-deck-box>
-				{view.result?.box === "count"
-					? view.result.count
-					: view.result?.box === "gutter"
-						? "G"
-						: ""}
+				{view.result?.boxText}
 			</span>
 			<span class="result-text" data-pin-deck-result>{view.result?.text}</span>
 		</p>
 		<!-- 名前は見える文字に説明を続けたもの。sr-only の span で足すと、Chrome は間に空白を入れる -->
 		<Button
-			aria-label={`${view.button.text}${view.button.hint}`}
+			aria-label={view.button.label}
 			class="play"
 			data-pin-deck-play
 			variant="secondary"
@@ -145,7 +141,7 @@ import {
 	type Shot,
 	toView,
 	transition,
-} from "../../lib/pin-deck";
+} from "../../lib/ui/pin-deck";
 
 interface Parts {
 	deck: HTMLElement;
@@ -224,16 +220,11 @@ function setupPinDeck({ root }: { root: HTMLElement }): void {
 		}
 		if (view.result) {
 			box.dataset.box = view.result.box;
-			box.textContent =
-				view.result.box === "count"
-					? String(view.result.count)
-					: view.result.box === "gutter"
-						? "G"
-						: "";
+			box.textContent = view.result.boxText;
 			resultText.textContent = view.result.text ?? "";
 		}
 		buttonText.textContent = view.button.text;
-		button.setAttribute("aria-label", `${view.button.text}${view.button.hint}`);
+		button.setAttribute("aria-label", view.button.label);
 		status.textContent = view.speech;
 	}
 

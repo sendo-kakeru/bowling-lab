@@ -1,7 +1,6 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import { SITE_TITLE } from "../../consts";
-import { MAIN_NAV, withCurrent } from "../../lib/nav";
+import { MAIN_NAV, withCurrent } from "../../lib/ui/nav";
 import HeaderLogo from "./HeaderLogo.astro";
 import HeaderNav from "./HeaderNav.astro";
 import MenuButton from "./MenuButton.astro";
@@ -19,7 +18,7 @@ const mainItems = withCurrent({ links: MAIN_NAV, page: Astro.url });
 	document.currentScript?.parentElement?.setAttribute("data-js", "");
 	</script>
 	<div class="site-header-inner">
-		<HeaderLogo class="logo-area" title={SITE_TITLE} />
+		<HeaderLogo class="logo-area" />
 		<!-- スマホでは閉じたメニューは Tab で通らず、開いたら最初のリンクへフォーカスを移す -->
 		<div class="menu-panel" id="menu-panel">
 			<HeaderNav mainItems={mainItems} />
