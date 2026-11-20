@@ -60,13 +60,12 @@ const url = (options: string): string =>
 	`${MEDIA_ORIGIN}/cdn-cgi/image/${options},format=auto/images/a.jpg`;
 
 describe("toImageAttributes", () => {
-	test("本文の幅の候補は 480 / 760 / 1136 / 1520", () => {
+	test("本文の幅の候補は 760 / 1136 / 1520", () => {
 		const { srcset } = toImageAttributes({
 			image: { height: 1600, key: "images/a.jpg", width: 2400 },
 		});
 
 		expect(candidates({ srcset: String(srcset) })).toEqual([
-			"width=480 480w",
 			"width=760 760w",
 			"width=1136 1136w",
 			"width=1520 1520w",
@@ -84,7 +83,7 @@ describe("toImageAttributes", () => {
 			loading: "lazy",
 			sizes: "(width >= 760px) 760px, 100vw",
 			src: url("width=640"),
-			srcset: `${url("width=480")} 480w, ${url("width=640")} 640w`,
+			srcset: `${url("width=640")} 640w`,
 			style: "--media-ratio: 1.4988",
 			width: 640,
 		});
@@ -111,10 +110,7 @@ describe("toEyecatchImage", () => {
 			width: 2112,
 		});
 		expect(candidates({ srcset: wide.srcset })).toEqual([
-			"width=640,height=256,fit=cover 640w",
-			"width=840,height=336,fit=cover 840w",
 			"width=1056,height=422,fit=cover 1056w",
-			"width=1280,height=512,fit=cover 1280w",
 			"width=1680,height=672,fit=cover 1680w",
 			"width=2112,height=845,fit=cover 2112w",
 		]);
@@ -125,7 +121,6 @@ describe("toEyecatchImage", () => {
 			width: 1440,
 		});
 		expect(candidates({ srcset: narrow.srcset })).toEqual([
-			"width=360,height=203,fit=cover 360w",
 			"width=720,height=405,fit=cover 720w",
 			"width=1080,height=608,fit=cover 1080w",
 			"width=1440,height=810,fit=cover 1440w",
@@ -133,20 +128,19 @@ describe("toEyecatchImage", () => {
 	});
 
 	test("マスターから切り出せるいちばん大きな切り抜きで頭打ちにする", () => {
-		// 横長すぎて、高さ 400px からは 5:2 で幅 1000px までしか切り出せない
+		// 横長すぎて、高さ 600px からは 5:2 で幅 1500px までしか切り出せない
 		const { wide } = toEyecatchImage({
-			image: { height: 400, key: "images/a.jpg", width: 2400 },
+			image: { height: 600, key: "images/a.jpg", width: 2400 },
 		});
 
 		expect(candidates({ srcset: wide.srcset })).toEqual([
-			"width=640,height=256,fit=cover 640w",
-			"width=840,height=336,fit=cover 840w",
-			"width=1000,height=400,fit=cover 1000w",
+			"width=1056,height=422,fit=cover 1056w",
+			"width=1500,height=600,fit=cover 1500w",
 		]);
 		expect(wide).toMatchObject({
-			height: 400,
-			src: url("width=1000,height=400,fit=cover"),
-			width: 1000,
+			height: 600,
+			src: url("width=1500,height=600,fit=cover"),
+			width: 1500,
 		});
 	});
 });
