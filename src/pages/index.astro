@@ -30,8 +30,8 @@ const latestMemos = (await getMemos()).slice(0, LATEST_MEMO_COUNT);
 			<PinDeck />
 		</div>
 		<HomeIntro class="column" firstPost={posts.at(-1)} />
-		<LatestMemos class="column" memos={latestMemos} />
 		<LatestPosts posts={latestPosts} />
+		<LatestMemos class="column" memos={latestMemos} />
 	</div>
 </Base>
 
