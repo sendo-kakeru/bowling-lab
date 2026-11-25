@@ -11,7 +11,7 @@ import Pagination from "./Pagination.astro";
 */
 
 interface Props {
-	/** 項目は新しい順 */
+	/** 項目はピン留めが先、その中と残りは新しい順（getMemos の順） */
 	page: Page<Memo>;
 }
 

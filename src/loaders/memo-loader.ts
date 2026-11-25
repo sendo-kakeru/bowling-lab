@@ -4,7 +4,10 @@ import { basename, dirname, extname, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import type { Loader, LoaderContext } from "astro/loaders";
 import { MEMO_DIR } from "../consts.ts";
-import { resolvePostedAt } from "../lib/content/memo-schema.ts";
+import {
+	resolveMemoFrontmatter,
+	resolvePostedAt,
+} from "../lib/content/memo-schema.ts";
 import { parseMemo, withMemoFilePath } from "../lib/content/parse-memo.ts";
 import { errorMessage } from "../lib/error.ts";
 
@@ -39,9 +42,15 @@ async function syncMemo({
 	const id = memoId({ path });
 	const source = await readFile(path, "utf-8");
 	const filePath = relative(root, path);
-	const notes = withMemoFilePath({
+	const { pinned, notes } = withMemoFilePath({
 		filePath,
-		parse: () => resolvePostedAt({ notes: parseMemo({ source }) }),
+		parse: () => {
+			const { frontmatter, notes } = parseMemo({ source });
+			return {
+				...resolveMemoFrontmatter({ frontmatter }),
+				notes: resolvePostedAt({ notes }),
+			};
+		},
 	});
 
 	if (notes.length === 0) {
@@ -59,7 +68,7 @@ async function syncMemo({
 		}),
 	);
 	// digest は渡さない。同じ digest だと store.set が何もしないので、ローダーの処理を変えても古い HTML が残る
-	store.set({ data: { notes: renderedNotes }, filePath, id });
+	store.set({ data: { notes: renderedNotes, pinned }, filePath, id });
 }
 
 export function memoLoader(): Loader {

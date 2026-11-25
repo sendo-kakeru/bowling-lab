@@ -15,6 +15,7 @@ export const MEMO_NO_REPLY: Memo = {
 			postedAt: at({ jst: "2026-11-04T11:11" }),
 		},
 	],
+	pinned: false,
 };
 
 /** 続きが 1 件。後ろの紙は 1 枚 */
@@ -30,6 +31,7 @@ export const MEMO_ONE_REPLY: Memo = {
 			postedAt: at({ jst: "2026-11-07T09:00" }),
 		},
 	],
+	pinned: false,
 };
 
 /** 続きが 4 件。後ろの紙は上限の 3 枚で止まる */
@@ -57,6 +59,7 @@ export const MEMO_MANY_REPLIES: Memo = {
 			postedAt: at({ jst: "2026-11-08T19:45" }),
 		},
 	],
+	pinned: false,
 };
 
 /** 長い本文。行の折り返しと伝票の高さを確かめる */
@@ -68,6 +71,26 @@ export const MEMO_LONG: Memo = {
 			postedAt: at({ jst: "2026-11-02T08:30" }),
 		},
 	],
+	pinned: false,
+};
+
+/** ピン留めしたメモ。上の縁の中央に画鋲を刺す */
+export const MEMO_PINNED: Memo = {
+	id: "2026-10-30-2000",
+	notes: [
+		{
+			html: "<p>投げる前に確かめること。立ち位置、スパット、親指の抜け。</p>",
+			postedAt: at({ jst: "2026-10-30T20:00" }),
+		},
+	],
+	pinned: true,
+};
+
+/** ピン留めしたメモで、続きもある */
+export const MEMO_PINNED_REPLY: Memo = {
+	...MEMO_ONE_REPLY,
+	id: "2026-11-05-1340-2",
+	pinned: true,
 };
 
 /** 新しい順 */
@@ -76,4 +99,11 @@ export const MEMOS: Memo[] = [
 	MEMO_ONE_REPLY,
 	MEMO_NO_REPLY,
 	MEMO_LONG,
+];
+
+/** ピン留めが先、その中と残りは新しい順（compareMemos の順） */
+export const MEMOS_WITH_PINNED: Memo[] = [
+	MEMO_PINNED_REPLY,
+	MEMO_PINNED,
+	...MEMOS,
 ];

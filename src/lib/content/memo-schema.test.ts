@@ -1,14 +1,19 @@
 import { describe, expect, test } from "vitest";
 import { catchMemoParseError } from "../test-helpers.ts";
-import { compareMemos, type Memo, resolvePostedAt } from "./memo-schema.ts";
+import {
+	compareMemos,
+	type Memo,
+	resolveMemoFrontmatter,
+	resolvePostedAt,
+} from "./memo-schema.ts";
 import { type MemoParseError, parseMemo } from "./parse-memo.ts";
 
-/** 見出しの日時の並びから、メモの本文を作って読む */
+/** 見出しの日時の並びから、メモの本文を作って読む。空の meta エリアが 1、2 行目 */
 function resolve(...postedAts: string[]): ReturnType<typeof resolvePostedAt> {
-	const source = postedAts
+	const source = `---\n---\n${postedAts
 		.map((postedAt) => `## ${postedAt}\n\n本文\n`)
-		.join("\n");
-	return resolvePostedAt({ notes: parseMemo({ source }) });
+		.join("\n")}`;
+	return resolvePostedAt({ notes: parseMemo({ source }).notes });
 }
 
 /** resolve が投げた MemoParseError を取り出す */
@@ -32,7 +37,7 @@ describe("resolvePostedAt", () => {
 	test("本文と行番号はそのまま残す", () => {
 		const [, second] = resolve("2026-11-06 21:14", "2026-11-06 21:38");
 
-		expect(second).toMatchObject({ line: 5, markdown: "本文" });
+		expect(second).toMatchObject({ line: 7, markdown: "本文" });
 	});
 
 	test("同じ分の書き込みは許す", () => {
@@ -48,7 +53,7 @@ describe("resolvePostedAt", () => {
 	])("存在しない日時 %s は、その見出しの行番号でエラー", (postedAt) => {
 		const error = catchResolveError("2026-01-01 00:00", postedAt);
 
-		expect(error.line).toBe(5);
+		expect(error.line).toBe(7);
 		expect(error.message).toContain("存在しない日時");
 	});
 
@@ -65,9 +70,40 @@ describe("resolvePostedAt", () => {
 			"2026-11-06 21:37",
 		);
 
-		expect(error.line).toBe(9);
+		expect(error.line).toBe(11);
 		expect(error.message).toContain("前の書き込み");
 	});
+});
+
+describe("resolveMemoFrontmatter", () => {
+	test.each([
+		[{ pinned: true }, true],
+		[{ pinned: false }, false],
+		[{}, false],
+	])("%o は pinned: %s", (frontmatter, pinned) => {
+		expect(resolveMemoFrontmatter({ frontmatter })).toEqual({ pinned });
+	});
+
+	test("知らない項目は、書ける項目を添えて 1 行目でエラー", () => {
+		const error = catchMemoParseError({
+			run: () => resolveMemoFrontmatter({ frontmatter: { pined: true } }),
+		});
+
+		expect(error.line).toBe(1);
+		expect(error.message).toBe('知らない項目 "pined"。書けるのは pinned');
+	});
+
+	test.each(["true", 1, null])(
+		"pinned が真偽値でない %o は 1 行目でエラー",
+		(pinned) => {
+			const error = catchMemoParseError({
+				run: () => resolveMemoFrontmatter({ frontmatter: { pinned } }),
+			});
+
+			expect(error.line).toBe(1);
+			expect(error.message).toContain("pinned は true か false");
+		},
+	);
 });
 
 describe("compareMemos", () => {
@@ -81,6 +117,7 @@ describe("compareMemos", () => {
 			unknown,
 			...unknown[],
 		],
+		pinned: false,
 	});
 
 	test("先頭の書き込みの新しい順。続きの日時は見ない", () => {
@@ -100,6 +137,23 @@ describe("compareMemos", () => {
 		expect([first, second].toSorted(compareMemos).map(({ id }) => id)).toEqual([
 			"2026-11-06-2114-2",
 			"2026-11-06-2114",
+		]);
+	});
+
+	test("ピン留めしたメモが先。その中と残りは、それぞれ先頭の書き込みの新しい順", () => {
+		const pin = (target: Memo): Memo => ({ ...target, pinned: true });
+		const memos = [
+			memo("new", "2026-11-20T00:00:00Z"),
+			pin(memo("old-pin", "2026-11-01T00:00:00Z")),
+			memo("old", "2026-11-02T00:00:00Z"),
+			pin(memo("new-pin", "2026-11-10T00:00:00Z")),
+		];
+
+		expect(memos.toSorted(compareMemos).map(({ id }) => id)).toEqual([
+			"new-pin",
+			"old-pin",
+			"new",
+			"old",
 		]);
 	});
 });

@@ -123,6 +123,19 @@ describe("readPublishedAtSource", () => {
 		).toBe("2026-11-15T00:00:00Z");
 	});
 
+	test("BOM つきや、先頭に空行があっても読む（Astro のローダーと同じ切り出し）", () => {
+		expect(
+			readPublishedAtSource({
+				source: `﻿${source("publishedAt: 2026-11-15")}`,
+			}),
+		).toBe("2026-11-15");
+		expect(
+			readPublishedAtSource({
+				source: `\n${source("publishedAt: 2026-11-15")}`,
+			}),
+		).toBe("2026-11-15");
+	});
+
 	test("フロントマターになければ、本文の行は読まない", () => {
 		expect(readPublishedAtSource({ source: source("") })).toBeUndefined();
 		expect(

@@ -1,5 +1,9 @@
 import { withPageLayout } from "../../../.storybook/decorators";
-import { MEMO_ONE_REPLY, MEMOS } from "../../../.storybook/fixtures/memos";
+import {
+	MEMO_ONE_REPLY,
+	MEMOS,
+	MEMOS_WITH_PINNED,
+} from "../../../.storybook/fixtures/memos";
 import type { Meta, Story } from "../../../.storybook/types";
 import LatestMemos from "./LatestMemos.astro";
 
@@ -16,6 +20,11 @@ export default meta;
 
 /** ホームに出す新しい 2 件 */
 export const Default: Story = {};
+
+/** ピン留めしたメモが先に並ぶ。ピン留めは画鋲、それ以外はテープで留める */
+export const WithPinned: Story = {
+	args: { memos: MEMOS_WITH_PINNED.slice(0, 4) },
+};
 
 export const Single: Story = {
 	args: { memos: [MEMO_ONE_REPLY] },
