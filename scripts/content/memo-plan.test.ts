@@ -15,9 +15,14 @@ import {
 const NOW = new Date("2026-11-15T15:20:00Z");
 const NOW_ID = "2026-11-16-0020";
 const NOW_HEADING = "## 2026-11-16 00:20";
+const NEW_MEMO_SOURCE = `---\n# pinned: true\n---\n\n${NOW_HEADING}\n\n`;
 
+// 書いてあるメモの meta エリア。どの書き換えでも、そのまま残ることを確かめる
+const META = "---\npinned: true\n---\n\n";
+
+/** META のあとに行をつないだメモ。1 つ目の行は 5 行目 */
 function memo(id: string, ...lines: string[]): MemoFile {
-	return { id, source: lines.join("\n") };
+	return { id, source: `${META}${lines.join("\n")}` };
 }
 
 /** 書いた本文をローダーと同じ関数で読み戻し、見出しの日時と本文を返す */
@@ -26,8 +31,8 @@ function readBack({ change }: { change: MemoChange }): {
 	notes: number;
 } {
 	return {
-		notes: parseMemo({ source: change.source }).length,
-		sections: parseMemoSections({ source: change.source }).map(
+		notes: parseMemo({ source: change.source }).notes.length,
+		sections: parseMemoSections({ source: change.source }).sections.map(
 			({ markdown, postedAt }) => ({ markdown, postedAt }),
 		),
 	};
@@ -40,7 +45,7 @@ describe("formatMemoId", () => {
 });
 
 describe("planNewMemo", () => {
-	test("今の日時の名前で、見出しだけのメモを作る", () => {
+	test("今の日時の名前で、meta エリアと見出しだけのメモを作る。meta エリアには書ける項目をコメントで添える", () => {
 		const change = planNewMemo({
 			memos: [memo("2026-11-14-2100", "## 2026-11-14 21:00", "", "本文")],
 			now: NOW,
@@ -49,7 +54,7 @@ describe("planNewMemo", () => {
 		expect(change).toEqual({
 			id: NOW_ID,
 			kind: "create",
-			source: `${NOW_HEADING}\n\n`,
+			source: NEW_MEMO_SOURCE,
 		});
 		expect(readBack({ change })).toEqual({
 			notes: 0,
@@ -61,7 +66,7 @@ describe("planNewMemo", () => {
 		expect(planNewMemo({ memos: [], now: NOW })).toEqual({
 			id: NOW_ID,
 			kind: "create",
-			source: `${NOW_HEADING}\n\n`,
+			source: NEW_MEMO_SOURCE,
 		});
 	});
 
@@ -78,7 +83,7 @@ describe("planNewMemo", () => {
 	});
 
 	describe("空のメモの作り直し", () => {
-		test("いちばん新しいメモが見出しだけなら、見出しとファイル名を今に直す", () => {
+		test("いちばん新しいメモが見出しだけなら、見出しとファイル名を今に直す。meta エリアは残す", () => {
 			const change = planNewMemo({
 				memos: [
 					memo("2026-11-14-2100", "## 2026-11-14 21:00", "", "本文"),
@@ -91,7 +96,7 @@ describe("planNewMemo", () => {
 				fromId: "2026-11-15-1020",
 				id: NOW_ID,
 				kind: "rename",
-				source: `${NOW_HEADING}\n\n`,
+				source: `${META}${NOW_HEADING}\n\n`,
 			});
 			expect(readBack({ change }).sections).toEqual([
 				{ markdown: "", postedAt: "2026-11-16 00:20" },
@@ -101,7 +106,11 @@ describe("planNewMemo", () => {
 		test("ファイル名が今と同じなら、名前は変えずに書き直す", () => {
 			expect(
 				planNewMemo({ memos: [memo(NOW_ID, NOW_HEADING)], now: NOW }),
-			).toEqual({ id: NOW_ID, kind: "update", source: `${NOW_HEADING}\n\n` });
+			).toEqual({
+				id: NOW_ID,
+				kind: "update",
+				source: `${META}${NOW_HEADING}\n\n`,
+			});
 		});
 
 		test("ほかのファイルが今の名前を使っていれば、番号を付けて移す", () => {
@@ -166,7 +175,7 @@ describe("planNewMemo", () => {
 				memos: [memo("2026-11-15-1020", "前置き", "## 2026-11-15 10:20")],
 				now: NOW,
 			}),
-		).toThrow("src/content/memos/2026-11-15-1020.md:1 ");
+		).toThrow("src/content/memos/2026-11-15-1020.md:5 ");
 	});
 });
 
@@ -187,7 +196,7 @@ describe("planAddNote", () => {
 		expect(change).toEqual({
 			id: "2026-11-15-1020",
 			kind: "update",
-			source: `## 2026-11-15 10:20\n\n10番ピンだけ残る。\n\n${NOW_HEADING}\n\n`,
+			source: `${META}## 2026-11-15 10:20\n\n10番ピンだけ残る。\n\n${NOW_HEADING}\n\n`,
 		});
 		expect(readBack({ change })).toEqual({
 			notes: 1,
@@ -216,7 +225,7 @@ describe("planAddNote", () => {
 		});
 
 		expect(change.source).toBe(
-			`## 2026-11-15 10:20\n\n本文\n\n${NOW_HEADING}\n\n`,
+			`${META}## 2026-11-15 10:20\n\n本文\n\n${NOW_HEADING}\n\n`,
 		);
 		expect(readBack({ change }).sections).toEqual([
 			{ markdown: "本文", postedAt: "2026-11-15 10:20" },
@@ -233,7 +242,7 @@ describe("planAddNote", () => {
 		).toEqual({
 			id: "2026-11-15-1020",
 			kind: "update",
-			source: `${NOW_HEADING}\n\n`,
+			source: `${META}${NOW_HEADING}\n\n`,
 		});
 	});
 
@@ -247,7 +256,7 @@ describe("planAddNote", () => {
 		expect(change).toEqual({
 			id: "2026-11-14-2100",
 			kind: "update",
-			source: `## 2026-11-14 21:00\n\n前の日\n\n${NOW_HEADING}\n\n`,
+			source: `${META}## 2026-11-14 21:00\n\n前の日\n\n${NOW_HEADING}\n\n`,
 		});
 	});
 
@@ -266,6 +275,19 @@ describe("planAddNote", () => {
 		});
 
 		expect(change.id).toBe("2026-11-14-2100");
+	});
+
+	test("meta エリアだけのメモを指定すると、その末尾に見出しを足す", () => {
+		const change = planAddNote({
+			id: "2026-11-15-1020",
+			memos: [memo("2026-11-15-1020", "")],
+			now: NOW,
+		});
+
+		expect(change.source).toBe(`${META.trimEnd()}\n\n${NOW_HEADING}\n\n`);
+		expect(readBack({ change }).sections).toEqual([
+			{ markdown: "", postedAt: "2026-11-16 00:20" },
+		]);
 	});
 
 	test("メモが 1 つもなければエラー", () => {

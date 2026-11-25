@@ -4,6 +4,8 @@ import {
 	MEMO_MANY_REPLIES,
 	MEMO_NO_REPLY,
 	MEMO_ONE_REPLY,
+	MEMO_PINNED,
+	MEMO_PINNED_REPLY,
 } from "../../.storybook/fixtures/memos";
 import type { Meta, Story } from "../../.storybook/types";
 import MemoSlip from "./MemoSlip.astro";
@@ -35,4 +37,14 @@ export const ManyReplies: Story = {
 
 export const Long: Story = {
 	args: { memo: MEMO_LONG },
+};
+
+/** ピン留め。上の縁の中央に画鋲を刺す */
+export const Pinned: Story = {
+	args: { memo: MEMO_PINNED },
+};
+
+/** ピン留めで、続きもある。画鋲は開くための覆いより上に出る */
+export const PinnedWithReply: Story = {
+	args: { memo: MEMO_PINNED_REPLY },
 };

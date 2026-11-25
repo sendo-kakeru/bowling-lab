@@ -5,11 +5,12 @@ import MemoSlip from "../MemoSlip.astro";
 import SectionHead from "./SectionHead.astro";
 
 /*
-  ホームのメモ（MEMOS）
+  ホームのメモ（MEMOS）。板に貼ったメモとして 1 枚おきに逆へ少し傾け、
+  ピン留めしたメモは画鋲（MemoSlip）で、それ以外はテープで留める
 */
 
 interface Props extends HTMLAttributes<"section"> {
-	/** 新しい順 */
+	/** ピン留めが先、その中と残りは新しい順（getMemos の順） */
 	memos: Memo[];
 }
 
@@ -33,7 +34,10 @@ const { memos, class: className, ...rest } = Astro.props;
 		<ol class="list">
 			{memos.map((memo) => (
 				<li>
-					<MemoSlip class="pinned" memo={memo} />
+					<MemoSlip
+						class:list={["memo", { taped: !memo.pinned }]}
+						memo={memo}
+					/>
 				</li>
 			))}
 		</ol>
@@ -63,8 +67,7 @@ const { memos, class: className, ...rest } = Astro.props;
 	list-style: none;
 }
 
-/* 板に貼ったメモ。上にテープを貼り、1 枚おきに逆へ少し傾ける */
-.pinned::before {
+.taped::before {
 	content: "";
 	position: absolute;
 	top: -0.625rem;
@@ -77,11 +80,11 @@ const { memos, class: className, ...rest } = Astro.props;
 	rotate: -3deg;
 }
 
-.list > li:nth-child(odd) .pinned {
+.list > li:nth-child(odd) .memo {
 	rotate: -0.8deg;
 }
 
-.list > li:nth-child(even) .pinned {
+.list > li:nth-child(even) .memo {
 	rotate: 0.9deg;
 }
 

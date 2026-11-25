@@ -1,4 +1,5 @@
 import * as v from "valibot";
+import { strictFrontmatter } from "./frontmatter.ts";
 import { formatMemoHeading } from "./memo-heading.ts";
 import { MemoParseError, type ParsedMemoNote } from "./parse-memo.ts";
 
@@ -58,6 +59,25 @@ export function resolvePostedAt({
 	return resolved;
 }
 
+const MemoFrontmatterSchema = strictFrontmatter({
+	entries: {
+		pinned: v.optional(v.boolean("pinned は true か false で書く")),
+	},
+});
+
+/** meta エリアの項目を検証する。誤りは meta エリアの行（1 行目）で投げる */
+export function resolveMemoFrontmatter({
+	frontmatter,
+}: {
+	frontmatter: Record<string, unknown>;
+}): { pinned: boolean } {
+	const result = v.safeParse(MemoFrontmatterSchema, frontmatter);
+	if (!result.success) {
+		throw new MemoParseError({ line: 1, message: result.issues[0].message });
+	}
+	return { pinned: result.output.pinned ?? false };
+}
+
 const MemoNoteSchema = v.object({
 	html: v.string(),
 	postedAt: v.date(),
@@ -67,15 +87,17 @@ const MemoNoteSchema = v.object({
 export const MemoSchema = v.object({
 	id: v.string(),
 	notes: v.tupleWithRest([MemoNoteSchema], MemoNoteSchema),
+	pinned: v.boolean(),
 });
 
 export type Memo = v.InferOutput<typeof MemoSchema>;
 
 /**
- * 先頭の書き込みの日時の新しい順。続きを足しても順番は変わらない。
+ * ピン留めしたメモが先。その中と残りは、先頭の書き込みの日時の新しい順。続きを足しても順番は変わらない。
  * 同じ日時なら id の降順（同じ分に作った `-2` つきのファイルを、後の作成として前に出す）
  */
 export function compareMemos(a: Memo, b: Memo): number {
+	if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
 	const byDate = b.notes[0].postedAt.getTime() - a.notes[0].postedAt.getTime();
 	if (byDate !== 0) return byDate;
 	if (a.id === b.id) return 0;

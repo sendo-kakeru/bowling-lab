@@ -1,6 +1,8 @@
+import { extractFrontmatter } from "astro/markdown";
 import { type DefaultTreeAdapterMap, parseFragment } from "parse5";
 import * as v from "valibot";
 import { parseMediaRef } from "../media/media.ts";
+import { strictFrontmatter } from "./frontmatter.ts";
 
 const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -15,21 +17,21 @@ function parseDateOnly({ text }: { text: string }): Date {
 		: new Date(Number.NaN);
 }
 
-const FRONTMATTER_REGEX = /^---\r?\n([\s\S]*?)\r?\n---/;
 const PUBLISHED_AT_LINE_REGEX =
 	/^publishedAt:[ \t]*(["']?)([^"'#\s]*)\1[ \t]*(?:#.*)?$/m;
 
 /**
  * md のフロントマターに書かれた publishedAt の文字列。見つからなければ undefined。
  * 引用符なしの `2026-02-30` は YAML が黙って 3 月 2 日の Date に変えてしまい、
- * 変換後の値からは誤りが見えないので、書かれたままの文字列で検査する
+ * 変換後の値からは誤りが見えないので、書かれたままの文字列で検査する。
+ * フロントマターは Astro のローダーと同じ関数で切り出す（BOM や先頭の空行で取りこぼさないため）
  */
 export function readPublishedAtSource({
 	source,
 }: {
 	source: string;
 }): string | undefined {
-	const frontmatter = FRONTMATTER_REGEX.exec(source)?.[1];
+	const frontmatter = extractFrontmatter(source);
 	return frontmatter
 		? PUBLISHED_AT_LINE_REGEX.exec(frontmatter)?.[2]
 		: undefined;
@@ -46,9 +48,9 @@ const PublishedAtSchema = v.pipe(
 	v.date("publishedAt は YYYY-MM-DD の、存在する日付で書く"),
 );
 
-// 知らない項目は落とす。綴りの誤り（descripton）や、効かない draft: true に気づけるように
-export const PostFrontmatterSchema = v.strictObject(
-	{
+// 下書きはファイル名の _ で表すので、draft: true も知らない項目として落とす
+export const PostFrontmatterSchema = strictFrontmatter({
+	entries: {
 		description: v.optional(
 			v.pipe(v.string(), v.nonEmpty("description は省くか、文を書く")),
 		),
@@ -69,9 +71,7 @@ export const PostFrontmatterSchema = v.strictObject(
 		),
 		title: v.pipe(v.string(), v.nonEmpty("title を書く")),
 	},
-	(issue) =>
-		`知らない項目 ${issue.received}。書けるのは title、description、publishedAt、thumbnail`,
-);
+});
 
 /** `_` は下書きの印。残りは英小文字・数字・ハイフンだけ */
 const SLUG_REGEX = /^_?[a-z0-9]+(?:-[a-z0-9]+)*$/;

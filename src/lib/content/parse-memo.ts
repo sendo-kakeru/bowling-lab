@@ -1,3 +1,4 @@
+import { parseFrontmatter } from "astro/markdown";
 import { fromMarkdown } from "mdast-util-from-markdown";
 import { matchMemoHeading } from "./memo-heading.ts";
 
@@ -56,8 +57,40 @@ function joinTrimmedLines({ lines }: { lines: readonly string[] }): string {
 	return lines.slice(start, end + 1).join("\n");
 }
 
+/** meta エリア（先頭の `---` で囲んだ YAML）と、見出しで区切った本文 */
+interface ParsedMemoSections {
+	/** 項目の検証はまだ。コメントだけなら空のオブジェクト */
+	frontmatter: Record<string, unknown>;
+	sections: ParsedMemoNote[];
+}
+
+/** 先頭の meta エリアを読む。ないと落とす。本文は meta エリアを空行に置き換えて返し、見出しの行番号をファイルとそろえる */
+function splitMetaArea({ text }: { text: string }): {
+	frontmatter: Record<string, unknown>;
+	content: string;
+} {
+	let parsed: ReturnType<typeof parseFrontmatter>;
+	try {
+		parsed = parseFrontmatter(text, { frontmatter: "empty-with-lines" });
+	} catch (error) {
+		// YAML の誤りの文は複数行で、2 行目以降はその行の抜き出し
+		const reason = error instanceof Error ? error.message.split("\n")[0] : "";
+		throw new MemoParseError({
+			line: 1,
+			message: `meta エリアの YAML が読めない: ${reason}`,
+		});
+	}
+	if (parsed.rawFrontmatter === "") {
+		throw new MemoParseError({
+			line: 1,
+			message: "先頭に meta エリア（---）を書く",
+		});
+	}
+	return { content: parsed.content, frontmatter: parsed.frontmatter };
+}
+
 /**
- * メモの本文を、`## YYYY-MM-DD HH:mm` の見出しで区切る。
+ * メモの 1 ファイルを、先頭の meta エリアと、`## YYYY-MM-DD HH:mm` の見出しで区切った本文に分ける。
  * コードブロックや HTML コメントの中の見出しの形の行は区切りにしない。
  * 末尾の見出しの下は空でもよく、その区切りも markdown を空にして返す（コマンドが見出しだけを先に書くため）
  */
@@ -65,9 +98,11 @@ export function parseMemoSections({
 	source,
 }: {
 	source: string;
-}): ParsedMemoNote[] {
-	// BOM つきで保存されると、1 行目の見出しが見出しと判定されない
-	const text = source.replace(/^\uFEFF/, "");
+}): ParsedMemoSections {
+	// BOM つきで保存されたファイルも、ないときと同じに読む
+	const { frontmatter, content: text } = splitMetaArea({
+		text: source.replace(/^\uFEFF/, ""),
+	});
 	// 単独の CR も行の区切りにする。構文木の行番号と数え方をそろえるため
 	const lines = text.split(/\r\n|\r|\n/);
 	// 区切りはトップレベルの見出しだけ。コードブロックや HTML コメントの中の行を除くため、行ではなく構文木で探す
@@ -113,11 +148,16 @@ export function parseMemoSections({
 		}
 		notes.push({ line, markdown, postedAt });
 	}
-	return notes;
+	return { frontmatter, sections: notes };
 }
 
-/** メモの本文を書き込みに分ける。末尾の見出しの下が空なら、その区切りは書き込みに数えない */
-export function parseMemo({ source }: { source: string }): ParsedMemoNote[] {
-	const sections = parseMemoSections({ source });
-	return sections.at(-1)?.markdown === "" ? sections.slice(0, -1) : sections;
+/** メモを meta エリアと書き込みに分ける。末尾の見出しの下が空なら、その区切りは書き込みに数えない */
+export function parseMemo({ source }: { source: string }): {
+	frontmatter: Record<string, unknown>;
+	notes: ParsedMemoNote[];
+} {
+	const { frontmatter, sections } = parseMemoSections({ source });
+	const notes =
+		sections.at(-1)?.markdown === "" ? sections.slice(0, -1) : sections;
+	return { frontmatter, notes };
 }

@@ -36,13 +36,13 @@ export function formatMemoId({ date }: { date: Date }): string {
 function sectionMemo({ memo }: { memo: MemoFile }): SectionedMemo {
 	const sections = withMemoFilePath({
 		filePath: `${MEMO_DIR}/${memo.id}.md`,
-		parse: () => parseMemoSections({ source: memo.source }),
+		parse: () => parseMemoSections({ source: memo.source }).sections,
 	});
 	return { ...memo, sections };
 }
 
 /**
- * 先頭の見出しの日時がいちばん新しいメモ。同じ日時なら id の大きいほう（compareMemos と同じ順）。
+ * 先頭の見出しの日時がいちばん新しいメモ。同じ日時なら id の大きいほう（compareMemos からピン留めを除いた順）。
  * 見出しのないファイルは数えない
  */
 function findNewest({
@@ -65,6 +65,30 @@ function findNewest({
 	return newest?.memo;
 }
 
+// 新しいメモの meta エリアに、書ける項目をコメントで添える
+const OPTIONAL_FIELD_HINTS = ["# pinned: true"];
+
+/**
+ * line 行目の空の見出しを heading に書き換える。
+ * 見出しより後ろは空行だけなので、見出しの行の手前（meta エリアと前の書き込み）を残して書き直す
+ */
+function replaceBlankHeading({
+	heading,
+	line,
+	source,
+}: {
+	heading: string;
+	line: number;
+	source: string;
+}): string {
+	const before = source
+		.split(/\r\n|\r|\n/)
+		.slice(0, line - 1)
+		.map((line) => `${line}\n`)
+		.join("");
+	return `${before}${heading}\n\n`;
+}
+
 /** 同じ分のファイルがあれば `-2`、`-3` と番号を付ける */
 function uniqueMemoId({
 	date,
@@ -82,8 +106,8 @@ function uniqueMemoId({
 }
 
 /**
- * `pnpm memo`。今の日時の見出しだけを書いたメモを作る。
- * いちばん新しいメモが見出し 1 つだけで文なしなら、作らずにその見出しとファイル名を今に直す
+ * `pnpm memo`。meta エリアと今の日時の見出しだけを書いたメモを作る。
+ * いちばん新しいメモが見出し 1 つだけで文なしなら、作らずにその見出しとファイル名を今に直す（meta エリアは残す）
  */
 export function planNewMemo({
 	memos,
@@ -93,20 +117,33 @@ export function planNewMemo({
 	now: Date;
 }): MemoChange {
 	const sectioned = memos.map((memo) => sectionMemo({ memo }));
-	const source = `${formatMemoHeading({ date: now })}\n\n`;
+	const heading = formatMemoHeading({ date: now });
 	const newest = findNewest({ memos: sectioned });
-	const isBlankMemo =
-		newest?.sections.length === 1 && newest.sections[0]?.markdown === "";
-	if (newest !== undefined && isBlankMemo) {
+	const [only, ...rest] = newest?.sections ?? [];
+	if (newest !== undefined && only?.markdown === "" && rest.length === 0) {
 		const taken = new Set(
 			memos.map(({ id }) => id).filter((id) => id !== newest.id),
 		);
 		const id = uniqueMemoId({ date: now, taken });
+		const source = replaceBlankHeading({
+			heading,
+			line: only.line,
+			source: newest.source,
+		});
 		return id === newest.id
 			? { id, kind: "update", source }
 			: { fromId: newest.id, id, kind: "rename", source };
 	}
 	const taken = new Set(memos.map(({ id }) => id));
+	const source = [
+		"---",
+		...OPTIONAL_FIELD_HINTS,
+		"---",
+		"",
+		heading,
+		"",
+		"",
+	].join("\n");
 	return { id: uniqueMemoId({ date: now, taken }), kind: "create", source };
 }
 
@@ -146,19 +183,9 @@ export function planAddNote({
 
 	const heading = formatMemoHeading({ date: now });
 	const last = target.sections.at(-1);
-	let source: string;
-	if (last === undefined) {
-		source = `${heading}\n\n`;
-	} else if (last.markdown === "") {
-		// 空の見出しより後ろは空行だけなので、見出しの行の手前までを残して書き直す
-		const before = target.source
-			.split(/\r\n|\r|\n/)
-			.slice(0, last.line - 1)
-			.map((line) => `${line}\n`)
-			.join("");
-		source = `${before}${heading}\n\n`;
-	} else {
-		source = `${target.source.trimEnd()}\n\n${heading}\n\n`;
-	}
+	const source =
+		last?.markdown === ""
+			? replaceBlankHeading({ heading, line: last.line, source: target.source })
+			: `${target.source.trimEnd()}\n\n${heading}\n\n`;
 	return { id: target.id, kind: "update", source };
 }
