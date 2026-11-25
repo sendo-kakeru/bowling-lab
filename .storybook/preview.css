@@ -30,7 +30,7 @@
 	background: var(--color-lane);
 }
 
-/* ホームのサイト説明とメモの幅（src/pages/index.astro の .column と同じ） */
+/* ホームのサイト説明の幅（src/pages/index.astro の .column と同じ） */
 .story-column {
 	justify-self: center;
 	width: 100%;

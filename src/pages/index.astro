@@ -31,7 +31,7 @@ const latestMemos = (await getMemos()).slice(0, LATEST_MEMO_COUNT);
 		</div>
 		<HomeIntro class="column" firstPost={posts.at(-1)} />
 		<LatestPosts posts={latestPosts} />
-		<LatestMemos class="column" memos={latestMemos} />
+		<LatestMemos memos={latestMemos} />
 	</div>
 </Base>
 
@@ -51,7 +51,7 @@ const latestMemos = (await getMemos()).slice(0, LATEST_MEMO_COUNT);
 	z-index: 1;
 }
 
-/* 中身の少ないサイト説明とメモは、本文と同じ幅で中央に置く。記事の 3 列だけレーンいっぱいに使う */
+/* 中身の少ないサイト説明は、本文と同じ幅で中央に置く。記事とメモはレーンいっぱいに使う */
 .column {
 	justify-self: center;
 	width: 100%;

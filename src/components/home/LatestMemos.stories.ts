@@ -4,7 +4,7 @@ import type { Meta, Story } from "../../../.storybook/types";
 import LatestMemos from "./LatestMemos.astro";
 
 const meta = {
-	args: { class: "story-column", memos: MEMOS.slice(0, 2) },
+	args: { memos: MEMOS.slice(0, 2) },
 	component: LatestMemos,
 	decorators: [withPageLayout],
 	parameters: { layout: "fullscreen" },
