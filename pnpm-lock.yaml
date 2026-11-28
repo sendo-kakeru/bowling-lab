@@ -239,7 +239,7 @@ importers:
         version: 2.6.8
       '@storybook-astro/framework':
         specifier: ^1.16.0
-        version: 1.16.0(astro@7.4.12(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1))(storybook@10.6.8(react@19.3.1))(typescript@7.1.0-dev.20261116.1)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1))(vitest@5.1.0(@types/node@26.6.6)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1)))
+        version: 1.18.0(astro@7.4.12(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1))(storybook@10.6.8(react@19.3.1))(typescript@7.1.0-dev.20261116.1)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1))(vitest@5.1.0(@types/node@26.6.6)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1)))
       '@storybook/builder-vite':
         specifier: ^10.6.7
         version: 10.6.8(storybook@10.6.8(react@19.3.1))(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1))
@@ -1467,8 +1467,8 @@ packages:
   '@speed-highlight/core@1.2.24':
     resolution: {integrity: sha512-qeW2e1l78afw8VhRPfPQ1Gjj+KU5XFQ/OFV5ti6eTa9bruO7mJyZtA4vw0ofqmA3tKCkROE9xLk3VZoeRc98nw==}
 
-  '@storybook-astro/framework@1.16.0':
-    resolution: {integrity: sha512-YUEVT9fW1Y5DNEOe5N+xA+HsYH4vutFTvQLOrnK+Hw5RNrOaL9jv5nse9Kq7WkZENg3eefoxiIqSU9Wk+kbEKQ==}
+  '@storybook-astro/framework@1.18.0':
+    resolution: {integrity: sha512-4jgfqeb8+3RAlbu84H5TsfLGFX3xOz2NziY1i8HCKQxATN9RTwGfO4jMF5+Z4OzgzRDCrObyBm4erHVpVGaXZw==}
     engines: {node: '>=20.16.0 || >=22.19.0 || >=24.0.0'}
     peerDependencies:
       '@astrojs/alpinejs': ^0.4.5 || ^0.5.0 || ^1.0.0
@@ -1527,8 +1527,8 @@ packages:
       vitest:
         optional: true
 
-  '@storybook-astro/renderer@1.16.0':
-    resolution: {integrity: sha512-fPQNrfwdxSQ4/MvSWVe+QSiyDtCfxQ3a2qe5UY3c4nPdSkBzsjuYr2+IQ7JXrU0+vuKUa0ZmKRSPOLMtpWooMw==}
+  '@storybook-astro/renderer@1.18.0':
+    resolution: {integrity: sha512-7M4O/f0H/pmA3RT9wt/tkLrdAMxuKz3r00O5+FmIOSGP34JIDHfLiwCMTU2Zp1NVe1ceT8+OgzhR8NsbL6e6OQ==}
     engines: {node: '>=20.16.0 || >=22.19.0 || >=24.0.0'}
     peerDependencies:
       '@storybook/react': ^10.0.0 || ^11.0.0-beta.0
@@ -1607,9 +1607,6 @@ packages:
 
   '@types/node@18.19.130':
     resolution: {integrity: sha512-GRaXQx6jGfL8sKfaIDD6OupbIHBr9jv7Jnaml9tB7l4v068PAOXqfcujMMo5PhbIs6ggR1XODELqahT2R8v0fg==}
-
-  '@types/node@20.19.43':
-    resolution: {integrity: sha512-6oYBAi5ikg4Pl+kGsoYtawUMBT2zZMCvPNF7pVLnHZfd1zf38DRiWn/gT01RYCdUqkv7Fhr+C9ot4/tb+2sVvA==}
 
   '@types/node@26.6.6':
     resolution: {integrity: sha512-MzQj+8Kx3XI40OmUAE6Qoh58ZMNstNNMwn2nfd3qWsfe7nDNSqJNzes4njhz6AHwrSHOffSLwXU6yb474Q4aog==}
@@ -2835,9 +2832,6 @@ packages:
 
   undici-types@5.26.5:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
-
-  undici-types@6.21.0:
-    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
@@ -4197,9 +4191,9 @@ snapshots:
 
   '@speed-highlight/core@1.2.24': {}
 
-  '@storybook-astro/framework@1.16.0(astro@7.4.12(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1))(storybook@10.6.8(react@19.3.1))(typescript@7.1.0-dev.20261116.1)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1))(vitest@5.1.0(@types/node@26.6.6)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1)))':
+  '@storybook-astro/framework@1.18.0(astro@7.4.12(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1))(storybook@10.6.8(react@19.3.1))(typescript@7.1.0-dev.20261116.1)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1))(vitest@5.1.0(@types/node@26.6.6)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1)))':
     dependencies:
-      '@storybook-astro/renderer': 1.16.0(astro@7.4.12(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1))(storybook@10.6.8(react@19.3.1))
+      '@storybook-astro/renderer': 1.18.0(astro@7.4.12(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1))(storybook@10.6.8(react@19.3.1))
       astro: 7.4.12(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1)
       get-tsconfig: 5.0.0-beta.4
       hono: 4.13.18
@@ -4210,9 +4204,8 @@ snapshots:
       typescript: 7.1.0-dev.20261116.1
       vitest: 5.1.0(@types/node@26.6.6)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1))
 
-  '@storybook-astro/renderer@1.16.0(astro@7.4.12(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1))(storybook@10.6.8(react@19.3.1))':
+  '@storybook-astro/renderer@1.18.0(astro@7.4.12(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1))(storybook@10.6.8(react@19.3.1))':
     dependencies:
-      '@types/node': 20.19.43
       astro: 7.4.12(@types/node@26.6.6)(esbuild@0.28.2)(yaml@2.9.1)
       storybook: 10.6.8(react@19.3.1)
 
@@ -4301,10 +4294,6 @@ snapshots:
   '@types/node@18.19.130':
     dependencies:
       undici-types: 5.26.5
-
-  '@types/node@20.19.43':
-    dependencies:
-      undici-types: 6.21.0
 
   '@types/node@26.6.6':
     dependencies:
@@ -5707,8 +5696,6 @@ snapshots:
   uncrypto@0.1.3: {}
 
   undici-types@5.26.5: {}
-
-  undici-types@6.21.0: {}
 
   undici-types@8.9.0: {}
 
